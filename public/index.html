@@ -330,7 +330,7 @@ function renderLobby(l){
 s.on('phase',(p)=>{
   if(p.phase==='auction') MYSQUAD.length=0;
   if(p.phase==='auction'){
-    $(`<div class="screen center">
+    $(`<div class="screen center" style="min-height:92vh;padding-bottom:16vh">
     <h1 style="font-size:46px;color:var(--pink);line-height:1.05">BID TO BUILD<br>YOUR SQUAD!</h1>
     <div class="muted" style="margin-top:12px;font-size:18px">${p.poolSize} players · 6 each · £100m budget</div>
     <div id="budgets" class="budgets"></div></div>`);
@@ -398,9 +398,9 @@ s.on('awaitNext',(x)=>{
 });
 s.on('lotReveal',(l)=>{
   clearInterval(timerInt);
-  const base = l.revealMs||2200;
-  const fadeMs = Math.round(base*0.32);            // card bobs in fast (~0.7s incl. beat)
-  const unit = Math.round((base-fadeMs)/3);        // ~0.5s countdown ticks at 1x
+  const base = l.revealMs||3400;
+  const fadeMs = Math.round(base*0.55);            // bob in fast, then a beat to SEE the player (~1.65s)
+  const unit = Math.round((base-fadeMs)/3);        // rapid 3-2-1, ~0.45s ticks
   $(`<div class="screen center">
     <div class="eyebrow" style="margin-bottom:18px">Lot ${l.index+1}/${l.total}</div>
     <div class="revealCard" style="--fade:${Math.min(450,fadeMs)}ms">${cardHTML(l.player)}</div>

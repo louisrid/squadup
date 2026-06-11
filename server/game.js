@@ -40,7 +40,7 @@ const TIMINGS = {
   AUCTION_BID_ADD_MS: FAST ? 60 : 3000,
   AUCTION_MAX_MS: FAST ? 600 : 40000,
   AUCTION_BETWEEN_MS: FAST ? 30 : 4000,
-  LOT_REVEAL_MS: FAST ? 20 : 2200,
+  LOT_REVEAL_MS: FAST ? 20 : 3400,
   REVEAL_QUICK_MS: FAST ? 15 : 3000,
   REVEAL_FEATURED_MS: FAST ? 25 : 13000,
   REVEAL_MATCHDAY_GAP_MS: FAST ? 5 : 800,
@@ -218,7 +218,7 @@ class Game {
     a.current = null;
     a.highBid = 0;
     a.highBidder = null;
-    if (a.index === 0) return void setTimeout(() => this.presentLot(), FAST ? 25 : 2600);
+    if (a.index === 0) return void setTimeout(() => this.presentLot(), FAST ? 25 : 3400);
     const host = this.managers.find((m) => m.id === this.hostId);
     this.io.emit('awaitNext', { hostName: host ? host.name : 'Host' });
     if (FAST) setTimeout(() => this.presentLot(), 25);
