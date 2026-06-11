@@ -40,7 +40,7 @@ const TIMINGS = {
   AUCTION_BID_ADD_MS: FAST ? 60 : 3000,
   AUCTION_MAX_MS: FAST ? 600 : 40000,
   AUCTION_BETWEEN_MS: FAST ? 30 : 4000,
-  LOT_REVEAL_MS: FAST ? 20 : 6000,
+  LOT_REVEAL_MS: FAST ? 20 : 4000,
   REVEAL_QUICK_MS: FAST ? 15 : 3000,
   REVEAL_FEATURED_MS: FAST ? 25 : 13000,
   REVEAL_MATCHDAY_GAP_MS: FAST ? 5 : 800,
@@ -208,14 +208,26 @@ class Game {
     }
     const buyers = this.activeManagers().filter((m) => m.squad.length < 6);
     a.index++;
+    while (a.index < a.queue.length && !this.activeManagers().some((m) => this.canBuyPlayer(m, a.queue[a.index]))) {
+      const sk = a.queue[a.index];
+      a.unsold.push(sk);
+      this.io.emit('lotSkipped', { player: sk.name, pos: sk.pos });
+      a.index++;
+    }
     if (a.index >= a.queue.length || buyers.length === 0) return this.endAuction();
     a.current = null;
     a.highBid = 0;
     a.highBidder = null;
-    if (a.index === 0) return this.presentLot();
+    if (a.index === 0) return void setTimeout(() => this.presentLot(), FAST ? 25 : 2600);
     const host = this.managers.find((m) => m.id === this.hostId);
     this.io.emit('awaitNext', { hostName: host ? host.name : 'Host' });
     if (FAST) setTimeout(() => this.presentLot(), 25);
+  }
+
+  canBuyPlayer(m, p) {
+    if (m.sacked || m.squad.length >= 6 || m.budget < 1) return false;
+    if (p.pos === 'GK' && m.squad.some((x) => x.pos === 'GK')) return false;
+    return Game.formationFeasible([...m.squad.map((x) => x.pos), p.pos], 6 - m.squad.length - 1);
   }
 
   hostNextLot(managerId) {
@@ -396,6 +408,31 @@ class Game {
     }
     if (this.pendingStarters.size === 0) this.startersDone();
     return { ok: true };
+  }
+
+  suggestXI(managerId) {
+    const m = this.managers.find((x) => x.id === managerId);
+    if (!m || m.sacked) return { error: 'Not in game' };
+    const forms = this.validFormations(m);
+    if (!forms.length) return { error: 'No legal formation' };
+    let best = null;
+    for (const f of forms) {
+      const avail = m.squad.filter((p) => p.name !== m.injured);
+      const starters = [];
+      let ok = true;
+      for (const pos of ['GK', 'DEF', 'MID', 'ATT']) {
+        const needed = FORMATIONS[f].slots.filter((s) => s === pos).length;
+        const ranked = avail.filter((p) => p.pos === pos && !starters.includes(p))
+          .sort((x, y) => (y.rating + (y.seasonMod || 0)) - (x.rating + (x.seasonMod || 0)));
+        if (ranked.length < needed) { ok = false; break; }
+        starters.push(...ranked.slice(0, needed));
+      }
+      if (!ok) continue;
+      const score = starters.reduce((s, p) => s + p.rating + (p.seasonMod || 0), 0);
+      if (!best || score > best.score) best = { score, formation: f, starters: starters.map((p) => p.name) };
+    }
+    if (!best) return { error: 'No legal formation' };
+    return { ok: true, formation: best.formation, starters: best.starters };
   }
 
   autoPickIfOnlyGhosts() {

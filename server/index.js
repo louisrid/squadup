@@ -38,7 +38,8 @@ io.on('connection', (socket) => {
     if (!game) return cb({ error: 'Lobby not found' });
     // same name + seat free (disconnected or mid-game) -> reclaim that manager
     const existing = game.managers.find((m) => m.name === name);
-    if (existing && !existing.connected) {
+    const canReclaim = existing && (!existing.connected || game.phase !== 'lobby');
+    if (canReclaim) {
       const oldId = existing.id;
       existing.id = socket.id;
       if (game.hostId === oldId) game.hostId = socket.id;
@@ -47,12 +48,14 @@ io.on('connection', (socket) => {
         game.pendingStarters.delete(oldId);
         game.pendingStarters.add(socket.id);
       }
+      const oldSock = io.sockets.sockets.get(oldId);
+      if (oldSock && oldSock.id !== socket.id) oldSock.disconnect(true);
       socket.join(code);
       joined = { code, managerId: socket.id };
       game.setConnected(socket.id, true);
       return cb({ ok: true, code, managerId: socket.id, snapshot: game.snapshot(socket.id) });
     }
-    if (existing) return cb({ error: 'Name taken by a connected player' });
+    if (existing) return cb({ error: 'Name taken in this lobby' });
     socket.join(code);
     const r = game.addManager(socket.id, name, club);
     if (r.error) return cb(r);
@@ -125,6 +128,10 @@ io.on('connection', (socket) => {
     cb && cb(g ? g.hostResume(joined.managerId) : { error: 'No game' });
   });
 
+  socket.on('suggestXI', (cb) => {
+    const g = current();
+    cb && cb(g ? g.suggestXI(joined.managerId) : { error: 'No game' });
+  });
   socket.on('respin', ({ player }, cb) => {
     const g = current();
     cb && cb(g ? g.respin(joined.managerId, player) : { error: 'No game' });
