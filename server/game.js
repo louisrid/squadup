@@ -49,7 +49,7 @@ const TIMINGS = {
   WINTER_FALLBACK_MS: FAST ? 1500 : 180000,
 };
 
-const mid = () => Math.random().toString(36).slice(2, 8).toUpperCase();
+const mid = () => String(10 + Math.floor(Math.random() * 90)); // 2-digit lobby code, 10-99
 
 class Game {
   constructor(code, io) {

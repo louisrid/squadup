@@ -207,6 +207,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
+const VERSION = 'v1.1';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -238,6 +239,7 @@ function home(){
   <div class="muted" style="margin-bottom:26px">Bid on real players. Hidden ratings.<br>Survive the season.</div>
   <button class="primary bigbtn" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
+  <div class="muted" style="margin-top:26px;font-size:13px;opacity:.6">${VERSION}</div>
   </div>`);
 }
 function showSetup(mode){
@@ -247,7 +249,7 @@ function showSetup(mode){
   <h1>${mode==='create'?'Your details':'Enter the code'}</h1>
   <div class="panel" style="padding:22px">
     ${mode==='join'?`<label class="flabel">Lobby code</label>
-    <input id="code" placeholder="e.g. K7XQ2P" style="text-transform:uppercase;font-family:var(--disp);font-weight:800;font-size:26px;letter-spacing:.12em;text-align:center" maxlength="6">`:''}
+    <input id="code" placeholder="e.g. 42" inputmode="numeric" pattern="[0-9]*" style="font-family:var(--disp);font-weight:800;font-size:30px;letter-spacing:.14em;text-align:center" maxlength="2">`:''}
     <label class="flabel">Your name</label>
     <input id="name" placeholder="Louis" maxlength="14">
     <label class="flabel">Club name <span class="muted">(optional)</span></label>
