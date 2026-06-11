@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SQUADUP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B0B10; --surface:#14141C; --surface2:#1B1B26; --line:#262633;
+  --pink:#FF3D8A; --pink-deep:#C2186B;
+  --gk:#E8B931; --def:#3D7BFF; --mid:#2EC96E; --att:#FF5247;
+  --text:#F2F2F7; --muted:#8A8A99;
+  --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);-webkit-tap-highlight-color:transparent}
+body{max-width:500px;margin:0 auto;padding:16px 16px 150px;min-height:100vh;font-size:16px;font-weight:600}
+.screen{min-height:86vh;display:flex;flex-direction:column;justify-content:center}
+@media (min-width:700px){
+  body{max-width:600px;font-size:17px}
+  h1{font-size:64px!important}
+  .codetext{font-size:84px!important}
+  .lotRow .pcard{width:190px!important}
+  .lotRow .ringWrap{width:190px!important;height:190px!important}
+  .score{font-size:58px}
+  .bidline{font-size:52px}
+}
+h1,h2,.disp{font-family:var(--disp);text-transform:uppercase;letter-spacing:.02em}
+h1{font-size:34px;font-weight:800;margin:10px 0 2px;line-height:.95}
+h2{font-size:27px;font-weight:700;margin:24px 0 10px}
+.eyebrow{font-family:var(--disp);text-transform:uppercase;font-weight:700;font-size:16px;letter-spacing:.14em;color:var(--pink)}
+.muted{color:var(--muted);font-size:16px;font-weight:500}
+.flabel{display:block;font-family:var(--disp);text-transform:uppercase;font-weight:700;font-size:15px;letter-spacing:.1em;color:var(--muted);margin:12px 0 4px}
+.bigbtn{width:100%;font-size:21px;padding:17px}
+.blackbox{background:#000;border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:14px 0;text-align:center}
+button{font-family:var(--disp);text-transform:uppercase;font-weight:700;letter-spacing:.04em;font-size:19px;
+  padding:14px 19px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--text);cursor:pointer}
+button:active{transform:scale(.97)}
+button.primary{background:var(--pink);border-color:var(--pink);color:#fff;box-shadow:0 4px 24px rgba(255,61,138,.35)}
+button:disabled{opacity:.35;pointer-events:none}
+input{padding:15px 15px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:18px;width:100%;margin:5px 0;font-family:var(--body);font-weight:600}
+input:focus{outline:2px solid var(--pink);border-color:transparent}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin:16px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1}
+.center{text-align:center}
+/* ---------- player card ---------- */
+.pcard{position:relative;width:176px;aspect-ratio:3/4.3;border-radius:14px;overflow:hidden;margin:0 auto;
+  border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 34px rgba(0,0,0,.55)}
+.pcard .bgGrad{position:absolute;inset:0}
+.pcard.GK .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#5a4710 0%,#241d08 58%,#101010 100%)}
+.pcard.DEF .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#16306b 0%,#0d1a3a 58%,#0e0e14 100%)}
+.pcard.MID .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#0e4d2a 0%,#0a2a18 58%,#0e120e 100%)}
+.pcard.ATT .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#62211c 0%,#33120f 58%,#15100f 100%)}
+.pcard svg.sil{position:absolute;left:50%;top:16%;transform:translateX(-50%);width:64%;opacity:.92}
+.pcard .posb{position:absolute;top:8px;left:8px;font-family:var(--disp);font-weight:800;font-size:16px;letter-spacing:.1em;
+  padding:3px 9px;border-radius:7px;color:#0b0b10}
+.pcard.GK .posb{background:var(--gk)} .pcard.DEF .posb{background:var(--def);color:#fff}
+.pcard.MID .posb{background:var(--mid);color:#06140b} .pcard.ATT .posb{background:var(--att);color:#fff}
+.pcard .nm{position:absolute;left:0;right:0;bottom:0;padding:22px 8px 9px;text-align:center;
+  font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:17px;line-height:1;
+  background:linear-gradient(transparent,rgba(0,0,0,.88) 45%)}
+.pcard.sm{width:104px}.pcard.sm .nm{font-size:13px;padding-bottom:7px}.pcard.sm .posb{font-size:13px;padding:2px 7px}
+/* ---------- start ready ---------- */
+.startready{background:#4FC3F7;border-color:#4FC3F7;color:#06222e;box-shadow:0 4px 24px rgba(79,195,247,.4);animation:readyPulse 1.6s ease infinite}
+@keyframes readyPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+/* ---------- bid flash ---------- */
+.bidflash{animation:bidPulse .55s ease}
+@keyframes bidPulse{0%{transform:scale(1);color:var(--text)}30%{transform:scale(1.14);color:var(--pink)}100%{transform:scale(1)}}
+/* ---------- confetti ---------- */
+.cf{position:fixed;top:-12px;width:10px;height:14px;z-index:60;pointer-events:none;animation:cfFall linear forwards}
+@keyframes cfFall{to{transform:translateY(110vh) rotate(720deg)}}
+/* ---------- my squad mini ---------- */
+.minirow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
+.mini{display:flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--line);
+  border-radius:8px;padding:4px 8px;font-size:13px;font-weight:600}
+@media (prefers-reduced-motion: reduce){.cf{display:none}.startready{animation:none}.bidflash{animation:none}}
+/* ---------- lot row ---------- */
+.lotRow{display:flex;align-items:center;justify-content:center;gap:16px}
+.ringSec{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--disp);font-weight:800;font-size:42px;color:var(--text)}
+.giveup{border-color:var(--att);color:var(--att);background:transparent;font-size:16px}
+/* ---------- back button ---------- */
+.backbtn{position:fixed;top:10px;left:max(10px,env(safe-area-inset-left));z-index:40;
+  width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--surface2);border:1px solid var(--line);font-size:20px;padding:0;color:var(--text)}
+/* ---------- lot reveal ---------- */
+.revealCard .pcard{animation:cardFade var(--fade,3.4s) ease forwards;opacity:0;filter:blur(14px)}
+@keyframes cardFade{0%{opacity:0;filter:blur(14px);transform:scale(.92)}70%{opacity:1;filter:blur(2px)}100%{opacity:1;filter:blur(0);transform:scale(1)}}
+.cd{font-family:var(--disp);font-weight:800;font-size:86px;line-height:1;color:var(--pink);animation:cdPop .9s ease forwards}
+@keyframes cdPop{0%{opacity:0;transform:scale(1.6)}25%{opacity:1;transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:scale(.85)}}
+@media (prefers-reduced-motion: reduce){.revealCard .pcard{animation:none;opacity:1;filter:none}.cd{animation:none}}
+/* ---------- lobby code ---------- */
+.codebox{background:#000;border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:12px 0;text-align:center}
+.codetext{font-family:var(--disp);font-weight:800;font-size:58px;line-height:1;letter-spacing:.12em;margin:8px 0 12px;color:var(--text)}
+.copybtn{background:var(--pink);border-color:var(--pink);color:#fff;width:100%;font-size:16px}
+/* ---------- auction ---------- */
+.ringWrap{position:relative;width:300px;height:300px;margin:0 auto}
+.auctionWrap{display:flex;flex-direction:column;justify-content:center;flex:1;gap:16px}
+.ringWrap svg.ring{position:absolute;inset:0;transform:rotate(-90deg);width:100%;height:100%}
+.ringWrap .pcard{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.bidline{font-family:var(--disp);font-weight:800;font-size:42px;line-height:1;letter-spacing:.01em}
+.bidline small{font-size:18px;color:var(--muted);font-weight:700}
+.bidder{color:var(--pink);font-weight:700;font-size:16px}
+.bidbar{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));
+  max-width:468px;margin:0 auto;display:flex;flex-direction:column;
+  background:rgba(20,20,28,.97);border:1px solid var(--line);border-radius:18px;
+  padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+@media (min-width:700px){.bidbar{max-width:568px}}
+input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:6px;background:var(--surface2);outline:none;border:1px solid var(--line);padding:0;margin:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;border-radius:50%;background:var(--pink);border:3px solid #fff;box-shadow:0 2px 10px rgba(255,61,138,.5);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--pink);border:3px solid #fff;cursor:pointer}
+.budgets{display:flex;gap:6px;overflow-x:auto;padding:2px 0;margin:4px 0}
+.bchip{flex:0 0 auto;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:15px}
+.bchip b{font-family:var(--disp);font-size:15px}
+.bchip.me{border-color:var(--pink)}
+.bchip.done{opacity:.45}
+/* ---------- reveals ---------- */
+.score{font-family:var(--disp);font-weight:800;font-size:46px;line-height:.95;text-transform:uppercase}
+.score .gl{color:var(--pink)}
+.featuredTag{display:inline-block;background:var(--pink);color:#fff;font-family:var(--disp);font-weight:800;
+  font-size:12px;letter-spacing:.16em;padding:3px 10px;border-radius:6px;text-transform:uppercase}
+.evt{font-size:16px;padding:8px 0;border-bottom:1px solid var(--line);opacity:0;animation:pop .4s forwards}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.tick{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+/* ---------- tables / form ---------- */
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{padding:11px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:16px}
+th{font-family:var(--disp);text-transform:uppercase;font-size:12px;letter-spacing:.1em;color:var(--muted)}
+tr.hu td{background:rgba(255,61,138,.06)}
+tr.me td{background:rgba(255,61,138,.14)}
+.formchip{display:inline-block;min-width:30px;text-align:center;font-family:var(--disp);font-weight:800;border-radius:8px;padding:2px 6px;color:#0b0b10}
+.f-g{background:#39d97c}.f-y{background:#ffd23d}.f-o{background:#ff9838}.f-r{background:#ff5247;color:#fff}
+.pos{display:inline-block;font-family:var(--disp);font-weight:800;font-size:11px;letter-spacing:.08em;padding:2px 6px;border-radius:5px;margin-right:7px;color:#0b0b10}
+.pos.GK{background:var(--gk)}.pos.DEF{background:var(--def);color:#fff}.pos.MID{background:var(--mid)}.pos.ATT{background:var(--att);color:#fff}
+/* ---------- pick ---------- */
+.pickgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pbtn{display:flex;align-items:center;gap:5px;padding:13px 11px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface2);color:var(--text);font-family:var(--body);font-size:15px;font-weight:600;text-transform:none;letter-spacing:0;text-align:left}
+.pbtn.sel{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink),0 4px 18px rgba(255,61,138,.25)}
+.pbtn.inj{opacity:.4}
+.fbtn.sel{background:var(--pink);border-color:var(--pink);color:#fff}
+/* ---------- legend card ---------- */
+.pcard.legend .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#fffdf4 0%,#f5ecd0 58%,#e8d9a8 100%)}
+.pcard.legend{border:2px solid #C9A227;box-shadow:0 0 24px rgba(201,162,39,.45)}
+.pcard.legend .nm{color:#5b4708;background:linear-gradient(transparent,rgba(255,250,235,.95) 45%)}
+.pcard.legend svg.sil g{fill:#b99c3f}
+.pcard.legend .posb{background:#C9A227!important;color:#fff!important}
+/* ---------- winter hub ---------- */
+.tabrow{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
+.tab{flex:0 0 auto;padding:12px 17px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);
+  font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:17px;letter-spacing:.05em;color:var(--muted)}
+.tab.sel{border-color:var(--pink);color:var(--text);background:var(--surface)}
+.formchip{font-family:var(--disp);font-weight:800;font-size:17px;padding:4px 10px;border-radius:8px;min-width:52px;text-align:center}
+.f-g{background:#123d24;color:#5BE08A}.f-y{background:#3d3712;color:#F2D24B}.f-o{background:#3d2712;color:#F0A24B}.f-r{background:#3d1212;color:#F06B6B}.f-n{background:var(--surface2);color:var(--muted)}
+.unitbox{flex:1;background:#000;border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
+.unitbox .uv{font-family:var(--disp);font-weight:800;font-size:36px}
+.spinbtn{border-color:#C9A227;color:#C9A227;background:transparent;font-size:17px;padding:10px 13px;min-width:50px}
+.tierbanner{font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:42px;letter-spacing:.04em}
+.ceremonyTxt{font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:38px;letter-spacing:.03em;opacity:0;animation:cerIn .8s ease forwards}
+@keyframes cerIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
+.podiumRow{display:flex;align-items:baseline;gap:12px;opacity:0;animation:cerIn .7s ease forwards;margin:10px 0}
+.podiumPos{font-family:var(--disp);font-weight:800;font-size:30px;color:var(--muted);min-width:52px}
+.podiumName{font-family:var(--disp);font-weight:800;font-size:32px}
+.champName{font-family:var(--disp);font-weight:800;font-size:52px;line-height:1.05;color:#C9A227;text-shadow:0 0 26px rgba(201,162,39,.55);opacity:0;animation:cerIn .9s ease forwards}
+.spinOverlay{position:fixed;inset:0;z-index:80;background:rgba(5,5,9,.95);backdrop-filter:blur(6px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .45s ease}
+.spinOverlay.show{opacity:1}
+.spinPulse{font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:30px;color:var(--muted);
+  animation:spinPulse 1s ease infinite}
+@keyframes spinPulse{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+.legendGlow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 45% at 50% 52%,rgba(201,162,39,.28),transparent 70%)}
+.tabwrap{position:sticky;top:0;z-index:30;background:linear-gradient(#0B0B10 78%,transparent);padding:8px 0 4px;margin:0 -2px}
+.tab.sel{border-color:var(--pink);color:#fff;background:var(--pink)}
+.t-worse{color:var(--att)}.t-better{color:#5BE08A}.t-great{color:#4FC3F7}.t-legend{color:#C9A227;text-shadow:0 0 18px rgba(201,162,39,.6)}
+/* ---------- pitch squad selection ---------- */
+.pitch{background:linear-gradient(180deg,#0B2415,#07180D);border:1px solid rgba(46,201,110,.3);
+  border-radius:18px;padding:18px 8px;margin:14px 0;position:relative;box-shadow:inset 0 0 50px rgba(0,0,0,.45)}
+.pitch:before{content:'';position:absolute;inset:10px;border:1px solid rgba(255,255,255,.07);border-radius:12px;pointer-events:none}
+.prow{display:flex;justify-content:center;gap:10px;margin:9px 0}
+.slot{width:100px;min-height:116px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:2px dashed var(--line);color:var(--muted);font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.08em;cursor:pointer}
+.slot.filled{border:2px solid var(--pink);background:var(--surface2);color:var(--text);padding:6px 4px}
+.slot .sname{font-size:14px;line-height:1.05;text-align:center;text-transform:uppercase;margin-top:4px}
+.benchrow{display:flex;gap:8px;flex-wrap:wrap}
+.bp{display:flex;align-items:center;gap:6px;padding:12px;border-radius:12px;border:1px solid var(--line);
+  background:var(--surface2);font-size:16px;font-weight:600;cursor:pointer;font-family:var(--body);text-transform:none;letter-spacing:0;color:var(--text)}
+.bp.used{opacity:.3;pointer-events:none}
+.bp.inj{opacity:.35;pointer-events:none}
+/* ---------- awards ---------- */
+.trophy{font-size:54px;line-height:1}
+.award{display:flex;justify-content:space-between;gap:8px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+.award b{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em}
+.paused{position:fixed;top:0;left:0;right:0;background:var(--pink-deep);color:#fff;text-align:center;
+  font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:7px;z-index:50}
+@media (prefers-reduced-motion: reduce){.evt{animation:none;opacity:1}}
+</style>
+</head>
+<body>
+<div id="pausebar" class="paused" style="display:none"></div>
+<div id="app"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const s = io();
+const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
+let ME = { id:null, code:null, name:null, budget:100 };
+let A = null, timerInt = null, pickState = null, lastTable = null;
+
+function backBtn(inGame){
+  return `<button class="backbtn" onclick="goBack(${inGame?1:0})">‹</button>`;
+}
+function goBack(inGame){
+  if(inGame && !confirm('Leave the game? You can rejoin with the same code and name.')) return;
+  location.reload();
+}
+const esc = (t) => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = (name) => 1 + ([...name].reduce((a,c)=>a+c.charCodeAt(0),0) % 29);
+const SIL = `<svg class="sil" viewBox="0 0 100 110"><g fill="#9a9aa6"><circle cx="50" cy="34" r="20"/><path d="M14 110 C14 76 30 62 50 62 C70 62 86 76 86 110 Z"/></g><g fill="rgba(255,255,255,.10)"><circle cx="44" cy="28" r="20"/></g></svg>`;
+
+function cardHTML(p, sm){
+  return `<div class="pcard ${p.pos} ${sm?'sm':''} ${p.legend?'legend':''}">
+    <div class="bgGrad"></div>${SIL}
+    <div class="posb">${p.pos}</div>
+    <div class="nm">${esc(p.name)}</div>
+  </div>`;
+}
+
+/* ---------------- HOME ---------------- */
+function home(){
+  $(`<div class="screen center">
+  <h1 style="font-size:64px;letter-spacing:.01em"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
+  <div class="muted" style="margin-bottom:26px">Bid on real players. Hidden ratings.<br>Survive the season.</div>
+  <button class="primary bigbtn" onclick="showSetup('create')">Create a lobby</button>
+  <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
+  </div>`);
+}
+function showSetup(mode){
+  $(`<button class="backbtn" onclick="home()">‹</button>
+  <div class="screen">
+  <div class="eyebrow">${mode==='create'?'Create a lobby':'Join a lobby'}</div>
+  <h1>${mode==='create'?'Your details':'Enter the code'}</h1>
+  <div class="panel" style="padding:22px">
+    ${mode==='join'?`<label class="flabel">Lobby code</label>
+    <input id="code" placeholder="e.g. K7XQ2P" style="text-transform:uppercase;font-family:var(--disp);font-weight:800;font-size:26px;letter-spacing:.12em;text-align:center" maxlength="6">`:''}
+    <label class="flabel">Your name</label>
+    <input id="name" placeholder="Louis" maxlength="14">
+    <label class="flabel">Club name <span class="muted">(optional)</span></label>
+    <input id="club" placeholder="Louis FC" maxlength="18">
+    <button class="primary bigbtn" style="margin-top:16px" onclick="${mode==='create'?'createL()':'joinL()'}">${mode==='create'?'Create lobby':'Join lobby'}</button>
+  </div>
+  </div>`);
+}
+function getNC(){
+  const name=document.getElementById('name').value.trim();
+  const club=document.getElementById('club').value.trim()||((name||'My')+' FC');
+  return {name,club};
+}
+function createL(){ const {name,club}=getNC(); if(!name) return toast('Enter a name');
+  s.emit('createLobby',{name,club},(r)=>{ if(r.error) return toast(r.error); onJoined(r,name); }); }
+function joinL(){ const {name,club}=getNC(); const code=document.getElementById('code').value.trim();
+  if(!name) return toast('Enter a name'); if(!code) return toast('Enter the lobby code');
+  s.emit('joinLobby',{code,name,club},(r)=>{ if(r.error) return toast(r.error); onJoined(r,name); }); }
+function onJoined(r,name){ ME.id=r.managerId; ME.code=r.code; ME.name=name;
+  if(lastLobby && lastLobby.code===ME.code) renderLobby(lastLobby);
+  if(r.snapshot) restoreFromSnapshot(r.snapshot); }
+function restoreFromSnapshot(snap){
+  if(!snap) return;
+  if(snap.winter){ applyWinter(snap.winter); return; }
+  if(snap.auction && snap.auction.player){
+    A={ index:snap.auction.index, total:snap.auction.total, player:snap.auction.player,
+        highBid:snap.auction.highBid, highBidder:snap.auction.highBidder,
+        deadline:snap.auction.deadline, start:20000 };
+    renderLot();
+  } else if(snap.phase!=='lobby'){
+    $(`<div class="screen center"><div class="score" style="font-size:30px">You're back in</div>
+    <div class="muted" style="margin-top:8px">Hang tight for the next event…</div></div>`);
+  }
+}
+function copyCode(c){
+  const done=()=>toast('Code copied');
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(c).then(done).catch(()=>fallbackCopy(c,done)); }
+  else fallbackCopy(c,done);
+}
+function fallbackCopy(c,done){
+  const t=document.createElement('textarea'); t.value=c; document.body.appendChild(t); t.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(t); done();
+}
+
+
+/* ---------------- LOBBY ---------------- */
+let lastLobby=null;
+s.on('lobby',(l)=>{
+  lastLobby=l;
+  if(!ME.code) return;
+  renderLobby(l);
+});
+function renderLobby(l){
+  ME.isHost = l.hostId===ME.id;
+  $(`${backBtn(0)}<div class="screen">
+  <div class="eyebrow">Lobby</div>
+  <div class="codebox">
+    <div class="muted" style="letter-spacing:.14em;text-transform:uppercase;font-size:11px">Lobby code</div>
+    <div class="codetext" id="codetext">${l.code}</div>
+    <button class="copybtn" onclick="copyCode('${l.code}')">Copy code</button>
+  </div>
+  <div class="muted center">Share the code with your mates · 2–6 managers</div>
+  <div class="panel">
+    ${l.managers.map(m=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)">
+      <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span></span>
+      <span>${m.ready?'🟢':'⚪️'}</span></div>`).join('')}
+  </div>
+  <button class="primary" style="width:100%" onclick="s.emit('ready',{ready:true})">I'm ready</button>
+  ${l.hostId===ME.id?(()=>{
+    const allReady = l.managers.length>=2 && l.managers.every(m=>m.ready);
+    return `<button class="${allReady?'startready':''}" style="width:100%;margin-top:8px" ${allReady?'':'disabled'}
+      onclick="s.emit('startGame')">Start game</button>
+    <div class="muted center" style="margin-top:6px">${allReady?'Everyone is ready — go!':'Starts when everyone\'s ready (2+ players)'}</div>`;
+  })():''}
+  </div>`);
+}
+
+/* ---------------- AUCTION ---------------- */
+s.on('phase',(p)=>{
+  if(p.phase==='auction') MYSQUAD.length=0;
+  if(p.phase==='auction'){
+    $(`<div class="screen center"><div class="eyebrow">Main auction</div>
+    <h1>${p.poolSize} players</h1><div class="muted">First lot incoming…</div><div id="budgets" class="budgets"></div></div>`);
+  }
+});
+s.on('lot',(l)=>{ A={...l, highBid:0, highBidder:null, out:false, start: l.deadline - Date.now()}; renderLot(); });
+s.on('bid',(b)=>{ if(!A) return;
+  A.highBid=b.amount; A.highBidder=b.manager; A.deadline=b.deadline;
+  const bl=document.getElementById('bidlineEl'), bd=document.getElementById('bidderEl'),
+        rg=document.getElementById('bidRange'), am=document.getElementById('bidAmt');
+  if(!bl) return renderLot();
+  bl.innerHTML=`£${A.highBid}<small>m</small>`;
+  bd.textContent=A.highBidder;
+  bl.classList.remove('bidflash'); void bl.offsetWidth; bl.classList.add('bidflash');
+  if(rg){
+    const minBid=A.highBid+1;
+    rg.min=minBid;
+    if(parseInt(rg.value)<minBid) rg.value=minBid;
+    if(am) am.textContent='£'+rg.value+'m';
+  }
+});
+const MYSQUAD=[];
+s.on('lotSold',(x)=>{
+  A=null;
+  if(x.manager===ME.name) MYSQUAD.push({name:x.player,pos:x.pos});
+  flashResult(`<span style="color:var(--pink)">SOLD</span> £${x.price}m`, `<b>${esc(x.player)}</b> → ${esc(x.manager)}`);
+  confetti();
+});
+s.on('lotUnsold',(x)=>{ A=null; flashResult('UNSOLD', esc(x.player)); });
+function confetti(){
+  const colors=['#FF3D8A','#4FC3F7','#FFD23D','#2EC96E','#fff'];
+  for(let i=0;i<70;i++){
+    const d=document.createElement('div');
+    d.className='cf';
+    d.style.left=(Math.random()*100)+'vw';
+    d.style.background=colors[i%colors.length];
+    d.style.animationDuration=(1.4+Math.random()*1.6)+'s';
+    d.style.animationDelay=(Math.random()*0.4)+'s';
+    d.style.borderRadius=Math.random()<.4?'50%':'2px';
+    document.body.appendChild(d);
+    setTimeout(()=>d.remove(),3600);
+  }
+}
+s.on('budgets',(rows)=>{
+  const me=rows.find(r=>r.name===ME.name); if(me) ME.budget=me.budget;
+  const el=document.getElementById('budgets');
+  if(el) el.innerHTML=rows.map(r=>`<div class="bchip ${r.name===ME.name?'me':''} ${r.done?'done':''}">
+    ${esc(r.name)}<br><b>£${r.budget}m</b> · ${r.squadCount||0}/6</div>`).join('');
+});
+function flashResult(big, small){
+  clearInterval(timerInt);
+  $(`<div class="screen center">
+    <div class="blackbox" style="width:100%"><div class="score">${big}</div>
+    <div style="margin-top:10px;font-size:18px">${small}</div></div>
+    <div id="nextslot" style="margin-top:18px"></div>
+    <div id="budgets" class="budgets" style="margin-top:18px"></div></div>`);
+}
+s.on('awaitNext',(x)=>{
+  const el=document.getElementById('nextslot');
+  const inner = ME.isHost
+    ? `<button class="primary" style="width:80%" onclick="s.emit('hostNext',(r)=>{if(r&&r.error)toast(r.error)})">Next player</button>`
+    : `<div class="muted">Waiting for ${esc(x.hostName)} to bring up the next player…</div>`;
+  if(el) el.innerHTML=inner;
+  else $(`<div class="screen center">${inner}<div id="budgets" class="budgets" style="margin-top:18px"></div></div>`);
+});
+s.on('lotReveal',(l)=>{
+  clearInterval(timerInt);
+  const unit = Math.round((l.revealMs||6000)/6);   // 1s steps at 1x, 0.5s at 2x
+  const fadeMs = (l.revealMs||6000) - 3*unit;      // 3s card fade at 1x
+  $(`<div class="screen center">
+    <div class="eyebrow" style="margin-bottom:18px">Lot ${l.index+1}/${l.total}</div>
+    <div class="revealCard" style="--fade:${fadeMs}ms">${cardHTML(l.player)}</div>
+    <div id="cdWrap" style="margin-top:18px;height:90px"></div>
+  </div>`);
+  [3,2,1].forEach((n,i)=>{
+    setTimeout(()=>{
+      const w=document.getElementById('cdWrap');
+      if(w) w.innerHTML=`<div class="cd" style="animation-duration:${Math.round(unit*0.9)}ms">${n}</div>`;
+    }, fadeMs + i*unit);
+  });
+});
+let hostPausedLocal=false;
+let SPEED=1;
+function renderLot(){
+  if(!A) return;
+  const R=70, C=2*Math.PI*R;
+  A.out = A.out||false;
+  const minBid=A.highBid+1, canAfford=ME.budget>=minBid, maxBid=Math.max(minBid, ME.budget);
+  $(`${backBtn(1)}<div class="row" style="padding-left:48px">
+    <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
+    <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
+  </div>
+  <div class="auctionWrap" style="min-height:66vh">
+  <div class="lotRow">
+    <div style="width:150px">${cardHTML(A.player)}</div>
+    <div class="ringWrap" style="width:156px;height:156px">
+      <svg class="ring" viewBox="0 0 156 156"><circle cx="78" cy="78" r="${R}" fill="none" stroke="var(--line)" stroke-width="6"/>
+      <circle id="ringFg" cx="78" cy="78" r="${R}" fill="none" stroke="var(--pink)" stroke-width="6" stroke-linecap="round"
+        stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
+      <div id="ringSec" class="ringSec">–</div>
+    </div>
+  </div>
+  ${ME.isHost?`<div class="row" style="justify-content:center">
+    <button onclick="togglePause(this)" style="width:150px;font-size:18px;padding:14px">${hostPausedLocal?'Resume':'Pause'}</button>
+    <button onclick="toggleSpeed()" style="width:110px;font-size:18px;padding:14px;${SPEED===2?'background:#4FC3F7;border-color:#4FC3F7;color:#06222e':''}">${SPEED===2?'2x ✓':'2x'}</button>
+  </div>`:''}
+  <div class="blackbox" style="margin:6px auto;width:min(320px,100%)">
+    <div class="bidline" id="bidlineEl">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</div>
+    <div class="bidder" id="bidderEl">${A.highBidder?esc(A.highBidder):'No bids yet'}</div>
+  </div>
+  </div>
+  <div id="budgets" class="budgets"></div>
+  <div class="bidbar">
+    ${MYSQUAD.length?`<div class="minirow">${MYSQUAD.map(p=>`<span class="mini"><span class="pos ${p.pos}" style="margin-right:0">${p.pos}</span>${esc(p.name)}</span>`).join('')}</div>`:''}
+    ${A.out
+    ?`<div class="center muted" style="padding:10px 0;font-size:17px">You're out of this lot</div>`
+    :canAfford?`<div class="row" style="width:100%">
+      <input type="range" id="bidRange" class="grow" min="${minBid}" max="${maxBid}" value="${minBid}" step="1"
+        oninput="document.getElementById('bidAmt').textContent='£'+this.value+'m'">
+      <span id="bidAmt" class="disp" style="font-size:24px;font-weight:800;min-width:74px;text-align:right">£${minBid}m</span>
+    </div>
+    <div class="row" style="width:100%;margin-top:10px">
+      <button class="primary grow" style="font-size:19px"
+        onclick="bid(parseInt(document.getElementById('bidRange').value))">Place bid</button>
+      <button class="giveup" onclick="giveUp()">Give up</button>
+    </div>`
+    :`<div class="row" style="width:100%"><div class="center muted grow" style="padding:8px 0;font-size:16px">Can't afford the next bid (£${minBid}m)</div>
+    <button class="giveup" onclick="giveUp()">Give up</button></div>`}
+  </div>`);
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    const el=document.getElementById('ringFg'); if(!el) return clearInterval(timerInt);
+    if(isPaused) return; // freeze ring + seconds while paused
+    const ms=Math.max(0,(A.deadline||0)-Date.now());
+    const frac=Math.min(1, ms / Math.max(A.start, 8000));
+    el.style.strokeDashoffset = String(C*(1-frac));
+    const sec=document.getElementById('ringSec');
+    if(sec) sec.textContent=Math.ceil(ms/1000);
+  },80);
+}
+function togglePause(btn){
+  if(hostPausedLocal){ s.emit('hostResume',(r)=>{ if(r&&r.error) return toast(r.error); hostPausedLocal=false; btn.textContent='Pause'; }); }
+  else { s.emit('hostPause',(r)=>{ if(r&&r.error) return toast(r.error); hostPausedLocal=true; btn.textContent='Resume'; }); }
+}
+function bid(n){ s.emit('bid',{amount:n},(r)=>{ if(r&&r.error) toast(r.error); }); }
+function giveUp(){
+  s.emit('passLot',(r)=>{
+    if(r&&r.error) return toast(r.error);
+    if(A){ A.out=true; renderLot(); } // lot may already have settled — never repaint over the result
+  });
+}
+s.on('lotPass',(x)=>{ if(x.manager!==ME.name) toast(esc(x.manager)+' is out'); });
+function toggleSpeed(){ s.emit('hostSpeed',{fast:SPEED!==2},(r)=>{ if(r&&r.error) toast(r.error); }); }
+s.on('speed',(x)=>{ SPEED=x.speed; toast(SPEED===2?'⚡ 2x speed on':'Speed back to normal'); if(A) renderLot(); });
+s.on('lotSettling',()=>{});
+function toast(t){ const p=document.getElementById('pausebar'); p.textContent=t; p.style.display='block';
+  setTimeout(()=>{ if(p.textContent===t) p.style.display='none'; },1700); }
+
+/* ---------------- PICK STARTERS ---------------- */
+const SLOTS={DEF:['GK','DEF','DEF','MID','ATT'],BAL:['GK','DEF','MID','MID','ATT'],ATT:['GK','DEF','MID','ATT','ATT']};
+const FLABEL={DEF:'Defensive',BAL:'Balanced',ATT:'Attacking'};
+let lockedManagers=[];
+s.on('pickStarters',(p)=>{
+  lockedManagers=[];
+  const mine=p.perManager.find(x=>x.id===ME.id); if(!mine) return;
+  pickState={half:p.half, squad:mine.squad, forms:mine.validFormations,
+    formation:mine.validFormations.includes('BAL')?'BAL':mine.validFormations[0],
+    slots:null};
+  initSlots();
+  renderPick();
+});
+function initSlots(){
+  pickState.slots = SLOTS[pickState.formation].map((pos)=>({pos, player:null}));
+}
+function renderPick(){
+  const p=pickState;
+  const used = p.slots.filter(x=>x.player).map(x=>x.player);
+  const rows = ['ATT','MID','DEF','GK'].map(pos=>{
+    const slots=p.slots.map((x,i)=>({...x,i})).filter(x=>x.pos===pos);
+    if(!slots.length) return '';
+    return `<div class="prow">${slots.map(x=>
+      x.player
+      ? `<div class="slot filled" onclick="clearSlot(${x.i})"><span class="pos ${pos}">${pos}</span><span class="sname">${esc(x.player)}</span></div>`
+      : `<div class="slot">${pos}</div>`
+    ).join('')}</div>`;
+  }).join('');
+  const filled = used.length;
+  $(`${backBtn(1)}<div class="eyebrow" style="padding-left:48px">${p.half==='first'?'Pre-season':'Second half'}</div>
+  <h1>Pick your five</h1>
+  <div class="row">${p.forms.map(f=>`<button class="fbtn ${p.formation===f?'sel':''}" onclick="setForm('${f}')">${FLABEL[f]}</button>`).join('')}</div>
+  <div class="pitch">${rows}</div>
+  <h2 style="margin-top:6px">Squad — tap to place</h2>
+  <div class="benchrow">
+    ${p.squad.map(pl=>`<button class="bp ${used.includes(pl.name)?'used':''} ${pl.injured?'inj':''}"
+      onclick="placePlayer(this.dataset.n,this.dataset.p)" data-n="${esc(pl.name)}" data-p="${pl.pos}">
+      <span class="pos ${pl.pos}">${pl.pos}</span>${esc(pl.name)}${pl.injured?' 🤕':''}</button>`).join('')}
+  </div>
+  <div class="muted" style="margin-top:8px">Anyone not placed starts on the bench.</div>
+  <button class="primary" style="width:100%;margin-top:14px" ${filled===5?'':'disabled'}
+    onclick="submitPick()">Ready up (${filled}/5)</button>`);
+}
+function setForm(f){ pickState.formation=f; initSlots(); renderPick(); }
+function placePlayer(name,pos){
+  const slot=pickState.slots.find(x=>x.pos===pos && !x.player);
+  if(!slot) return toast('No free '+pos+' slot in this formation');
+  slot.player=name; renderPick();
+}
+function clearSlot(i){ pickState.slots[i].player=null; renderPick(); }
+function submitPick(){
+  const starters=pickState.slots.map(x=>x.player);
+  s.emit('submitStarters',{formation:pickState.formation,starters},(r)=>{
+    if(r.error) return toast(r.error);
+    renderLockWait();
+  });
+}
+function renderLockWait(){
+  $(`<div class="screen center"><div class="blackbox" style="width:100%"><div class="score">Locked in</div>
+  <div class="muted" style="margin-top:8px">Waiting for the other managers…</div></div>
+  <div class="panel" id="lockedlist" style="text-align:left;font-size:17px">${lockedManagers.map(n=>`<div>🟢 ${esc(n)}</div>`).join('')}</div></div>`);
+}
+
+
+/* ---------------- SEASON REVEALS ---------------- */
+s.on('matchReveal',(m)=>{
+  clearInterval(timerInt);
+  if(m.featured){
+    $(`<div class="screen center">
+      <span class="featuredTag" style="align-self:center">Match of the day · MD ${m.matchday}</span>
+      <div class="score" style="margin-top:18px">${esc(m.home)}<br><span class="gl">${m.score[0]} – ${m.score[1]}</span><br>${esc(m.away)}</div>
+      <div style="margin-top:16px;text-align:left">
+        ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${Math.min(i*1.1+0.6, 9)}s">${esc(e.text)}</div>`).join('')}
+      </div></div>`);
+  } else {
+    $(`<div class="screen center"><div class="muted" style="margin-bottom:10px">Matchday ${m.matchday}</div>
+    <div class="tick"><div class="score" style="font-size:34px">${esc(m.home)}<br><span style="color:var(--pink)">${m.score[0]} – ${m.score[1]}</span><br>${esc(m.away)}</div></div></div>`);
+  }
+});
+s.on('halfDone',(h)=>{ lastTable=h.table; });
+function tableHTML(table, title){
+  return `<h2>${title}</h2><div class="panel" style="padding:6px 10px"><table>
+  <tr><th>#</th><th>Club</th><th>Pts</th><th>GD</th></tr>
+  ${table.map((r,i)=>`<tr class="${r.manager? (r.manager===ME.name?'me':'hu') :''}">
+    <td>${i+1}</td><td>${esc(r.name)}${r.manager?`<br><span class="muted">${esc(r.manager)}${r.sacked?' · SACKED':''}</span>`:''}</td>
+    <td><b>${r.pts}</b></td><td>${r.gd}</td></tr>`).join('')}</table></div>`;
+}
+
+/* ---------------- WINTER ---------------- */
+let W=null, WTAB=null, WSLOTS=null, WFORM=null;
+function applyWinter(w){
+  if(w.sackings.some(x=>x.manager===ME.name)) ME.sacked=true;
+  W=w; WTAB=ME.name;
+  const mine=w.review.find(r=>r.manager===ME.name);
+  if(mine){ WFORM = mine.validFormations.includes('BAL')?'BAL':mine.validFormations[0]; WSLOTS = SLOTS[WFORM].map(pos=>({pos,player:null})); }
+  else WTAB = w.review.length ? w.review[0].manager : null;
+  renderWinter();
+}
+s.on('winter',applyWinter);
+s.on('winterUpdate',(u)=>{ if(W){ W.review=u.review; renderWinter(); } });
+s.on('respinResult',(x)=>{
+  if(!W) return;
+  W.review=x.review;
+  if(x.spins) W.spins=x.spins;
+  const me = x.manager===ME.name;
+  if(me && WSLOTS) for(const sl of WSLOTS) if(sl.player===x.oldPlayer.name) sl.player=null;
+  if(me){ showSpinResult(x); } else {
+    renderWinter();
+    toast(x.tier==='legend' ? '👑 '+esc(x.manager)+' spun a LEGEND: '+esc(x.newPlayer.name)+'!' : esc(x.manager)+' respun '+esc(x.oldPlayer.name)+' → '+esc(x.newPlayer.name));
+  }
+});
+function showSpinResult(x){
+  const labels={worse:'Unlucky…',better:'Not bad!',great:'WHAT A SPIN',legend:'👑 LEGEND 👑'};
+  const old=document.getElementById('spinOverlay'); if(old) old.remove();
+  const ov=document.createElement('div');
+  ov.className='spinOverlay'; ov.id='spinOverlay';
+  ov.innerHTML=`<div class="spinPulse">🎰 Spinning…</div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.classList.add('show'));
+  setTimeout(()=>{
+    if(!document.getElementById('spinOverlay')) return;
+    ov.innerHTML=`${x.tier==='legend'?'<div class="legendGlow"></div>':''}
+      <div class="tierbanner t-${x.tier}">${labels[x.tier]}</div>
+      <div class="muted" style="margin:10px 0 22px;font-size:17px">${esc(x.oldPlayer.name)} is gone. In comes…</div>
+      <div class="revealCard" style="--fade:1800ms">${cardHTML(x.newPlayer)}</div>
+      <button class="primary bigbtn" style="margin-top:30px;max-width:340px;opacity:0;animation:pop .5s 1.6s forwards" onclick="closeSpin()">Back to the window</button>`;
+    if(x.tier==='legend') confetti();
+  }, 1400);
+}
+function closeSpin(){
+  const ov=document.getElementById('spinOverlay');
+  if(ov){ ov.classList.remove('show'); setTimeout(()=>ov.remove(),450); }
+  renderWinter();
+}
+function fcCls(f){ return f==null?'f-n':f>=8?'f-g':f>=6?'f-y':f>=4?'f-o':'f-r'; }
+function statPanels(st){
+  const row=(r,i,v)=>`<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)">
+    <span class="muted" style="min-width:26px;font-size:15px">${i+1}</span>
+    <span class="grow" style="font-size:17px;font-weight:700">${esc(r.name)}</span>
+    <span class="muted" style="font-size:14px;margin-right:8px">${r.owner?esc(r.owner):'gone 🎰'}</span>
+    <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:20px">${v}</span></div>`;
+  return `${st.topScorers.length?`<h2>👟 Top scorers</h2><div class="panel">${st.topScorers.map((r,i)=>row(r,i,r.goals)).join('')}</div>`:''}
+  ${st.topAssists.length?`<h2>🎯 Top assists</h2><div class="panel">${st.topAssists.map((r,i)=>row(r,i,r.assists)).join('')}</div>`:''}`;
+}
+function renderStats(){
+  if(!W) return;
+  const tierTxt={worse:'<span class="t-worse">▼ worse</span>',better:'<span class="t-better">▲ better</span>',great:'<span class="t-great">▲▲ great</span>',legend:'<span class="t-legend">👑 LEGEND</span>'};
+  $(`<button class="backbtn" onclick="renderWinter()">‹</button>
+  <div class="eyebrow" style="padding-left:48px">Season so far</div>
+  ${tableHTML(W.table,'Halfway table')}
+  ${statPanels(W.stats)}
+  ${(W.spins&&W.spins.length)?`<h2>🎰 Spin feed</h2><div class="panel">${[...W.spins].reverse().map(s2=>`<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)">
+    <span class="grow" style="font-size:16px"><b>${esc(s2.manager)}</b>: ${esc(s2.oldPlayer)} → <b>${esc(s2.newPlayer)}</b></span>
+    <span style="font-family:var(--disp);font-weight:800;font-size:15px;text-transform:uppercase">${tierTxt[s2.tier]}</span></div>`).join('')}</div>`:''}
+  <button class="primary bigbtn" style="margin-top:14px" onclick="renderWinter()">Back to the window</button>`);
+}
+function renderWinter(){
+  if(!W) return;
+  const r = W.review.find(x=>x.manager===WTAB) || W.review[0];
+  if(!r) return;
+  const mine = r.manager===ME.name && !ME.sacked;
+  const canEdit = mine && !r.locked;
+  const u = r.units||{};
+  const uv=(v)=>v==null?'—':v.toFixed(1);
+  const used = mine && WSLOTS ? WSLOTS.filter(x=>x.player).map(x=>x.player) : [];
+  const pitchRows = mine && WSLOTS ? ['ATT','MID','DEF','GK'].map(pos=>{
+    const slots=WSLOTS.map((x,i)=>({...x,i})).filter(x=>x.pos===pos);
+    if(!slots.length) return '';
+    return `<div class="prow">${slots.map(x=> x.player
+      ? `<div class="slot filled" ${canEdit?`onclick="wClear(${x.i})"`:''}><span class="pos ${pos}">${pos}</span><span class="sname">${esc(x.player)}</span></div>`
+      : `<div class="slot">${pos}</div>`).join('')}</div>`;
+  }).join('') : '';
+  const pos = W.table.findIndex(t=>t.name===r.club)+1;
+  const trow = W.table[pos-1];
+  const ord=(n)=>n+(['th','st','nd','rd'][(n%100>10&&n%100<14)||n%10>3?0:n%10]);
+  $(`${backBtn(1)}<div class="eyebrow" style="padding-left:48px">Winter break</div>
+  <div class="tabwrap"><div class="eyebrow" style="font-size:13px;margin-bottom:5px">Tap a manager to scout their squad</div>
+  <div class="tabrow">${W.review.map(t=>`<button class="tab ${t.manager===WTAB?'sel':''}" onclick="WTAB=this.dataset.m;renderWinter()" data-m="${esc(t.manager)}">${esc(t.manager)}${t.manager===ME.name?' (you)':''}${t.locked?' ✓':''}</button>`).join('')}</div></div>
+  ${W.injuries.length?`<div class="panel">${W.injuries.map(i=>`<div>🤕 <b>${esc(i.player)}</b> (${esc(i.manager)}) — out for the season</div>`).join('')}</div>`:''}
+  ${W.sackings.length?`<div class="panel" style="border-color:var(--att)">${W.sackings.map(x=>`<div>🪓 <b>${esc(x.manager)}</b> sacked — ${esc(x.club)} carry on without him</div>`).join('')}</div>`:''}
+  <div class="row" style="margin:10px 0 2px">
+    ${pos>0?`<span class="bchip" style="font-size:16px;padding:9px 13px"><b>${ord(pos)}</b> · ${trow.pts} pts · ${trow.gd>0?'+':''}${trow.gd} GD</span>`:''}
+    <span class="grow"></span>
+    <button onclick="renderStats()" style="font-size:16px;padding:11px 15px">📊 Season stats</button>
+  </div>
+  <div class="row" style="gap:8px;margin:12px 0">
+    <div class="unitbox"><div class="muted" style="font-size:13px">DEFENCE</div><div class="uv">${uv(u.def)}</div></div>
+    <div class="unitbox"><div class="muted" style="font-size:13px">MIDFIELD</div><div class="uv">${uv(u.mid)}</div></div>
+    <div class="unitbox"><div class="muted" style="font-size:13px">ATTACK</div><div class="uv">${uv(u.att)}</div></div>
+  </div>
+  ${mine?`
+    <div class="row"><h2 class="grow" style="margin:10px 0">Pick your five</h2>
+      <span class="bchip" style="font-size:17px;padding:10px 14px">🎰 Respins: <b>${r.spinsLeft}</b></span></div>
+    <div class="row">${r.validFormations.map(f=>`<button class="fbtn ${WFORM===f?'sel':''}" ${canEdit?`onclick="wForm('${f}')"`:'disabled'}>${FLABEL[f]}</button>`).join('')}</div>
+    <div class="pitch">${pitchRows}</div>`
+  :`<h2 style="margin:10px 0">${esc(r.club)} — ${esc(r.manager)}${r.locked?' · locked in':''}</h2>
+    <div class="muted" style="margin-bottom:8px">Respins left: ${r.spinsLeft}</div>`}
+  <div class="panel" style="padding:10px">
+    ${r.players.map(p=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line)">
+      ${mine?`<button class="bp ${used.includes(p.name)?'used':''} ${p.injured?'inj':''}" style="padding:8px 10px"
+        ${canEdit?'onclick="wPlace(this.dataset.n,this.dataset.p)"':'disabled'} data-n="${esc(p.name)}" data-p="${p.pos}">
+        <span class="pos ${p.pos}">${p.pos}</span>${esc(p.name)}${p.injured?' 🤕':''}${p.legend?' 👑':''}</button>`
+      :`<span class="pos ${p.pos}">${p.pos}</span><span style="font-size:16px">${esc(p.name)}${p.injured?' 🤕':''}${p.legend?' 👑':''}</span>`}
+      <span class="grow"></span>
+      <span class="muted" style="font-size:15px">${p.goals}g ${p.assists}a</span>
+      <span class="formchip ${fcCls(p.form)}">${p.form==null?'NEW':p.form.toFixed(1)}</span>
+      ${mine && r.spinsLeft>0 && !r.locked?`<button class="spinbtn" onclick="wSpin(this.dataset.n)" data-n="${esc(p.name)}">🎰</button>`:''}
+    </div>`).join('')}
+  </div>
+  ${canEdit?`<div class="muted" style="margin:6px 0">🎰 respins a player for a random new one in his position: 40% worse · 30% better · 25% much better · 5% legend. Anyone not placed sits on the bench.</div>
+  <button class="primary bigbtn" style="margin-top:10px" ${used.length===5?'':'disabled'} onclick="wLock()">Lock in (${used.length}/5)</button>`
+  :mine?`<div class="blackbox"><div class="score" style="font-size:26px">Locked in ✓</div><div class="muted" style="margin-top:6px">Watch the others sweat — second half starts when everyone's set.</div></div>`:''}
+  ${ME.sacked?`<div class="panel center" style="border-color:var(--att)"><b style="font-family:var(--disp);text-transform:uppercase;font-size:20px">You've been sacked</b><div class="muted" style="margin-top:6px">Spectate the window — you'll still see every result and the finale.</div></div>`:''}`);
+}
+function wForm(f){ WFORM=f; WSLOTS=SLOTS[f].map(pos=>({pos,player:null})); renderWinter(); }
+function wPlace(name,pos){
+  const r=W.review.find(x=>x.manager===ME.name);
+  const p=r.players.find(x=>x.name===name);
+  if(p.injured) return toast(name+' is injured');
+  const slot=WSLOTS.find(x=>x.pos===pos && !x.player);
+  if(!slot) return toast('No free '+pos+' slot in this formation');
+  slot.player=name; renderWinter();
+}
+function wClear(i){ WSLOTS[i].player=null; renderWinter(); }
+function wSpin(name){
+  if(!confirm('Respin '+name+'? He leaves forever and you get a random replacement in his position.')) return;
+  s.emit('respin',{player:name},(r)=>{ if(r&&r.error) toast(r.error); });
+}
+function wLock(){
+  s.emit('submitStarters',{formation:WFORM,starters:WSLOTS.map(x=>x.player)},(r)=>{
+    if(r&&r.error) return toast(r.error);
+    const me=W.review.find(x=>x.manager===ME.name); if(me) me.locked=true;
+    renderWinter();
+  });
+}
+
+/* ---------------- FINISH ---------------- */
+s.on('finished',(f)=>{ runCeremony(f); });
+let CTIMERS=[];
+function runCeremony(f){
+  CTIMERS.forEach(clearTimeout); CTIMERS=[];
+  const podium=f.table.slice(0,3);
+  const nm=(t)=>esc(t.name)+(t.manager?` <span class="muted" style="font-size:18px">(${esc(t.manager)})</span>`:'');
+  const stage=(html2)=>$(`<div class="screen center">${html2}
+    <button onclick="showFinal()" style="position:fixed;bottom:18px;right:18px;font-size:14px;padding:9px 13px;opacity:.6">Skip</button>`);
+  stage(`<div class="ceremonyTxt">The season is over</div>`);
+  CTIMERS.push(setTimeout(()=>stage(`<div class="eyebrow" style="margin-bottom:14px">The podium</div>
+    <div class="podiumRow"><span class="podiumPos">3rd</span><span class="podiumName">${nm(podium[2])}</span></div>`),1800));
+  CTIMERS.push(setTimeout(()=>stage(`<div class="eyebrow" style="margin-bottom:14px">The podium</div>
+    <div class="podiumRow" style="opacity:1;animation:none"><span class="podiumPos">3rd</span><span class="podiumName">${nm(podium[2])}</span></div>
+    <div class="podiumRow"><span class="podiumPos">2nd</span><span class="podiumName">${nm(podium[1])}</span></div>`),3600));
+  CTIMERS.push(setTimeout(()=>stage(`<div class="spinPulse" style="font-size:26px">And your champion is…</div>`),5600));
+  CTIMERS.push(setTimeout(()=>{ stage(`<div class="trophy" style="font-size:64px">🏆</div>
+    <div class="champName">${esc(f.champion.name)}</div>
+    ${f.champion.manager?`<div class="bidder" style="font-size:22px;margin-top:10px">${esc(f.champion.manager)}${f.champion.manager===ME.name?' — THAT\'S YOU':''}</div>`:'<div class="muted" style="margin-top:10px">An AI club. Embarrassing scenes.</div>'}
+    <button class="primary bigbtn" style="margin-top:34px;max-width:340px;opacity:0;animation:pop .5s 1.4s forwards" onclick="showFinal()">Final table & awards</button>`);
+    confetti(); CTIMERS.push(setTimeout(confetti,900));
+  },7900));
+  window.__finalData=f;
+}
+function showFinal(){
+  CTIMERS.forEach(clearTimeout); CTIMERS=[];
+  const f=window.__finalData; if(!f) return;
+    const a=f.awards;
+  const champMine = f.champion.manager===ME.name;
+  $(`<div class="blackbox" style="padding:26px 16px;margin-top:18px">
+    <div class="trophy">🏆</div>
+    <div class="eyebrow">${champMine?'You are the champion':'Champions'}</div>
+    <div class="score">${esc(f.champion.name)}</div>
+    ${f.champion.manager?`<div class="bidder" style="font-size:18px">${esc(f.champion.manager)}</div>`:'<div class="muted">An AI club took it. Embarrassing.</div>'}
+  </div>
+  ${tableHTML(f.table,'Final table')}
+  <h2>Awards</h2><div class="panel">
+    ${a.goldenBoot?`<div class="award"><b>👟 Golden Boot</b><span>${esc(a.goldenBoot.player)} · ${a.goldenBoot.goals} (${esc(a.goldenBoot.owner)})</span></div>`:''}
+    ${a.mostAssists?`<div class="award"><b>🎯 Most Assists</b><span>${esc(a.mostAssists.player)} · ${a.mostAssists.assists} (${esc(a.mostAssists.owner)})</span></div>`:''}
+    ${a.bestSigning?`<div class="award"><b>⭐ Best Signing</b><span>${esc(a.bestSigning.player)} £${a.bestSigning.price}m (${esc(a.bestSigning.manager)})</span></div>`:''}
+    ${a.bestBargain?`<div class="award"><b>💎 Best Bargain</b><span>${esc(a.bestBargain.player)} £${a.bestBargain.price}m (${esc(a.bestBargain.manager)})</span></div>`:''}
+    ${a.biggestFlop?`<div class="award"><b>🗑 Biggest Flop</b><span>${esc(a.biggestFlop.player)} £${a.biggestFlop.price}m (${esc(a.biggestFlop.manager)})</span></div>`:''}
+    ${a.spinOfSeason?`<div class="award"><b>🎰 Spin of the Season</b><span>${esc(a.spinOfSeason.newPlayer)}${a.spinOfSeason.tier==='legend'?' 👑':''} (${esc(a.spinOfSeason.manager)})</span></div>`:''}
+  </div>
+  ${f.stats?statPanels(f.stats):''}
+  <button class="primary" style="width:100%;margin-top:14px" onclick="location.reload()">Run it back</button>`);
+}
+
+/* ---------------- CONNECTION ---------------- */
+s.on('paused',(p)=>{ isPaused=true; const b=document.getElementById('pausebar');
+  b.textContent = p.byHost ? '⏸ Paused' : `⏸ ${p.manager} disconnected — paused`;
+  b.style.display='block'; });
+let isPaused=false;
+s.on('hostChanged',(x)=>{
+  ME.isHost = x.hostId===ME.id;
+  toast(esc(x.name)+' is now host');
+});
+s.on('resumed',(r)=>{ isPaused=false; const b=document.getElementById('pausebar'); b.style.display='none'; hostPausedLocal=false;
+  if(A&&r&&r.deadline) A.deadline=r.deadline; });
+s.on('autoFill',(x)=>{ if(x.manager===ME.name){ MYSQUAD.push({name:x.player,pos:x.pos}); toast(`Auto-fill: ${x.player} (${x.pos})`);} });
+s.on('startersLocked',(x)=>{
+  if(!lockedManagers.includes(x.manager)) lockedManagers.push(x.manager);
+  const el=document.getElementById('lockedlist');
+  if(el) el.innerHTML=lockedManagers.map(n=>`<div>🟢 ${esc(n)}</div>`).join('');
+});
+s.on('connect',()=>{
+  // transient socket blip mid-game: silently reclaim seat by code + name
+  if(ME.code && ME.name) s.emit('joinLobby',{code:ME.code,name:ME.name,club:''},(r)=>{
+    if(r.ok){ ME.id=r.managerId; if(r.snapshot) restoreFromSnapshot(r.snapshot); }
+  });
+});
+home();
+</script>
+</body>
+</html>

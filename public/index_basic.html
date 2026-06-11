@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Football Auction Manager — test build</title>
+<style>
+  body{font-family:system-ui,-apple-system,sans-serif;background:#0e0e12;color:#eee;margin:0;padding:16px;max-width:520px;margin:0 auto}
+  h2{margin:8px 0}
+  button{padding:12px 16px;margin:4px;border:0;border-radius:8px;background:#2e2e3a;color:#fff;font-size:16px}
+  button.primary{background:#b6f34a;color:#111;font-weight:700}
+  button:disabled{opacity:.4}
+  input{padding:12px;border-radius:8px;border:1px solid #444;background:#1a1a22;color:#fff;font-size:16px;width:100%;box-sizing:border-box;margin:4px 0}
+  .card{background:#17171f;border:1px solid #2a2a35;border-radius:12px;padding:14px;margin:10px 0}
+  .big{font-size:28px;font-weight:800;text-transform:uppercase}
+  .muted{color:#999;font-size:13px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td,th{padding:6px 4px;border-bottom:1px solid #2a2a35;text-align:left}
+  .timer{font-size:40px;font-weight:800;text-align:center}
+  .sel{outline:3px solid #b6f34a}
+  .pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;margin-right:6px}
+  .GK{background:#6b5d1f}.DEF{background:#1f3a6b}.MID{background:#1f6b2e}.ATT{background:#6b1f1f}
+  #log{font-size:12px;color:#777;max-height:120px;overflow:auto}
+  .form1{color:#f55}.form2{color:#fa5}.form3{color:#fd5}.form4{color:#9f6}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="log"></div>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const s = io();
+const $ = (h) => { document.getElementById('app').innerHTML = h; };
+const log = (m) => { const l=document.getElementById('log'); l.innerHTML = `<div>${m}</div>`+l.innerHTML; };
+let ME = { id:null, code:null, name:null, budget:100 };
+let auctionState = null, timerInt = null, mySquadCache = [], pickState = null;
+
+// persistent identity for rejoin
+const saved = JSON.parse(localStorage.getItem('fam') || 'null');
+
+function home(){
+  $(`<h2>Football Auction Manager</h2>
+  <div class="card">
+    <input id="name" placeholder="Your name" value="${saved?.name||''}">
+    <input id="club" placeholder="Club name">
+    <button class="primary" onclick="createL()">Create Lobby</button>
+    <div class="row"><input id="code" placeholder="Lobby code" style="flex:1"><button onclick="joinL()">Join</button></div>
+    ${saved ? `<button onclick="tryRejoin()">Rejoin last game (${saved.code})</button>` : ''}
+  </div>`);
+}
+function createL(){
+  const name=document.getElementById('name').value.trim(), club=document.getElementById('club').value.trim()||name+' FC';
+  if(!name) return alert('Enter a name');
+  s.emit('createLobby',{name,club},(r)=>{ if(r.error) return alert(r.error); onJoined(r,name); });
+}
+function joinL(){
+  const name=document.getElementById('name').value.trim(), club=document.getElementById('club').value.trim()||name+' FC';
+  const code=document.getElementById('code').value.trim();
+  if(!name||!code) return alert('Name + code needed');
+  s.emit('joinLobby',{code,name,club},(r)=>{ if(r.error) return alert(r.error); onJoined(r,name); });
+}
+function onJoined(r,name){ ME.id=r.managerId; ME.code=r.code; ME.name=name;
+  localStorage.setItem('fam', JSON.stringify({code:ME.code, managerId:ME.id, name})); }
+function tryRejoin(){
+  s.emit('rejoin',{code:saved.code,managerId:saved.managerId},(r)=>{
+    if(r.error) return alert(r.error);
+    ME.id=r.managerId; ME.code=saved.code; ME.name=saved.name;
+    localStorage.setItem('fam', JSON.stringify({code:ME.code, managerId:ME.id, name:ME.name}));
+    log('rejoined');
+  });
+}
+
+s.on('lobby',(l)=>{
+  if(!ME.code) return;
+  $(`<h2>Lobby ${l.code}</h2><div class="card">
+  ${l.managers.map(m=>`<div>${m.name} — ${m.club} ${m.ready?'✅':'⌛'}</div>`).join('')}
+  </div>
+  <button class="primary" onclick="s.emit('ready',{ready:true})">Ready</button>
+  ${l.hostId===ME.id?`<button onclick="s.emit('startGame')">Start Game (host)</button>`:''}
+  <div class="muted">Share code: <b>${l.code}</b> · 2–6 players</div>`);
+});
+
+s.on('phase',(p)=>{ log('phase: '+p.phase); if(p.phase==='auction'||p.phase==='winterAuction') $( `<h2>${p.phase==='auction'?'Main':'Winter'} Auction</h2><div class="card">Pool: ${p.poolSize} players. First lot coming up…</div><div id="budgets"></div>`); });
+
+s.on('lot',(l)=>{
+  auctionState={...l, highBid:0, highBidder:null};
+  renderLot();
+});
+s.on('bid',(b)=>{ if(!auctionState) return; auctionState.highBid=b.amount; auctionState.highBidder=b.manager; auctionState.deadline=b.deadline; renderLot(); });
+s.on('lotSold',(x)=>log(`SOLD: ${x.player} £${x.price}m → ${x.manager}`));
+s.on('lotUnsold',(x)=>log(`UNSOLD: ${x.player}`));
+s.on('autoFill',(x)=>log(`AUTO-FILL: ${x.manager} gets ${x.player} (${x.pos})`));
+s.on('budgets',(rows)=>{
+  const me=rows.find(r=>r.name===ME.name); if(me) ME.budget=me.budget;
+  const el=document.getElementById('budgets');
+  if(el) el.innerHTML=`<div class="card">${rows.map(r=>`<div>${r.name}: £${r.budget}m · ${r.squadCount||0} players ${r.done?'(done)':''}</div>`).join('')}</div>`;
+});
+
+function renderLot(){
+  const a=auctionState; if(!a) return;
+  $(`<div class="muted">Lot ${a.index+1}/${a.total} · You: £${ME.budget}m</div>
+  <div class="card" style="text-align:center">
+    <span class="pill ${a.player.pos}">${a.player.pos}</span>
+    <div class="big">${a.player.name}</div>
+    <div class="timer" id="t">–</div>
+    <div>${a.highBid? `£${a.highBid}m — ${a.highBidder}` : 'No bids · starts £1m'}</div>
+  </div>
+  <div class="row">
+    <button class="primary" onclick="bid(${a.highBid+1})">Bid £${a.highBid+1}m</button>
+    <button onclick="bid(${a.highBid+5})">£${a.highBid+5}m</button>
+    <button onclick="bid(${a.highBid+10})">£${a.highBid+10}m</button>
+    <button onclick="customBid()">Custom</button>
+  </div>
+  <div id="budgets"></div>`);
+  clearInterval(timerInt);
+  timerInt=setInterval(()=>{
+    const el=document.getElementById('t'); if(!el) return clearInterval(timerInt);
+    const ms=Math.max(0,(a.deadline||0)-Date.now());
+    el.textContent=(ms/1000).toFixed(1)+'s';
+  },100);
+}
+function bid(n){ s.emit('bid',{amount:n},(r)=>{ if(r&&r.error) log('bid rejected: '+r.error); }); }
+function customBid(){ const n=parseInt(prompt('Bid (£m)')); if(n) bid(n); }
+
+s.on('pickStarters',(p)=>{
+  const mine=p.perManager.find(x=>x.id===ME.id); if(!mine) return;
+  pickState={half:p.half, squad:mine.squad, forms:mine.validFormations, formation:mine.validFormations[0], chosen:[]};
+  renderPick();
+});
+const SLOTS={DEF:['GK','DEF','DEF','MID','ATT'],BAL:['GK','DEF','MID','MID','ATT'],ATT:['GK','DEF','MID','ATT','ATT']};
+function renderPick(){
+  const p=pickState;
+  $(`<h2>Pick starters (${p.half} half)</h2>
+  <div class="row">${p.forms.map(f=>`<button class="${p.formation===f?'sel':''}" onclick="setForm('${f}')">${f}</button>`).join('')}</div>
+  <div class="muted">Formation needs: ${SLOTS[p.formation].join(' ')}</div>
+  <div class="card">${p.squad.map(pl=>`<button class="${p.chosen.includes(pl.name)?'sel':''}" ${pl.injured?'disabled':''} onclick="togglePick('${pl.name.replace(/'/g,"\\'")}')"><span class="pill ${pl.pos}">${pl.pos}</span>${pl.name}${pl.injured?' 🤕':''}</button>`).join('')}</div>
+  <button class="primary" onclick="submitPick()">Confirm ${p.chosen.length}/5</button>`);
+}
+function setForm(f){ pickState.formation=f; pickState.chosen=[]; renderPick(); }
+function togglePick(n){
+  const c=pickState.chosen;
+  if(c.includes(n)) c.splice(c.indexOf(n),1);
+  else if(c.length<5) c.push(n);
+  renderPick();
+}
+function submitPick(){
+  s.emit('submitStarters',{formation:pickState.formation,starters:pickState.chosen},(r)=>{
+    if(r.error) return alert(r.error);
+    $(`<div class="card">Starters locked. Waiting for others…</div>`);
+  });
+}
+s.on('startersLocked',(x)=>log(`${x.manager} locked starters${x.auto?' (auto)':''}`));
+
+s.on('matchReveal',(m)=>{
+  $(`<div class="muted">Matchday ${m.matchday}${m.featured?' · FEATURED':''}</div>
+  <div class="card" style="text-align:center">
+    <div class="big">${m.home} ${m.score[0]} – ${m.score[1]} ${m.away}</div>
+    ${m.featured? m.events.map(e=>`<div>${e.text}</div>`).join('') : ''}
+  </div>`);
+});
+s.on('tableUpdate',()=>{});
+s.on('halfDone',(h)=>renderTable('Half-time table',h.table));
+function renderTable(title,table){
+  $(`<h2>${title}</h2><div class="card"><table><tr><th>#</th><th>Club</th><th>Pts</th><th>GD</th></tr>
+  ${table.map((r,i)=>`<tr><td>${i+1}</td><td>${r.name}${r.manager?` <span class="muted">(${r.manager}${r.sacked?' — SACKED':''})</span>`:''}</td><td>${r.pts}</td><td>${r.gd}</td></tr>`).join('')}</table></div><div id="winterextra"></div>`);
+}
+s.on('winter',(w)=>{
+  renderTable('Winter break — table',w.table);
+  const me=w.review.find(r=>r.manager===ME.name);
+  const fc=(f)=>f>=8?'form4':f>=6?'form3':f>=4?'form2':'form1';
+  document.getElementById('winterextra').innerHTML=`
+  ${me?`<div class="card"><b>Your squad form</b>${me.players.map(p=>`<div><span class="pill ${p.pos}">${p.pos}</span>${p.name} — <b class="${fc(p.form)}">${p.form}/10</b> · ${p.goals}g ${p.assists}a</div>`).join('')}</div>`:''}
+  ${w.injuries.length?`<div class="card"><b>Injuries</b>${w.injuries.map(i=>`<div>🤕 ${i.player} (${i.manager}) — out for season</div>`).join('')}</div>`:''}
+  ${w.sackings.length?`<div class="card"><b>SACKED</b>${w.sackings.map(x=>`<div>🪓 ${x.manager} (${x.club})</div>`).join('')}</div>`:''}
+  <div class="card">Budgets: ${w.budgets.map(b=>`${b.name} £${b.budget}m`).join(' · ')}</div>
+  <button class="primary" onclick="s.emit('winterContinue')">Continue to winter auction</button>`;
+});
+s.on('paused',(p)=>log(`⏸ paused — ${p.manager} disconnected`));
+s.on('resumed',()=>log('▶ resumed'));
+s.on('finished',(f)=>{
+  renderTable('FINAL TABLE',f.table);
+  const a=f.awards;
+  document.getElementById('winterextra').innerHTML=`<div class="card">
+  <div class="big">🏆 ${f.champion.name}</div>
+  ${a.goldenBoot?`<div>👟 Golden Boot: ${a.goldenBoot.player} (${a.goldenBoot.goals}) — ${a.goldenBoot.owner}</div>`:''}
+  ${a.mostAssists?`<div>🎯 Most Assists: ${a.mostAssists.player} (${a.mostAssists.assists}) — ${a.mostAssists.owner}</div>`:''}
+  ${a.bestSigning?`<div>⭐ Best Signing: ${a.bestSigning.player} £${a.bestSigning.price}m — ${a.bestSigning.manager}</div>`:''}
+  ${a.bestBargain?`<div>💎 Best Bargain: ${a.bestBargain.player} £${a.bestBargain.price}m — ${a.bestBargain.manager}</div>`:''}
+  ${a.biggestFlop?`<div>🗑 Biggest Flop: ${a.biggestFlop.player} £${a.biggestFlop.price}m — ${a.biggestFlop.manager}</div>`:''}
+  </div><button class="primary" onclick="location.reload()">New game</button>`;
+});
+s.on('connect',()=>{ if(ME.code) tryRejoinSilent(); });
+function tryRejoinSilent(){ const sv=JSON.parse(localStorage.getItem('fam')||'null'); if(sv) s.emit('rejoin',{code:sv.code,managerId:sv.managerId},(r)=>{ if(r.ok){ME.id=r.managerId; localStorage.setItem('fam',JSON.stringify({...sv,managerId:r.managerId}));} }); }
+home();
+</script>
+</body>
+</html>
