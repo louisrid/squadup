@@ -87,8 +87,8 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
   width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:var(--surface2);border:1px solid var(--line);font-size:20px;padding:0;color:var(--text)}
 /* ---------- lot reveal ---------- */
-.revealCard .pcard{animation:cardFade var(--fade,3.4s) ease forwards;opacity:0;filter:blur(14px)}
-@keyframes cardFade{0%{opacity:0;filter:blur(14px);transform:scale(.92)}70%{opacity:1;filter:blur(2px)}100%{opacity:1;filter:blur(0);transform:scale(1)}}
+.revealCard .pcard{animation:cardBob var(--fade,450ms) cubic-bezier(.34,1.45,.5,1) forwards;opacity:0}
+@keyframes cardBob{0%{opacity:0;transform:translateY(30px) scale(.88)}62%{opacity:1;transform:translateY(-7px) scale(1.04)}100%{opacity:1;transform:none}}
 .cd{font-family:var(--disp);font-weight:800;font-size:86px;line-height:1;color:var(--pink);animation:cdPop .9s ease forwards}
 @keyframes cdPop{0%{opacity:0;transform:scale(1.6)}25%{opacity:1;transform:scale(1)}85%{opacity:1}100%{opacity:0;transform:scale(.85)}}
 @media (prefers-reduced-motion: reduce){.revealCard .pcard{animation:none;opacity:1;filter:none}.cd{animation:none}}
@@ -398,17 +398,18 @@ s.on('awaitNext',(x)=>{
 });
 s.on('lotReveal',(l)=>{
   clearInterval(timerInt);
-  const unit = Math.round((l.revealMs||4000)/8);   // 0.5s countdown steps at 1x
-  const fadeMs = (l.revealMs||4000) - 3*unit;      // 2.5s card fade at 1x
+  const base = l.revealMs||2200;
+  const fadeMs = Math.round(base*0.32);            // card bobs in fast (~0.7s incl. beat)
+  const unit = Math.round((base-fadeMs)/3);        // ~0.5s countdown ticks at 1x
   $(`<div class="screen center">
     <div class="eyebrow" style="margin-bottom:18px">Lot ${l.index+1}/${l.total}</div>
-    <div class="revealCard" style="--fade:${fadeMs}ms">${cardHTML(l.player)}</div>
+    <div class="revealCard" style="--fade:${Math.min(450,fadeMs)}ms">${cardHTML(l.player)}</div>
     <div id="cdWrap" style="margin-top:18px;height:90px"></div>
   </div>`);
   [3,2,1].forEach((n,i)=>{
     setTimeout(()=>{
       const w=document.getElementById('cdWrap');
-      if(w) w.innerHTML=`<div class="cd" style="animation-duration:${Math.round(unit*0.9)}ms">${n}</div>`;
+      if(w) w.innerHTML=`<div class="cd" style="animation-duration:${Math.max(280,Math.round(unit*0.9))}ms">${n}</div>`;
     }, fadeMs + i*unit);
   });
 });
@@ -634,8 +635,8 @@ function showSpinResult(x){
     ov.innerHTML=`${x.tier==='legend'?'<div class="legendGlow"></div>':''}
       <div class="tierbanner t-${x.tier}">${labels[x.tier]}</div>
       <div class="muted" style="margin:10px 0 22px;font-size:17px">${esc(x.oldPlayer.name)} is gone. In comes…</div>
-      <div class="revealCard" style="--fade:1800ms">${cardHTML(x.newPlayer)}</div>
-      <button class="primary bigbtn" style="margin-top:30px;max-width:340px;opacity:0;animation:pop .5s 1.6s forwards" onclick="closeSpin()">Back to the window</button>`;
+      <div class="revealCard" style="--fade:650ms">${cardHTML(x.newPlayer)}</div>
+      <button class="primary bigbtn" style="margin-top:30px;max-width:340px;opacity:0;animation:pop .5s .8s forwards" onclick="closeSpin()">Back to the window</button>`;
     if(x.tier==='legend') confetti();
   }, 1400);
 }
