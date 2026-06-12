@@ -23,9 +23,9 @@ const LEGENDS = [
 ];
 
 const AI_CLUB_NAMES = [
-  'Redbridge United', 'Harton Town', 'Mill Lane FC', 'Eastvale Rovers',
-  'Kings Heath FC', 'Donkey United', 'Norfield Athletic', 'Saltway Wanderers',
-  'Dunmore FC', 'Westcliff Albion',
+  'Red Fellas', 'Bluebridge FC', 'Ninja FC', 'Eastvale Rovers',
+  'Westvale City', 'Donkey United', 'Poopy Town', 'Monika United',
+  'Desperado FC', 'Andover FC',
 ];
 
 const FORMATIONS = {
@@ -944,8 +944,8 @@ class Game {
       MID: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'MID', lo))),
       ATT: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'ATT', lo))),
     });
-    const byPos = fresh(87);
-    const backup = fresh(86);
+    const byPos = fresh(88);
+    const backup = fresh(87);
     const rest = [];
     const order = ['DEF', 'MID', 'ATT'];
     let i = 0, guard = 0;
@@ -1154,7 +1154,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v3.4',
+      serverV: 'v3.7',
       paused: this.paused,
     };
   }
