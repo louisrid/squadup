@@ -211,7 +211,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v1.21';
+const VERSION = 'v1.22';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -973,6 +973,9 @@ s.on('connect',()=>{
   // transient socket blip mid-game: silently reclaim seat by code + name
   if(ME.code && ME.name) s.emit('joinLobby',{code:ME.code,name:ME.name,club:''},(r)=>{
     if(r.ok){ ME.id=r.managerId; if(r.snapshot) restoreFromSnapshot(r.snapshot); }
+    else if(r.error==='Lobby not found'){ // server restarted or game expired: don't strand a ghost lobby
+      ME.code=null; toast('That game no longer exists — start a fresh one'); home();
+    }
   });
 });
 home();

@@ -13,7 +13,9 @@ app.use(express.static(path.join(__dirname, '..', 'public'), {
 }));
 app.get('/health', (_q, res) => res.json({ ok: true }));
 
-const games = new Map(); // code -> Game
+const games = new Map();
+process.on('uncaughtException', (e) => console.error('UNCAUGHT (survived):', e));
+process.on('unhandledRejection', (e) => console.error('UNHANDLED (survived):', e)); // code -> Game
 
 function roomEmitter(code) {
   return { emit: (ev, data) => io.to(code).emit(ev, data) };
@@ -46,7 +48,7 @@ io.on('connection', (socket) => {
   socket.on('joinLobby', ({ code, name, club }, cb) => {
     code = (code || '').toUpperCase().trim();
     const game = games.get(code);
-    if (!game) return cb({ error: 'Lobby not found' });
+    if (!game) return cb({ error: 'Lobby not found — if it existed a minute ago, the server restarted (deploy/idle). Create a fresh one.' });
     // same name + seat free (disconnected or mid-game) -> reclaim that manager
     const existing = game.managers.find((m) => m.name === name);
     const canReclaim = existing && (!existing.connected || game.phase !== 'lobby');
@@ -167,13 +169,18 @@ io.on('connection', (socket) => {
   }
 });
 
-// cleanup finished/abandoned games hourly
+// cleanup finished/abandoned games — a lobby must be empty for 30+ minutes before deletion,
+// so a host with a briefly backgrounded phone never loses the room
 setInterval(() => {
+  const now = Date.now();
   for (const [code, g] of games) {
     const empty = g.managers.every((m) => !m.connected);
-    if (g.phase === 'finished' || (g.phase === 'lobby' && empty)) games.delete(code);
+    if (!empty) g.lastSeen = now;
+    if (g.phase === 'finished') { games.delete(code); continue; }
+    if (g.phase === 'lobby' && empty && now - (g.lastSeen || now - 1) > 30 * 60 * 1000) games.delete(code);
+    if (g.lastSeen === undefined) g.lastSeen = now;
   }
-}, 60 * 60 * 1000);
+}, 5 * 60 * 1000);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Football Auction Manager on :${PORT}`));
