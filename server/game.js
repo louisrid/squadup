@@ -73,8 +73,8 @@ class Game {
   hintFor(p) {
     if (!this.showHints) return undefined;
     if (!this.hints[p.name]) {
-      const lo = p.rating - (2 + Math.floor(Math.random() * 2));
-      const hi = p.rating + (2 + Math.floor(Math.random() * 2));
+      const lo = p.rating - (1 + Math.floor(Math.random() * 2));
+      const hi = p.rating + (1 + Math.floor(Math.random() * 2));
       this.hints[p.name] = lo + '–' + hi;
     }
     return this.hints[p.name];
@@ -134,10 +134,18 @@ class Game {
     // 7 lots per manager. Tier mix BY TRUE RATING: n stars (88+), n good (86-87), 5n mid (82-85).
     // EXACT position quotas so every squad need is structurally covered:
     const posQuota = { GK: n + 1, DEF: 2 * n, MID: 2 * n, ATT: 2 * n - 1 }; // sums to 7n
+    const stars = Math.max(2, n - 1); // always at least two 90+ headliners, scales with lobby size
+    const S = 7 * n;
+    const cElite = Math.max(2, Math.round(0.10 * S)); // always at least two 90+
+    const cHigh = Math.round(0.18 * S);               // 87-89
+    const cGood = Math.round(0.22 * S);               // 85-86
+    const cMid = Math.round(0.32 * S);                // 82-84
     const tiers = [
-      { lo: 88, hi: 99, count: n },
-      { lo: 86, hi: 87, count: n },
-      { lo: 82, hi: 85, count: 5 * n },
+      { lo: 90, hi: 99, count: cElite },
+      { lo: 87, hi: 89, count: cHigh },
+      { lo: 85, hi: 86, count: cGood },
+      { lo: 82, hi: 84, count: cMid },
+      { lo: 80, hi: 81, count: S - cElite - cHigh - cGood - cMid },
     ];
     const pool = [];
     const inPool = new Set();
@@ -156,10 +164,23 @@ class Game {
         const victim = E.pick(victims);
         const tier = tiers.find((t) => victim.rating >= t.lo && victim.rating <= t.hi);
         let repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= tier.lo && p.rating <= tier.hi && !inPool.has(p.name)))[0];
-        if (!repl) repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= 82 && !inPool.has(p.name)))[0];
+        if (!repl) repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= 80 && !inPool.has(p.name)))[0];
         if (!repl) break;
         inPool.delete(victim.name); inPool.add(repl.name);
         pool[pool.indexOf(victim)] = repl;
+      }
+    }
+    // top up: never fewer than the guaranteed number of 90+ headliners
+    {
+      let have90 = pool.filter((p) => p.rating >= 90).length;
+      let guard = 0;
+      while (have90 < stars && guard++ < 30) {
+        const victim = E.shuffle(pool.filter((p) => p.rating <= 85 && !p.wonderkid))[0];
+        if (!victim) break;
+        const sub = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === victim.pos && p.rating >= 90 && !p.wonderkid && !inPool.has(p.name) && !this.owned(p.name)))[0];
+        if (!sub) break;
+        inPool.delete(victim.name); inPool.add(sub.name);
+        pool[pool.indexOf(victim)] = sub; have90++;
       }
     }
     // exactly 1 wonderkid 60% of the time, 2 otherwise — never more
@@ -176,7 +197,7 @@ class Game {
       const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.wonderkid && !inPool.has(p.name) && !this.owned(p.name)));
       for (const wk of cand) {
         if (haveWk >= wantWk) break;
-        const victim = E.shuffle(pool.filter((p) => p.pos === wk.pos && !p.wonderkid))[0] || E.shuffle(pool.filter((p) => !p.wonderkid && p.pos !== 'GK'))[0];
+        const victim = E.shuffle(pool.filter((p) => p.pos === wk.pos && !p.wonderkid && p.rating < 90))[0] || E.shuffle(pool.filter((p) => !p.wonderkid && p.pos !== 'GK' && p.rating < 90))[0];
         if (!victim) break;
         inPool.delete(victim.name); inPool.add(wk.name);
         pool[pool.indexOf(victim)] = wk;
@@ -1125,7 +1146,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v2.8',
+      serverV: 'v2.9',
       paused: this.paused,
     };
   }

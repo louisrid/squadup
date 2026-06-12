@@ -15,9 +15,10 @@
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:500;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:500;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 .muted{color:var(--muted)!important;font-weight:600}
 button{font-weight:700}
+body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0}
 .wheelWrap{position:relative;width:min(320px,84vw);aspect-ratio:1;margin:14px auto}
 .wheelWrap svg{width:100%;height:100%;transition:transform 4.2s cubic-bezier(.12,.7,.1,1)}
 .wheelPtr{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:30px;z-index:2;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7))}
@@ -222,8 +223,8 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v2.8';
-const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
+const VERSION = 'v2.9';
+const $ = (h) => { if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
 let A = null, timerInt = null, pickState = null, lastTable = null;
@@ -435,7 +436,7 @@ s.on('phase',(p)=>{
   if(p.phase==='auction') MYSQUAD.length=0;
   if(p.phase==='auction'){
     const winter = p.window==='winter';
-    $(`<div class="screen center" style="min-height:100dvh;position:relative;overflow:hidden;justify-content:center;padding:0 18px">
+    $(`<div class="screen center" data-lock style="min-height:100dvh;position:relative;overflow:hidden;justify-content:center;padding:0 18px">
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;width:100%">
     <h1 style="font-size:clamp(52px,9vw,84px);font-style:italic;font-weight:900;color:${winter?'#F4FF00':'var(--pink)'};line-height:1.02;text-shadow:0 0 18px ${winter?'rgba(244,255,0,.65)':'rgba(255,46,126,.7)'},0 0 60px ${winter?'rgba(244,255,0,.35)':'rgba(255,46,126,.4)'}">${winter?'WINTER<br>MARKET!':'BID TO BUILD<br>YOUR SQUAD!'}</h1>
     ${winter
@@ -533,7 +534,7 @@ function renderLot(){
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
-  <div class="auctionWrap" style="justify-content:center;min-height:calc(100dvh - 360px);padding-top:0;gap:18px">
+  <div class="auctionWrap" data-lock style="justify-content:center;min-height:calc(100dvh - 360px);padding-top:0;gap:18px">
   <div class="lotRow" style="align-items:center;justify-content:center;gap:20px">
     <div style="width:194px">${cardHTML(A.player)}</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
@@ -825,7 +826,7 @@ s.on('spinResult',(x)=>{
 });
 let SPINNED=[];
 function renderSpinReady(){
-  $(`<div class="screen center" style="min-height:100dvh;justify-content:center">
+  $(`<div class="screen center" data-lock style="min-height:100dvh;justify-content:center">
     <div class="eyebrow" style="margin-bottom:10px">Halftime</div>
     <h1 style="font-size:clamp(46px,9vw,72px);font-style:italic;font-weight:900;color:#F4FF00;text-shadow:0 0 18px rgba(244,255,0,.6)">READY TO SPIN?</h1>
     <div class="muted" style="margin:14px 0 26px;font-size:16px">One free player. Your wheel is unique —<br>and the league table decides your odds…</div>
@@ -844,7 +845,7 @@ function renderSpinWheel(){
     return `<path d="M${C},${C} L${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 0,1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" class="${cls}" stroke="#06060B" stroke-width="2"/>
       <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" fill="#fff" font-size="13" font-weight="800" text-anchor="middle" transform="rotate(${(mid*180/Math.PI+90).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)})">${esc(last)} ${segs[i].rating}</text>`;
   };
-  $(`<div class="screen center" style="min-height:100dvh;justify-content:center">
+  $(`<div class="screen center" data-lock style="min-height:100dvh;justify-content:center">
     <div class="eyebrow">Halftime spin</div>
     <div class="wheelWrap"><div class="wheelPtr">🔻</div>
       <svg id="wheelSvg" viewBox="0 0 320 320">
@@ -868,7 +869,7 @@ function doSpin(){
     const won=SPIN.segments[r.index];
     setTimeout(()=>{
       confetti();
-      $(`<div class="screen center" style="min-height:100dvh;justify-content:center">
+      $(`<div class="screen center" data-lock style="min-height:100dvh;justify-content:center">
         <div class="eyebrow" style="margin-bottom:12px;font-size:20px;color:${won.kind==='legend'?'#FFD75E':won.kind==='wonder'?'#F4FF00':'var(--pink)'};text-shadow:0 0 14px ${won.kind==='legend'?'rgba(255,215,94,.6)':won.kind==='wonder'?'rgba(244,255,0,.5)':'rgba(255,46,126,.5)'}">${won.kind==='legend'?'👑 A LEGEND':won.kind==='wonder'?'⭐ A WONDERKID':'YOUR PRIZE'}</div>
         <div class="revealCard" style="--fade:520ms;width:200px">${cardHTML({name:won.name,pos:won.pos,hint:String(won.rating),legend:won.kind==='legend',wonderkid:won.kind==='wonder'})}</div>
         <div class="score" style="font-size:30px;margin-top:16px;opacity:0;animation:cerIn .5s .7s forwards">${esc(won.name)} joins your squad!</div>
@@ -878,7 +879,7 @@ function doSpin(){
   });
 }
 function renderSpinWait(){
-  $(`<div class="screen center" style="min-height:100dvh;justify-content:center">
+  $(`<div class="screen center" data-lock style="min-height:100dvh;justify-content:center">
     <div class="score" style="font-size:28px">Waiting for the other managers…</div>
     <div class="panel" id="spunlist" style="margin-top:16px;text-align:left;font-size:17px">${SPINNED.map(n=>`<div>🎡 ${esc(n)} has spun</div>`).join('')}</div>
   </div>`);
