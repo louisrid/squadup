@@ -19,8 +19,11 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body
 .muted{color:var(--muted)!important;font-weight:600}
 button{font-weight:700}
 @media (max-width:768px){ body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0} }
-.wheelWrap{position:relative;width:min(320px,84vw);aspect-ratio:1;margin:14px auto}
-.wheelWrap svg{width:100%;height:100%;transition:transform 4.2s cubic-bezier(.12,.7,.1,1)}
+@media (min-width:769px){ .backbtn{top:26px;left:26px} }
+.wheelWrap{position:relative;width:min(380px,90vw);aspect-ratio:1;margin:12px auto}
+.wheelWrap svg{width:100%;height:100%;display:block;shape-rendering:geometricPrecision}
+#wheelRot{width:100%;height:100%;transform:rotate(0deg);transition:transform 3.4s cubic-bezier(.12,.8,.13,1);will-change:transform}
+.wheelTxt{paint-order:stroke;stroke:#06060B;stroke-width:.6px}
 .wheelPtr{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:30px;z-index:2;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7))}
 .segLegend{fill:#C9A227}.segWonder{fill:url(#wgrad)}
 .segDEF{fill:#16306b}.segMID{fill:#0e4d2a}.segATT{fill:#62211c}.segGK{fill:#5a4710}
@@ -93,7 +96,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
   font-family:var(--disp);font-weight:800;font-size:42px;color:var(--text)}
 .giveup{border-color:var(--att);color:var(--att);background:transparent;font-size:16px}
 /* ---------- back button ---------- */
-.backbtn{position:fixed;top:10px;left:max(10px,env(safe-area-inset-left));z-index:40;
+.backbtn{position:fixed;top:16px;left:max(16px,env(safe-area-inset-left));z-index:40;
   width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   background:var(--surface2);border:1px solid var(--line);font-size:20px;padding:0;color:var(--text)}
 /* ---------- lot reveal ---------- */
@@ -225,7 +228,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v3.0';
+const VERSION = 'v3.2';
 const $ = (h) => { if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -536,7 +539,7 @@ function renderLot(){
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
-  <div class="auctionWrap" data-lock style="justify-content:center;min-height:calc(100dvh - 360px);padding-top:0;gap:18px">
+  <div class="auctionWrap" data-lock style="justify-content:center;min-height:calc(100dvh - 380px);padding-top:16px;gap:18px">
   <div class="lotRow" style="align-items:center;justify-content:center;gap:20px">
     <div style="width:194px">${cardHTML(A.player)}</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
@@ -772,7 +775,7 @@ function renderLockWait(){
 /* ---------------- SEASON REVEALS ---------------- */
 let MATCHLIVE=false;
 function evLine(e){
-  const t=(e.text||'').replace(/\(\d+'\)/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s+/g,' ').trim();
+  const t=(e.text||'').replace(/\(?\d+\+?\d*'\)?/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s+/g,' ').replace(/\s+([,.!])/g,'$1').trim();
   return `<b>${e.minute!=null?e.minute+"'":''}</b> ${esc(t)}`;
 }
 function renderMatch(m){
@@ -783,7 +786,7 @@ function renderMatch(m){
     ${pos?`<div class="muted" style="font-size:13px;letter-spacing:.12em">#${pos} IN THE LEAGUE</div>`:''}
     <div class="score" style="font-size:34px">${esc(name)}${mgr?` <span style="font-size:20px;color:var(--muted)">(${esc(mgr)})</span>`:''}</div>
   </div>`;
-  $(`<div class="screen" style="justify-content:flex-start;padding-top:30px">
+  $(`<div class="screen" style="justify-content:flex-start;padding-top:max(12vh,84px)">
     <div class="center">
       <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
@@ -817,11 +820,13 @@ function tableHTML(table, title){
 /* ---------------- HALFTIME SPIN ---------------- */
 let SPIN=null;
 s.on('spinWheel',(p)=>{
+  SPINNAMES=(p.perManager||[]).map(x=>x.name).filter(Boolean);
   const mine=p.perManager.find(x=>x.id===ME.id);
   if(!mine){ renderSpinWait(); return; }
   SPIN={segments:mine.segments, spun:false};
   renderSpinReady();
 });
+let SPINNAMES=[];
 s.on('spinResult',(x)=>{
   SPINNED=SPINNED||[]; if(!SPINNED.includes(x.manager)) SPINNED.push(x.manager);
   if(x.manager!==ME.name){ toast(`${x.manager} spun ${x.player} (${x.rating})`); const el=document.getElementById('spunlist'); if(el) el.innerHTML=SPINNED.map(n=>`<div>🎡 ${esc(n)} has spun</div>`).join(''); }
@@ -842,21 +847,28 @@ function renderSpinWheel(){
     const a0=(i/n)*2*Math.PI-Math.PI/2, a1=((i+1)/n)*2*Math.PI-Math.PI/2;
     const x0=C+R*Math.cos(a0), y0=C+R*Math.sin(a0), x1=C+R*Math.cos(a1), y1=C+R*Math.sin(a1);
     const cls=segs[i].kind==='legend'?'segLegend':segs[i].kind==='wonder'?'segWonder':('seg'+segs[i].pos);
-    const mid=(a0+a1)/2, tx=C+R*0.62*Math.cos(mid), ty=C+R*0.62*Math.sin(mid);
+    const mid=(a0+a1)/2;
+    let deg=mid*180/Math.PI;                     // text lies along the radius, reading outward
+    const tx=C+R*0.58*Math.cos(mid), ty=C+R*0.58*Math.sin(mid);
+    let anchor='start';
+    if(deg>90&&deg<270){ deg+=180; anchor='end'; } // keep every name upright
     const last=segs[i].name.split(' ').slice(-1)[0].toUpperCase();
-    return `<path d="M${C},${C} L${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 0,1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" class="${cls}" stroke="#06060B" stroke-width="2"/>
-      <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" fill="#fff" font-size="13" font-weight="800" text-anchor="middle" transform="rotate(${(mid*180/Math.PI+90).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)})">${esc(last)} ${segs[i].rating}</text>`;
+    return `<path d="M${C},${C} L${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 0,1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" class="${cls}" stroke="#06060B" stroke-width="2.5"/>
+      <text class="wheelTxt" x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" fill="#fff" font-size="16" font-weight="800" text-anchor="${anchor}" dominant-baseline="middle" transform="rotate(${deg.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)})">${esc(last)} ${segs[i].rating}</text>`;
   };
   $(`<div class="screen center" data-lock style="min-height:100dvh;justify-content:center">
     <div class="eyebrow">Halftime spin</div>
     <div class="wheelWrap"><div class="wheelPtr">🔻</div>
+      <div id="wheelRot">
       <svg id="wheelSvg" viewBox="0 0 320 320">
         <defs><linearGradient id="wgrad" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stop-color="#FF3D8A"/><stop offset="35%" stop-color="#FFE34D"/><stop offset="70%" stop-color="#3DDC84"/><stop offset="100%" stop-color="#9B5CFF"/>
         </linearGradient></defs>
-        <g id="wheelG" style="transform-origin:160px 160px">${segs.map((_,i)=>slice(i)).join('')}</g>
+        <circle cx="160" cy="160" r="156" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/>
+        ${segs.map((_,i)=>slice(i)).join('')}
         <circle cx="160" cy="160" r="28" fill="#06060B" stroke="rgba(255,255,255,.3)" stroke-width="2"/>
       </svg>
+      </div>
     </div>
     <button id="spinBtn" class="primary bigbtn" style="max-width:300px" onclick="doSpin()">SPIN 🎡</button>
   </div>`);
@@ -866,8 +878,9 @@ function doSpin(){
   s.emit('doSpin',(r)=>{
     if(r&&r.error){ toast(r.error); if(b){b.disabled=false;b.style.opacity='1';} return; }
     const n=SPIN.segments.length;
-    const segAngle=360/n, target=360*5 - (r.index*segAngle + segAngle/2);
-    const gEl=document.querySelector('#wheelSvg g#wheelG'); if(gEl) gEl.style.transform=`rotate(${target}deg)`;
+    const segAngle=360/n, target=360*6 - (r.index*segAngle + segAngle/2);
+    const gEl=document.getElementById('wheelRot');
+    if(gEl){ void gEl.offsetWidth; requestAnimationFrame(()=>{ gEl.style.transform=`rotate(${target}deg)`; }); }
     const won=SPIN.segments[r.index];
     setTimeout(()=>{
       confetti();
@@ -877,13 +890,14 @@ function doSpin(){
         <div class="score" style="font-size:30px;margin-top:16px;opacity:0;animation:cerIn .5s .7s forwards">${esc(won.name)} joins your squad!</div>
         <button class="primary bigbtn" style="max-width:320px;margin-top:22px" onclick="renderSpinWait()">Continue ▸</button>
       </div>`);
-    },4400);
+    },3600);
   });
 }
 function renderSpinWait(){
   $(`<div class="screen center" data-lock style="min-height:100dvh;justify-content:center">
     <div class="score" style="font-size:28px">Waiting for the other managers…</div>
-    <div class="panel" id="spunlist" style="margin-top:16px;text-align:left;font-size:17px">${SPINNED.map(n=>`<div>🎡 ${esc(n)} has spun</div>`).join('')}</div>
+    <div class="panel" id="spunlist" style="margin-top:16px;text-align:left;font-size:17px">${SPINNED.map(n=>`<div>🎡 ${esc(n)} has spun</div>`).join('')}${SPINNAMES.filter(n=>!SPINNED.includes(n)).map(n=>`<div class="muted">⏳ ${esc(n)} still to spin</div>`).join('')}</div>
+    ${ME.isHost?`<button class="bigbtn" style="margin-top:18px;max-width:340px" onclick="s.emit('forceSpins',(r)=>{ if(r&&r.error) toast(r.error); })">Host: spin for whoever's left ▸</button>`:''}
   </div>`);
 }
 

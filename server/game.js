@@ -543,7 +543,7 @@ class Game {
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
     const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => {
-      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 2.2, defence: s.defence - 2.2 };
+      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.0, defence: s.defence - 1.0 };
       if (t.name === 'Eastvale Rovers') { t.attack += 2.6; t.defence += 2.6; t.elite = true; }
       return t;
     });
@@ -710,7 +710,7 @@ class Game {
       this.wheels[m.id] = this.buildWheel(m, pos, reserved);
     }
     this.io.emit('spinWheel', {
-      perManager: this.activeManagers().map((m) => ({ id: m.id, segments: this.wheels[m.id].segments })),
+      perManager: this.activeManagers().map((m) => ({ id: m.id, name: m.name, segments: this.wheels[m.id].segments })),
     });
   }
 
@@ -750,9 +750,16 @@ class Game {
     m.signings.push({ player: won.name, price: 0, window: 'wheel' });
     this.pendingSpins.delete(managerId);
     this.io.emit('spinResult', { manager: m.name, player: won.name, pos: won.pos, rating: won.rating, kind: won.kind, index: idx });
-    if (this.pendingSpins.size === 0) setTimeout(() => this.startWinter(), FAST ? 50 : 3500);
+    if (this.pendingSpins.size === 0) setTimeout(() => this.startWinter(), FAST ? 50 : 6000);
     else this.autoSpinIfOnlyGhosts();
     return { ok: true, index: idx };
+  }
+
+  hostForceSpins(managerId) {
+    if (managerId !== this.hostId) return { error: 'Host only' };
+    if (this.phase !== 'spin' || !this.pendingSpins || this.pendingSpins.size === 0) return { error: 'Nobody left to spin' };
+    for (const id of [...this.pendingSpins]) this.doSpin(id);
+    return { ok: true };
   }
 
   autoSpinIfOnlyGhosts() {
@@ -855,6 +862,7 @@ class Game {
   }
 
   startWinter() {
+    if (this.phase === 'winter') return; // idempotent — never double-fire
     this.phase = 'winter';
     const table = this.table();
     for (const m of this.activeManagers()) {
@@ -1146,7 +1154,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v3.0',
+      serverV: 'v3.2',
       paused: this.paused,
     };
   }
