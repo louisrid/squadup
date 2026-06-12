@@ -22,10 +22,19 @@ function roomEmitter(code) {
 io.on('connection', (socket) => {
   let joined = null; // { code, managerId }
 
-  socket.on('createLobby', ({ name, club }, cb) => {
+  socket.on('findMyGames', ({ name }, cb) => {
+    const out = [];
+    for (const [code, g] of games) {
+      if (g.phase === 'finished') continue;
+      if (g.managers.some((m) => m.name === name)) out.push({ code, phase: g.phase });
+    }
+    cb && cb({ games: out });
+  });
+  socket.on('createLobby', ({ name, club, hints }, cb) => {
     let code = mid();
     while (games.has(code)) code = mid();
     const game = new Game(code, roomEmitter(code));
+    game.showHints = !!hints;
     games.set(code, game);
     socket.join(code);
     const r = game.addManager(socket.id, name, club);

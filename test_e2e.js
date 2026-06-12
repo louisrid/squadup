@@ -1,6 +1,6 @@
 // E2E: 4 bot managers play a complete game over real websockets.
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3101';
+const URL = 'http://localhost:3107';
 
 const NAMES = ['Louis', 'Tom', 'Ben', 'Jack'];
 const log = (...a) => console.log(...a);
@@ -34,7 +34,7 @@ function makeBot(name, i) {
     if (!mine) return;
     assert(mine.validFormations.length > 0, `${name} has no valid formation (${half})`);
     const f = mine.validFormations[0];
-    const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
+    const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], MID: ['GK','DEF','MID','MID','MID'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
     const avail = mine.squad.filter((p) => !p.injured);
     const chosen = [];
     for (const pos of slots) {
@@ -66,7 +66,7 @@ function makeBot(name, i) {
       // re-derive squad from latest respinResult review
       const rv = (bot.latestReview || w.review).find((r) => r.id === bot.managerId);
       const f = rv.validFormations[0];
-      const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
+      const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], MID: ['GK','DEF','MID','MID','MID'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
       const avail = rv.players.filter((p) => !p.injured);
       const chosen = [];
       for (const pos of slots) {

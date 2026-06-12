@@ -69,6 +69,13 @@ function playMatch(tA, tB) {
   let lb = PARAMS.BASE_LAMBDA * Math.exp(PARAMS.K * ((tB.attack + nb) - (tA.defence + na)));
   la = clamp(la, 0.15, 6);
   lb = clamp(lb, 0.15, 6);
+  // ~6% of matches are demolitions: one side (usually the stronger) goes ballistic
+  if (Math.random() < 0.06) {
+    const aStronger = (tA.attack + tA.defence) >= (tB.attack + tB.defence);
+    const boostA = Math.random() < (aStronger ? 0.65 : 0.35);
+    if (boostA) { la = clamp(la * 2.6 + 1.2, 3.5, 9); lb = clamp(lb * 0.5, 0.1, 1.2); }
+    else { lb = clamp(lb * 2.6 + 1.2, 3.5, 9); la = clamp(la * 0.5, 0.1, 1.2); }
+  }
   return { goalsA: poisson(la), goalsB: poisson(lb) };
 }
 

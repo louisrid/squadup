@@ -1,6 +1,6 @@
 // host disconnects mid-auction -> host migrates, game continues to completion
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3101';
+const URL = 'http://localhost:3107';
 const connected = (s) => s.connected ? Promise.resolve() : new Promise((r) => s.once('connect', r));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fail = [];
@@ -15,7 +15,7 @@ const assert = (c, m) => { if (!c) { fail.push(m); console.log('FAIL:', m); } };
     s.on('pickStarters', (p) => {
       const mine = p.perManager.find((x) => x.id === bot.managerId); if (!mine) return;
       const f = mine.validFormations[0];
-      const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
+      const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], MID: ['GK','DEF','MID','MID','MID'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
       const avail = mine.squad.filter((x) => !x.injured); const chosen = [];
       for (const pos of slots) { const p2 = avail.find((x) => x.pos === pos && !chosen.includes(x)); if (p2) chosen.push(p2); }
       s.emit('submitStarters', { formation: f, starters: chosen.map((x) => x.name) }, () => {});
@@ -24,7 +24,7 @@ const assert = (c, m) => { if (!c) { fail.push(m); console.log('FAIL:', m); } };
       const mine = w.review.find((r) => r.id === bot.managerId);
       if (!mine) return;
       const f = mine.validFormations[0];
-      const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
+      const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], MID: ['GK','DEF','MID','MID','MID'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
       const avail = mine.players.filter((x) => !x.injured); const chosen = [];
       for (const pos of slots) { const p = avail.find((x) => x.pos === pos && !chosen.includes(x)); if (p) chosen.push(p); }
       s.emit('submitStarters', { formation: f, starters: chosen.map((x) => x.name) }, () => {});

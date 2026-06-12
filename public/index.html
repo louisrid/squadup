@@ -151,6 +151,8 @@ tr.me td{background:rgba(255,61,138,.14)}
 .pcard.legend .nm{color:#5b4708;background:linear-gradient(transparent,rgba(255,250,235,.95) 45%)}
 .pcard.legend svg.sil g{fill:#b99c3f}
 .pcard.legend .posb{background:#C9A227!important;color:#fff!important}
+.hintchip{position:absolute;top:9px;right:8px;font-family:var(--disp);font-weight:800;font-size:14px;letter-spacing:.05em;
+  background:rgba(0,0,0,.55);border:1px solid var(--line);border-radius:7px;padding:2px 7px;color:#fff}
 /* ---------- winter hub ---------- */
 .tabrow{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
 .tab{flex:0 0 auto;padding:12px 17px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);
@@ -207,7 +209,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v1.4';
+const VERSION = 'v1.9';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -228,19 +230,38 @@ function cardHTML(p, sm){
   return `<div class="pcard ${p.pos} ${sm?'sm':''} ${p.legend?'legend':''}">
     <div class="bgGrad"></div>${SIL}
     <div class="posb">${p.pos}</div>
+    ${p.hint?`<div class="hintchip">${p.hint}</div>`:''}
     <div class="nm">${esc(p.name)}</div>
   </div>`;
 }
 
 /* ---------------- HOME ---------------- */
 function home(){
-  $(`<div class="screen center">
+  $(`<div class="screen center" id="homeScr">
   <h1 style="font-size:64px;letter-spacing:.01em"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
   <div class="muted" style="margin-bottom:26px">Bid on real players. Hidden ratings.<br>Survive the season.</div>
   <button class="primary bigbtn" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
+  <div id="rejoinSlot" style="width:100%"></div>
   <div class="muted" style="margin-top:26px;font-size:13px;opacity:.6">${VERSION}</div>
   </div>`);
+  try{
+    const sv=JSON.parse(localStorage.getItem('squp')||'null');
+    if(sv&&sv.name) s.emit('findMyGames',{name:sv.name},(r)=>{
+      const el=document.getElementById('rejoinSlot');
+      if(!el||!r||!r.games||!r.games.length) return;
+      el.innerHTML = r.games.map(gm=>`<button class="bigbtn" style="margin-top:12px;border-color:#4FC3F7;color:#4FC3F7"
+        onclick="rejoinAs('${gm.code}')">↻ Rejoin game ${gm.code} as ${esc(sv.name)}</button>`).join('');
+    });
+  }catch(e){}
+}
+function rejoinAs(code){
+  const sv=JSON.parse(localStorage.getItem('squp')||'null'); if(!sv) return;
+  s.emit('joinLobby',{code,name:sv.name,club:''},(r)=>{
+    if(r.error) return toast(r.error);
+    onJoined(r,sv.name);
+    if(!r.snapshot) toast('Back in — waiting for the next event');
+  });
 }
 function showSetup(mode){
   $(`<button class="backbtn" onclick="home()">‹</button>
@@ -254,6 +275,9 @@ function showSetup(mode){
     <input id="name" placeholder="Louis" maxlength="14">
     <label class="flabel">Club name <span class="muted">(optional)</span></label>
     <input id="club" placeholder="Louis FC" maxlength="18">
+    ${mode==='create'?`<label class="flabel" style="margin-top:14px">Rating hints</label>
+    <button id="hintsTgl" data-on="0" style="width:100%;font-size:16px" onclick="this.dataset.on=this.dataset.on==='1'?'0':'1';this.textContent=this.dataset.on==='1'?'Rating ranges: ON':'Rating ranges: OFF';this.classList.toggle('startready',this.dataset.on==='1')">Rating ranges: OFF</button>
+    <div class="muted" style="font-size:14px;margin-top:4px">Shows a fuzzy FC26 range on every card, e.g. 84–91. Never the exact rating.</div>`:''}
     <button class="primary bigbtn" style="margin-top:16px" onclick="${mode==='create'?'createL()':'joinL()'}">${mode==='create'?'Create lobby':'Join lobby'}</button>
   </div>
   </div>`);
@@ -264,20 +288,24 @@ function getNC(){
   return {name,club};
 }
 function createL(){ const {name,club}=getNC(); if(!name) return toast('Enter a name');
-  s.emit('createLobby',{name,club},(r)=>{ if(r.error) return toast(r.error); onJoined(r,name); }); }
+  const tgl=document.getElementById('hintsTgl');
+  s.emit('createLobby',{name,club,hints:tgl&&tgl.dataset.on==='1'},(r)=>{ if(r.error) return toast(r.error); onJoined(r,name); }); }
 function joinL(){ const {name,club}=getNC(); const code=document.getElementById('code').value.trim();
   if(!name) return toast('Enter a name'); if(!code) return toast('Enter the lobby code');
   s.emit('joinLobby',{code,name,club},(r)=>{ if(r.error) return toast(r.error); onJoined(r,name); }); }
 function onJoined(r,name){ ME.id=r.managerId; ME.code=r.code; ME.name=name;
+  try{ localStorage.setItem('squp', JSON.stringify({name, code:r.code})); }catch(e){}
   if(lastLobby && lastLobby.code===ME.code) renderLobby(lastLobby);
   if(r.snapshot) restoreFromSnapshot(r.snapshot); }
 function restoreFromSnapshot(snap){
   if(!snap) return;
+  ME.isHost = snap.hostId===ME.id;
+  if(snap.reveal){ renderMatch(snap.reveal); return; }
   if(snap.winter){ applyWinter(snap.winter); return; }
   if(snap.auction && snap.auction.player){
     A={ index:snap.auction.index, total:snap.auction.total, player:snap.auction.player,
         highBid:snap.auction.highBid, highBidder:snap.auction.highBidder,
-        deadline:snap.auction.deadline, start:20000 };
+        deadline:snap.auction.deadline, start:16000 };
     renderLot();
   } else if(snap.phase!=='lobby'){
     $(`<div class="screen center"><div class="score" style="font-size:30px">You're back in</div>
@@ -401,7 +429,7 @@ s.on('awaitNext',(x)=>{
 });
 s.on('lotReveal',(l)=>{
   clearInterval(timerInt);
-  const base = l.revealMs||3400;
+  const base = l.revealMs||2800;
   const fadeMs = Math.round(base*0.55);            // bob in fast, then a beat to SEE the player (~1.65s)
   const unit = Math.round((base-fadeMs)/3);        // rapid 3-2-1, ~0.45s ticks
   $(`<div class="screen center">
@@ -496,11 +524,11 @@ function toast(t){ const p=document.getElementById('pausebar'); p.textContent=t;
 function hideToast(){ const p=document.getElementById('pausebar'); if(p && !isPaused) p.style.display='none'; }
 
 /* ---------------- PICK STARTERS ---------------- */
-const SLOTS={DEF:['GK','DEF','DEF','MID','ATT'],BAL:['GK','DEF','MID','MID','ATT'],ATT:['GK','DEF','MID','ATT','ATT']};
-const FLABEL={DEF:'Defensive',BAL:'Balanced',ATT:'Attacking'};
+const SLOTS={DEF:['GK','DEF','DEF','MID','ATT'],BAL:['GK','DEF','MID','MID','ATT'],MID:['GK','DEF','MID','MID','MID'],ATT:['GK','DEF','MID','ATT','ATT']};
+const FLABEL={DEF:'Defensive',BAL:'Balanced',MID:'Midfield',ATT:'Attacking'};
 let lockedManagers=[];
 s.on('pickStarters',(p)=>{
-  lockedManagers=[]; W=null;
+  lockedManagers=[]; W=null; MATCHLIVE=false;
   const mine=p.perManager.find(x=>x.id===ME.id); if(!mine) return;
   pickState={half:p.half, squad:mine.squad, forms:mine.validFormations,
     formation:mine.validFormations.includes('BAL')?'BAL':mine.validFormations[0],
@@ -567,7 +595,8 @@ function clearSlot(i){ pickState.slots[i].player=null; renderPick(); }
 function submitPick(){
   const starters=pickState.slots.map(x=>x.player);
   s.emit('submitStarters',{formation:pickState.formation,starters},(r)=>{
-    if(r.error) return toast(r.error);
+    if(r&&r.error) return toast(r.error);
+    if(MATCHLIVE) return; // season already kicked off — never paint over the match
     renderLockWait();
   });
 }
@@ -579,7 +608,9 @@ function renderLockWait(){
 
 
 /* ---------------- SEASON REVEALS ---------------- */
-s.on('matchReveal',(m)=>{
+let MATCHLIVE=false;
+function renderMatch(m){
+  MATCHLIVE=true;
   clearInterval(timerInt);
   const yours = ME.club && (m.home===ME.club || m.away===ME.club);
   $(`<div class="screen" style="justify-content:center">
@@ -601,19 +632,21 @@ s.on('matchReveal',(m)=>{
         :`<div class="muted" style="margin-top:22px">${esc(m.hostName)} controls the remote…</div>`}
     </div>
   </div>`);
-});
+}
+s.on('matchReveal',renderMatch);
 s.on('halfDone',(h)=>{ lastTable=h.table; });
 function tableHTML(table, title){
   return `<h2>${title}</h2><div class="panel" style="padding:6px 8px"><table>
-  <tr><th>#</th><th>Club</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr>
+  <tr><th>#</th><th>Club</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>Pts</th></tr>
   ${table.map((r,i)=>`<tr class="${r.manager? (r.manager===ME.name?'me':'hu') :''}">
     <td>${i+1}</td><td>${esc(r.name)}${r.manager?`<br><span class="muted">${esc(r.manager)}${r.sacked?' · SACKED':''}</span>`:''}</td>
-    <td>${r.w??'–'}</td><td>${r.d??'–'}</td><td>${r.l??'–'}</td><td>${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`;
+    <td>${r.w??'–'}</td><td>${r.d??'–'}</td><td>${r.l??'–'}</td><td>${r.gf}</td><td>${r.ga}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`;
 }
 
 /* ---------------- WINTER ---------------- */
 let W=null, WTAB=null, WSLOTS=null, WFORM=null;
 function applyWinter(w){
+  MATCHLIVE=false;
   if(w.sackings.some(x=>x.manager===ME.name)) ME.sacked=true;
   W=w; WTAB=ME.name;
   const mine=w.review.find(r=>r.manager===ME.name);
@@ -703,7 +736,8 @@ function renderWinter(){
   <div class="eyebrow">Winter break</div>
   <div class="tabwrap"><div class="eyebrow" style="font-size:13px;margin-bottom:5px">Tap a manager to scout their squad</div>
   <div class="tabrow">${W.review.map(t=>`<button class="tab ${t.manager===WTAB?'sel':''}" onclick="wTab(this.dataset.m)" data-m="${esc(t.manager)}">${esc(t.manager)}${t.manager===ME.name?' (you)':''}${t.locked?' ✓':''}</button>`).join('')}</div></div>
-  ${!mine && !ME.sacked ? `<button class="primary" style="width:100%;margin:4px 0 10px;font-size:17px" onclick="wTab('${esc(ME.name)}')">‹ Back to my squad</button>`:''}
+  ${!mine && !ME.sacked ? `<button class="primary" style="width:100%;margin:4px 0 10px;font-size:17px" onclick="wTabMine()">‹ Back to my squad</button>
+  <button class="primary" style="position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:16px;right:16px;z-index:50;font-size:18px" onclick="wTabMine()">‹ My squad &amp; respins</button>`:''}
   ${W.injuries.length?`<div class="panel">${W.injuries.map(i=>`<div>🤕 <b>${esc(i.player)}</b> (${esc(i.manager)}) — out for the season</div>`).join('')}</div>`:''}
   ${W.sackings.length?`<div class="panel" style="border-color:var(--att)">${W.sackings.map(x=>`<div>🪓 <b>${esc(x.manager)}</b> sacked — ${esc(x.club)} carry on without him</div>`).join('')}</div>`:''}
   <div class="row" style="margin:10px 0 2px">
@@ -746,6 +780,7 @@ function wTab(m){
   renderWinter();
   window.scrollTo(0,0);
 }
+function wTabMine(){ wTab(ME.name); }
 function wForm(f){ WFORM=f; WSLOTS=SLOTS[f].map(pos=>({pos,player:null})); renderWinter(); }
 function wPlace(name,pos){
   const r=W.review.find(x=>x.manager===ME.name);
@@ -763,13 +798,14 @@ function wSpin(name){
 function wLock(){
   s.emit('submitStarters',{formation:WFORM,starters:WSLOTS.map(x=>x.player)},(r)=>{
     if(r&&r.error) return toast(r.error);
+    if(MATCHLIVE) return; // second half already underway
     const me=W.review.find(x=>x.manager===ME.name); if(me) me.locked=true;
     renderWinter();
   });
 }
 
 /* ---------------- FINISH ---------------- */
-s.on('finished',(f)=>{ runCeremony(f); });
+s.on('finished',(f)=>{ MATCHLIVE=false; runCeremony(f); });
 let CTIMERS=[];
 function runCeremony(f){
   CTIMERS.forEach(clearTimeout); CTIMERS=[];

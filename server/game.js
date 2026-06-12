@@ -31,16 +31,17 @@ const AI_CLUB_NAMES = [
 const FORMATIONS = {
   DEF: { slots: ['GK', 'DEF', 'DEF', 'MID', 'ATT'], label: 'Defensive' },
   BAL: { slots: ['GK', 'DEF', 'MID', 'MID', 'ATT'], label: 'Balanced' },
+  MID: { slots: ['GK', 'DEF', 'MID', 'MID', 'MID'], label: 'Midfield' },
   ATT: { slots: ['GK', 'DEF', 'MID', 'ATT', 'ATT'], label: 'Attacking' },
 };
 
 const FAST = process.env.FAST === '1';
 const TIMINGS = {
-  AUCTION_START_MS: FAST ? 150 : 20000,
-  AUCTION_BID_ADD_MS: FAST ? 60 : 3000,
+  AUCTION_START_MS: FAST ? 150 : 16000,
+  AUCTION_BID_ADD_MS: FAST ? 60 : 2000,
   AUCTION_MAX_MS: FAST ? 600 : 40000,
   AUCTION_BETWEEN_MS: FAST ? 30 : 4000,
-  LOT_REVEAL_MS: FAST ? 20 : 3400,
+  LOT_REVEAL_MS: FAST ? 20 : 2800,
   REVEAL_QUICK_MS: FAST ? 15 : 3000,
   REVEAL_FEATURED_MS: FAST ? 25 : 13000,
   REVEAL_MATCHDAY_GAP_MS: FAST ? 5 : 800,
@@ -63,9 +64,21 @@ class Game {
     this.timers = {};
     this.paused = false;
     this.speed = 1; // host toggle: 1x or 2x auction pace
+    this.showHints = false; // host option: show fuzzy FC26 ranges on cards
+    this.hints = {};
   }
 
   sp(ms) { return Math.round(ms / this.speed); }
+
+  hintFor(p) {
+    if (!this.showHints) return undefined;
+    if (!this.hints[p.name]) {
+      const lo = p.fc26 - (2 + Math.floor(Math.random() * 4));
+      const hi = p.fc26 + (2 + Math.floor(Math.random() * 4));
+      this.hints[p.name] = lo + '–' + hi;
+    }
+    return this.hints[p.name];
+  }
 
   // ---------- lobby ----------
   addManager(id, name, club) {
@@ -247,7 +260,7 @@ class Game {
     a.outs = new Set();
     this.io.emit('lotReveal', {
       index: a.index, total: a.queue.length,
-      player: { name: a.current.name, pos: a.current.pos }, // ratings NEVER sent
+      player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current) }, // exact ratings NEVER sent
       revealMs: this.sp(TIMINGS.LOT_REVEAL_MS),
     });
     setTimeout(() => {
@@ -255,7 +268,7 @@ class Game {
       a.deadline = Date.now() + this.sp(TIMINGS.AUCTION_START_MS);
       this.io.emit('lot', {
         index: a.index, total: a.queue.length,
-        player: { name: a.current.name, pos: a.current.pos },
+        player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current) },
         deadline: a.deadline,
       });
       this.armLotTimer();
@@ -477,7 +490,7 @@ class Game {
     const humanTeams = this.managers.map((m, i) => ({ type: 'human', mIdx: i, name: m.club }));
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
-    const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => ({ type: 'ai', name: AI_CLUB_NAMES[i], ...s }));
+    const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => ({ type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.0, defence: s.defence - 1.0 }));
     this.season = {
       teams: [...humanTeams, ...ais],
       fixtures: E.buildFixtures(12),
@@ -735,7 +748,7 @@ class Game {
     this.io.emit('respinResult', {
       manager: m.name,
       oldPlayer: { name: old.name, pos },
-      newPlayer: { name: repl.name, pos: repl.pos, legend: !!repl.legend },
+      newPlayer: { name: repl.name, pos: repl.pos, legend: !!repl.legend, hint: repl.legend ? undefined : this.hintFor(repl) },
       tier,
       spinsLeft: m.spinsLeft,
       review: this.winterPayload().review,
@@ -889,6 +902,7 @@ class Game {
       } : null,
       table: this.season ? this.table() : null,
       winter: this.phase === 'winter' ? this.winterPayload() : null,
+      reveal: this.reveal && this.reveal.waiting ? this.reveal.last : null,
       paused: this.paused,
     };
   }
