@@ -381,7 +381,7 @@ class Game {
       deadlineMs: TIMINGS.PICK_STARTERS_MS,
       perManager: this.activeManagers().map((m) => ({
         id: m.id,
-        squad: m.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === m.injured, fc26: this.showHints ? p.fc26 : undefined })),
+        squad: m.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === m.injured, fc26: p.fc26 })),
         validFormations: this.validFormations(m),
       })),
     });
@@ -623,7 +623,7 @@ class Game {
         units: this.unitScores(m),
         validFormations: this.validFormations(m),
         players: m.squad.map((p) => ({
-          name: p.name, pos: p.pos, legend: !!p.legend, fc26: this.showHints ? p.fc26 : undefined,
+          name: p.name, pos: p.pos, legend: !!p.legend, fc26: p.fc26,
           form: p.winterForm != null ? p.winterForm : null, // null = arrived after the half (respin)
           goals: (this.season.playerStats[p.name] || {}).goals || 0,
           assists: (this.season.playerStats[p.name] || {}).assists || 0,
@@ -701,13 +701,15 @@ class Game {
       // widen the band step by step if no unowned player exists in it
       for (let w = 0; w < 8 && !repl; w++) repl = candidates(Math.max(60, lo - w), Math.min(94, hi + w))[0];
     };
-    if (roll < 0.28) { tier = 'worse'; bandPick(old.fc26 - 5, old.fc26 - 2); }
-    else if (roll < 0.63) { tier = 'better'; bandPick(old.fc26 + 1, old.fc26 + 2); }
-    else if (roll < 0.93) { tier = 'great'; bandPick(Math.min(old.fc26 + 3, 90), Math.min(old.fc26 + 5, 90)); }
-    else {
+    if (roll < 0.93) {
+      // pure lottery: any unowned player in your position, completely independent of who you spun away
+      repl = candidates(83, 94)[0];
+      const diff = repl ? repl.fc26 - old.fc26 : 0;
+      tier = diff < 0 ? 'worse' : diff <= 2 ? 'better' : 'great';
+    } else {
       tier = 'legend';
       repl = E.shuffle(LEGENDS.filter((l) => l.pos === pos && !this.owned(l.name)))[0];
-      if (!repl) { tier = 'great'; bandPick(Math.min(old.fc26 + 3, 90), Math.min(old.fc26 + 5, 90)); }
+      if (!repl) { repl = candidates(88, 94)[0] || candidates(83, 94)[0]; tier = 'great'; }
     }
     if (!repl) repl = candidates(60, 94)[0];
     if (!repl) return { error: 'No replacement available' };

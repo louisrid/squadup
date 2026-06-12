@@ -209,7 +209,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v1.13';
+const VERSION = 'v1.15';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -524,27 +524,41 @@ function toast(t){ const p=document.getElementById('pausebar'); p.textContent=t;
 function hideToast(){ const p=document.getElementById('pausebar'); if(p && !isPaused) p.style.display='none'; }
 
 /* ---------------- PICK STARTERS ---------------- */
-const FREESLOTS=['ANY','ANY','ANY','ANY','GK']; // 4 free outfield + keeper
-const FORMSETS=[[2,1,1],[1,2,1],[1,1,2],[2,2,0],[2,0,2],[0,2,2],[3,1,0],[3,0,1],[1,3,0],[0,3,1],[1,0,3],[0,1,3],[4,0,0],[0,4,0],[0,0,4]];
-function formChips(avail, onpick){
-  const c={DEF:avail.filter(p=>p.pos==='DEF').length, MID:avail.filter(p=>p.pos==='MID').length, ATT:avail.filter(p=>p.pos==='ATT').length};
-  const ok=FORMSETS.filter(([d,m2,a])=>c.DEF>=d&&c.MID>=m2&&c.ATT>=a);
-  return `<div class="row" style="flex-wrap:wrap;gap:7px;margin-bottom:8px">${ok.map(([d,m2,a])=>
-    `<button class="fbtn" style="padding:9px 11px" onclick="${onpick}(${d},${m2},${a})">${d}-${m2}-${a}</button>`).join('')}</div>`;
+const FORMSETS=[[1,2,1],[2,1,1],[1,1,2],[2,2,0],[2,0,2],[3,1,0],[3,0,1],[1,3,0],[1,0,3],[4,0,0]];
+let CURFORM=[1,2,1];
+function slotsFor(d,m2,a){
+  return [].concat(Array(a).fill('ATT'),Array(m2).fill('MID'),Array(d).fill('DEF'),['GK'])
+    .map(pos=>({pos,player:null,ppos:pos}));
 }
-function applyFormset(slots, avail, d, m2, a){
-  for(const sl of slots){ if(sl.pos!=='GK'){ sl.player=null; sl.ppos=null; } }
-  const gkSlot=slots.find(x=>x.pos==='GK');
-  if(!gkSlot.player){ const gk=avail.find(p=>p.pos==='GK'); if(gk){ gkSlot.player=gk.name; gkSlot.ppos='GK'; } }
-  const want=[].concat(Array(d).fill('DEF'),Array(m2).fill('MID'),Array(a).fill('ATT'));
-  const usedN=new Set([gkSlot.player]);
-  let si=0;
-  for(const pos of want){
-    const p=avail.find(x=>x.pos===pos && !usedN.has(x.name));
-    if(!p) continue;
-    const sl=slots.filter(x=>x.pos==='ANY')[si++];
-    sl.player=p.name; sl.ppos=pos; usedN.add(p.name);
+function feasibleForms(avail){
+  const c={DEF:avail.filter(p=>p.pos==='DEF').length, MID:avail.filter(p=>p.pos==='MID').length, ATT:avail.filter(p=>p.pos==='ATT').length};
+  return FORMSETS.filter(([d,m2,a])=>c.DEF>=d&&c.MID>=m2&&c.ATT>=a);
+}
+function formChips(avail, onpick){
+  return `<div class="row" style="flex-wrap:wrap;gap:7px;margin-bottom:8px">${feasibleForms(avail).map(([d,m2,a])=>
+    `<button class="fbtn ${CURFORM[0]===d&&CURFORM[1]===m2&&CURFORM[2]===a?'sel':''}" style="padding:9px 11px" onclick="${onpick}(${d},${m2},${a})">${d}-${m2}-${a}</button>`).join('')}</div>`;
+}
+function rebuildSlots(oldSlots, avail, d, m2, a){
+  const placed=oldSlots.filter(x=>x.player).map(x=>({name:x.player,pos:x.ppos}));
+  const slots=slotsFor(d,m2,a);
+  for(const pl of placed){
+    if(!avail.some(p=>p.name===pl.name)) continue;
+    const sl=slots.find(x=>x.pos===pl.pos && !x.player);
+    if(sl){ sl.player=pl.name; sl.ppos=pl.pos; }
   }
+  return slots;
+}
+function unitBars(slots, avail){
+  const fcOf=(n)=>{const p=avail.find(x=>x.name===n);return p&&p.fc26;};
+  const unit=(poss)=>{
+    const vals=slots.filter(x=>x.player&&poss.includes(x.ppos)).map(x=>fcOf(x.player)).filter(Boolean);
+    return vals.length?Math.round(vals.reduce((s,v)=>s+v,0)/vals.length):null;
+  };
+  const D=unit(['GK','DEF']), M=unit(['MID']), A=unit(['ATT']);
+  const cell=(lbl,v)=>`<div style="flex:1;text-align:center"><div class="muted" style="font-size:13px">${lbl}</div>
+    <div style="font-family:var(--disp);font-weight:800;font-size:24px;color:${v?'#fff':'#FF5470'}">${v??'—'}</div></div>`;
+  return `<div class="blackbox" style="display:flex;gap:6px;padding:10px 6px;margin-bottom:8px">${cell('DEF',D)}${cell('MID',M)}${cell('ATT',A)}</div>
+  ${(!D||!M||!A)?`<div class="muted" style="font-size:13px;margin:-2px 0 8px;color:#FF5470">Missing a unit hurts your ratings — balanced teams do better.</div>`:''}`;
 }
 let lockedManagers=[];
 s.on('pickStarters',(p)=>{
@@ -557,22 +571,28 @@ s.on('pickStarters',(p)=>{
   renderPick();
 });
 function initSlots(){
-  pickState.slots = FREESLOTS.map((pos)=>({pos, player:null, ppos:null}));
+  const av=pickState.squad.filter(x=>!x.injured);
+  const ok=feasibleForms(av);
+  CURFORM = ok.some(f=>f[0]===1&&f[1]===2&&f[2]===1)?[1,2,1]:(ok[0]||[1,2,1]);
+  pickState.slots = slotsFor(...CURFORM);
 }
 function renderPick(){
   const p=pickState;
   const used = p.slots.filter(x=>x.player).map(x=>x.player);
-  const rowOf=(idxs)=>`<div class="prow">${idxs.map(i=>{const x=p.slots[i];
-    return x.player
-      ? `<div class="slot filled" onclick="clearSlot(${i})"><span class="pos ${x.ppos}">${x.ppos}</span><span class="sname">${esc(x.player)}</span></div>`
-      : `<div class="slot"><span class="plus">＋</span>${x.pos==='GK'?'GK':'ANY'}</div>`;}).join('')}</div>`;
-  const rows = rowOf([0,1]) + rowOf([2,3]) + rowOf([4]);
+  const rows = ['ATT','MID','DEF','GK'].map(pos=>{
+    const idxs=p.slots.map((x,i)=>x.pos===pos?i:-1).filter(i=>i>=0);
+    if(!idxs.length) return '';
+    return `<div class="prow">${idxs.map(i=>{const x=p.slots[i];
+      return x.player
+        ? `<div class="slot filled" onclick="clearSlot(${i})"><span class="pos ${pos}">${pos}</span><span class="sname">${esc(x.player)}</span></div>`
+        : `<div class="slot"><span class="plus">＋</span>${pos}</div>`;}).join('')}</div>`;
+  }).join('');
   const filled = used.length;
   $k(`${backBtn(1)}<div style="padding-top:52px"></div>
   <div class="eyebrow">${p.half==='first'?'Pre-season':'Second half'}</div>
   <h1 style="margin-bottom:6px">Pick your five</h1>
-  <div class="muted" style="margin-bottom:8px">Tap a formation, or build it freely — one keeper + any four outfielders.</div>
   ${formChips(p.squad.filter(x=>!x.injured),'pickForm')}
+  ${unitBars(p.slots, p.squad)}
   <div class="pitch">${rows}</div>
   <button class="autobtn" onclick="autoXI()">⚡ Auto-fill XI</button>
   <h2 style="margin-top:6px">Squad — tap to place</h2>
@@ -588,30 +608,29 @@ function renderPick(){
 function autoXI(){
   s.emit('suggestXI',(r)=>{
     if(r&&r.error) return toast(r.error);
-    const fill=(slots, lookup)=>{
-      for(const sl of slots){ sl.player=null; sl.ppos=null; }
-      for(const n of r.starters){
-        const p2=lookup(n); if(!p2) continue;
-        const want=p2.pos==='GK'?'GK':'ANY';
-        const sl=slots.find(x=>x.pos===want&&!x.player);
-        if(sl){ sl.player=n; sl.ppos=p2.pos; }
-      }
+    const build=(lookup)=>{
+      const ps=r.starters.map(lookup).filter(Boolean);
+      const d=ps.filter(p=>p.pos==='DEF').length, m2=ps.filter(p=>p.pos==='MID').length, a=ps.filter(p=>p.pos==='ATT').length;
+      CURFORM=[d,m2,a];
+      const slots=slotsFor(d,m2,a);
+      for(const p2 of ps){ const sl=slots.find(x=>x.pos===p2.pos&&!x.player); if(sl){ sl.player=p2.name; sl.ppos=p2.pos; } }
+      return slots;
     };
-    if(pickState){ fill(pickState.slots, n=>pickState.squad.find(q=>q.name===n)); renderPick(); }
+    if(pickState){ pickState.slots=build(n=>pickState.squad.find(q=>q.name===n)); renderPick(); }
     else if(W && WSLOTS){
       const rv=W.review.find(x=>x.manager===ME.name);
-      fill(WSLOTS, n=>rv.players.find(q=>q.name===n)); renderWinter();
+      WSLOTS=build(n=>rv.players.find(q=>q.name===n)); renderWinter();
     }
   });
 }
 function pickForm(d,m2,a){
-  applyFormset(pickState.slots, pickState.squad.filter(x=>!x.injured), d,m2,a);
+  CURFORM=[d,m2,a];
+  pickState.slots=rebuildSlots(pickState.slots, pickState.squad.filter(x=>!x.injured), d,m2,a);
   renderPick();
 }
 function placePlayer(name,pos){
-  const want = pos==='GK' ? 'GK' : 'ANY';
-  const slot=pickState.slots.find(x=>x.pos===want && !x.player);
-  if(!slot) return toast(pos==='GK'?'Keeper slot taken':'Outfield slots full');
+  const slot=pickState.slots.find(x=>x.pos===pos && !x.player);
+  if(!slot) return toast('No free '+pos+' slot — switch formation');
   slot.player=name; slot.ppos=pos; renderPick();
 }
 function clearSlot(i){ pickState.slots[i].player=null; pickState.slots[i].ppos=null; renderPick(); }
@@ -676,11 +695,15 @@ function applyWinter(w){
   W=w;
   if(!hadHub) WTAB=ME.name;
   const mine=w.review.find(r=>r.manager===ME.name);
-  if(mine && !hadHub){ WSLOTS = buildFreeSlots(); }
+  if(mine && !hadHub){
+    const av=mine.players.filter(x=>!x.injured);
+    const ok=feasibleForms(av);
+    CURFORM = ok.some(f=>f[0]===1&&f[1]===2&&f[2]===1)?[1,2,1]:(ok[0]||[1,2,1]);
+    WSLOTS = slotsFor(...CURFORM);
+  }
   if(!mine) WTAB = w.review.length ? w.review[0].manager : null;
   renderWinter();
 }
-function buildFreeSlots(){ return FREESLOTS.map(pos=>({pos,player:null,ppos:null})); }
 s.on('winter',applyWinter);
 s.on('winterUpdate',(u)=>{ if(W){ W.review=u.review; renderWinter(); } });
 s.on('respinResult',(x)=>{
@@ -745,19 +768,24 @@ function renderWinter(){
   if(!r){ WTAB=ME.name; r=W.review.find(x=>x.manager===WTAB)||W.review[0]; }
   if(!r) return;
   const myRv = W.review.find(x=>x.manager===ME.name);
-  if(myRv && WSLOTS) for(const sl of WSLOTS){
-    if(sl.player && !myRv.players.some(p=>p.name===sl.player && !p.injured)){ sl.player=null; sl.ppos=null; }
+  if(myRv && WSLOTS && Array.isArray(myRv.players) && myRv.players.length>=5){
+    const names=new Set(myRv.players.filter(p=>!p.injured).map(p=>p.name));
+    const gone=WSLOTS.filter(sl=>sl.player && !names.has(sl.player));
+    if(gone.length<=1) for(const sl of gone){ sl.player=null; sl.ppos=null; } // a single legit removal (respin/injury); never a wipe
   }
   const mine = r.manager===ME.name && !ME.sacked;
   const canEdit = mine && !r.locked;
   const u = r.units||{};
   const uv=(v)=>v==null?'—':v.toFixed(1);
   const used = mine && WSLOTS ? WSLOTS.filter(x=>x.player).map(x=>x.player) : [];
-  const wRow=(idxs)=>`<div class="prow">${idxs.map(i=>{const x=WSLOTS[i];
-    return x.player
-      ? `<div class="slot filled" ${canEdit?`onclick="wClear(${i})"`:''}><span class="pos ${x.ppos}">${x.ppos}</span><span class="sname">${esc(x.player)}</span></div>`
-      : `<div class="slot"><span class="plus">＋</span>${x.pos==='GK'?'GK':'ANY'}</div>`;}).join('')}</div>`;
-  const pitchRows = mine && WSLOTS ? (wRow([0,1])+wRow([2,3])+wRow([4])) : '';
+  const pitchRows = mine && WSLOTS ? ['ATT','MID','DEF','GK'].map(pos=>{
+    const idxs=WSLOTS.map((x,i)=>x.pos===pos?i:-1).filter(i=>i>=0);
+    if(!idxs.length) return '';
+    return `<div class="prow">${idxs.map(i=>{const x=WSLOTS[i];
+      return x.player
+        ? `<div class="slot filled" ${canEdit?`onclick="wClear(${i})"`:''}><span class="pos ${pos}">${pos}</span><span class="sname">${esc(x.player)}</span></div>`
+        : `<div class="slot"><span class="plus">＋</span>${pos}</div>`;}).join('')}</div>`;
+  }).join('') : '';
   const pos = W.table.findIndex(t=>t.name===r.club)+1;
   const trow = W.table[pos-1];
   const ord=(n)=>n+(['th','st','nd','rd'][(n%100>10&&n%100<14)||n%10>3?0:n%10]);
@@ -782,8 +810,8 @@ function renderWinter(){
   ${mine?`
     <div class="row"><h2 class="grow" style="margin:10px 0">Pick your five</h2>
       <span class="bchip" style="font-size:17px;padding:10px 14px">🎰 Respins: <b>${r.spinsLeft}</b></span></div>
-    <div class="muted" style="margin-bottom:6px">Tap a formation, or build it freely.</div>
     ${canEdit?formChips(r.players.filter(x=>!x.injured),'winterForm2'):''}
+    ${mine&&WSLOTS?unitBars(WSLOTS, r.players):''}
     <div class="pitch">${pitchRows}</div>
     ${canEdit?`<button class="autobtn" onclick="autoXI()">⚡ Auto-fill XI</button>`:''}`
   :`<h2 style="margin:10px 0">${esc(r.club)} — ${esc(r.manager)}${r.locked?' · locked in':''}</h2>
@@ -812,17 +840,17 @@ function wTab(m){
 }
 function wTabMine(){ wTab(ME.name); }
 function winterForm2(d,m2,a){
+  CURFORM=[d,m2,a];
   const rv=W.review.find(x=>x.manager===ME.name);
-  applyFormset(WSLOTS, rv.players.filter(x=>!x.injured), d,m2,a);
+  WSLOTS=rebuildSlots(WSLOTS, rv.players.filter(x=>!x.injured), d,m2,a);
   renderWinter();
 }
 function wPlace(name,pos){
   const r=W.review.find(x=>x.manager===ME.name);
   const p=r.players.find(x=>x.name===name);
   if(p.injured) return toast(name+' is injured');
-  const want = pos==='GK' ? 'GK' : 'ANY';
-  const slot=WSLOTS.find(x=>x.pos===want && !x.player);
-  if(!slot) return toast(pos==='GK'?'Keeper slot taken':'Outfield slots full');
+  const slot=WSLOTS.find(x=>x.pos===pos && !x.player);
+  if(!slot) return toast('No free '+pos+' slot — switch formation');
   slot.player=name; slot.ppos=pos; renderWinter();
 }
 function wClear(i){ WSLOTS[i].player=null; WSLOTS[i].ppos=null; renderWinter(); }

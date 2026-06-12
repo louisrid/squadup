@@ -3,14 +3,14 @@
 
 const PARAMS = {
   BASE_LAMBDA: 1.35,
-  K: 0.115,
+  K: 0.095,
   EVENT_RATE: 1 / 12,
   EVENT_SIZE: 5,
   FORM_MOD: 2.0,
   AI_MEAN_OFF: { 2: -6.2, 3: -5.4, 4: -4.5, 5: -4.0, 6: -3.5 },
   AI_SD: 3.4,
   COMEBACK: 0.8,
-  MATCH_NOISE: 1.0,
+  MATCH_NOISE: 1.35,
 };
 
 // ---------- randomness ----------
@@ -59,6 +59,13 @@ function teamStrength(starters, formation) {
   // free XIs can have no MID/ATT (park the bus) or no DEF: fall back to outfield mean with a penalty
   let attack = atkPlayers.length ? meanOf(atkPlayers) : meanOf(allOut) - 3;
   let defence = defPlayers.length ? meanOf(defPlayers) : meanOf(starters) - 3;
+  // balance matters: missing a whole unit costs you
+  const nDef = starters.filter((p) => p.pos === 'DEF').length;
+  const nMid = starters.filter((p) => p.pos === 'MID').length;
+  const nAtt = starters.filter((p) => p.pos === 'ATT').length;
+  if (nMid === 0) { attack -= 1.2; defence -= 0.8; } // no link-up play
+  if (nAtt === 0) { attack -= 1.5; }                 // nobody up top
+  if (nDef === 0) { defence -= 1.5; }                // keeper abandoned
   if (formation === 'ATT') { attack += PARAMS.FORM_MOD; defence -= PARAMS.FORM_MOD; }
   if (formation === 'DEF') { attack -= PARAMS.FORM_MOD; defence += PARAMS.FORM_MOD; }
   return { attack, defence };
