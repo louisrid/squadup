@@ -723,7 +723,7 @@ class Game {
     const legends = E.shuffle(LEGENDS.filter((l) => l.pos !== 'GK' && free(l))).slice(0, 1)
       .map((l) => ({ name: l.name, pos: l.pos, rating: 96, kind: 'legend', base: { ...l, rating: 96 } }));
     const wks = E.shuffle(ALL_PLAYERS.filter((p) => p.wonderkid && free(p))).slice(0, 1)
-      .map((p) => { const boosted = Math.min(94, p.rating + 6 + Math.floor(Math.random() * 6));
+      .map((p) => { const boosted = Math.max(92, Math.min(94, p.rating + 6 + Math.floor(Math.random() * 6)));
         return { name: p.name, pos: p.pos, rating: boosted, kind: 'wonder', base: { ...p, rating: boosted } }; });
     const specials = [...legends, ...wks];
     const normals = E.shuffle(ALL_PLAYERS.filter((p) => !p.wonderkid && p.pos !== 'GK' && p.rating >= cfg.lo && p.rating <= cfg.hi && free(p)))
@@ -1158,7 +1158,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v3.8',
+      serverV: 'v3.9',
       paused: this.paused,
     };
   }
