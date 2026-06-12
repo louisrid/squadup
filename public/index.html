@@ -207,7 +207,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v1.1';
+const VERSION = 'v1.3';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -305,6 +305,7 @@ s.on('lobby',(l)=>{
 });
 function renderLobby(l){
   ME.isHost = l.hostId===ME.id;
+  const meRow = l.managers.find(x=>x.id===ME.id); if(meRow) ME.club = meRow.club;
   $(`${backBtn(0)}<div class="screen">
   <div class="eyebrow">Lobby</div>
   <div class="codebox">
@@ -528,7 +529,7 @@ function renderPick(){
   <h1 style="margin-bottom:10px">Pick your five</h1>
   <div class="row" style="margin-bottom:8px">${p.forms.map(f=>`<button class="fbtn ${p.formation===f?'sel':''}" onclick="setForm('${f}')">${FLABEL[f]}</button>`).join('')}</div>
   <div class="pitch">${rows}</div>
-  <button class="autobtn" onclick="autoXI()">⚡ Auto — field my best XI</button>
+  <button class="autobtn" onclick="autoXI()">⚡ Auto-fill XI</button>
   <h2 style="margin-top:6px">Squad — tap to place</h2>
   <div class="benchrow">
     ${p.squad.map(pl=>`<button class="bp ${used.includes(pl.name)?'used':''} ${pl.injured?'inj':''}"
@@ -580,17 +581,26 @@ function renderLockWait(){
 /* ---------------- SEASON REVEALS ---------------- */
 s.on('matchReveal',(m)=>{
   clearInterval(timerInt);
-  if(m.featured){
-    $(`<div class="screen center">
-      <span class="featuredTag" style="align-self:center">Match of the day · MD ${m.matchday}</span>
-      <div class="score" style="margin-top:18px">${esc(m.home)}<br><span class="gl">${m.score[0]} – ${m.score[1]}</span><br>${esc(m.away)}</div>
-      <div style="margin-top:16px;text-align:left">
-        ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${Math.min(i*1.1+0.6, 9)}s">${esc(e.text)}</div>`).join('')}
-      </div></div>`);
-  } else {
-    $(`<div class="screen center"><div class="muted" style="margin-bottom:10px">Matchday ${m.matchday}</div>
-    <div class="tick"><div class="score" style="font-size:34px">${esc(m.home)}<br><span style="color:var(--pink)">${m.score[0]} – ${m.score[1]}</span><br>${esc(m.away)}</div></div></div>`);
-  }
+  const yours = ME.club && (m.home===ME.club || m.away===ME.club);
+  $(`<div class="screen" style="justify-content:center">
+    <div class="center">
+      <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
+      ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
+      ${yours?`<div style="font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.1em;color:var(--pink);margin-bottom:8px">YOUR MATCH</div>`:''}
+      <div class="score" style="font-size:34px;opacity:0;animation:cerIn .5s .1s forwards">${esc(m.home)}</div>
+      <div class="muted" style="font-size:16px;margin:4px 0;opacity:0;animation:cerIn .4s .5s forwards">vs</div>
+      <div class="score" style="font-size:34px;opacity:0;animation:cerIn .5s .8s forwards">${esc(m.away)}</div>
+      <div class="blackbox" style="margin:16px auto;width:min(260px,90%);opacity:0;animation:cerIn .5s 1.5s forwards">
+        <div class="score" style="font-size:44px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div>
+      </div>
+      <div style="text-align:left;max-width:420px;margin:0 auto">
+        ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${(2.1+i*0.5).toFixed(1)}s">${esc(e.text)}</div>`).join('')||'<div class="muted center">No goals. Grim.</div>'}
+      </div>
+      ${ME.isHost
+        ?`<button class="primary bigbtn" style="margin-top:22px;max-width:340px" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
+        :`<div class="muted" style="margin-top:22px">${esc(m.hostName)} controls the remote…</div>`}
+    </div>
+  </div>`);
 });
 s.on('halfDone',(h)=>{ lastTable=h.table; });
 function tableHTML(table, title){
@@ -638,7 +648,7 @@ function showSpinResult(x){
       <div class="tierbanner t-${x.tier}">${labels[x.tier]}</div>
       <div class="muted" style="margin:10px 0 22px;font-size:17px">${esc(x.oldPlayer.name)} is gone. In comes…</div>
       <div class="revealCard" style="--fade:650ms">${cardHTML(x.newPlayer)}</div>
-      <button class="primary bigbtn" style="margin-top:30px;max-width:340px;opacity:0;animation:pop .5s .8s forwards" onclick="closeSpin()">Back to the window</button>`;
+      <button class="primary bigbtn" style="margin-top:30px;max-width:340px;opacity:0;animation:pop .5s .8s forwards" onclick="closeSpin()">Continue</button>`;
     if(x.tier==='legend') confetti();
   }, 1400);
 }
@@ -667,11 +677,12 @@ function renderStats(){
   ${(W.spins&&W.spins.length)?`<h2>🎰 Spin feed</h2><div class="panel">${[...W.spins].reverse().map(s2=>`<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)">
     <span class="grow" style="font-size:16px"><b>${esc(s2.manager)}</b>: ${esc(s2.oldPlayer)} → <b>${esc(s2.newPlayer)}</b></span>
     <span style="font-family:var(--disp);font-weight:800;font-size:15px;text-transform:uppercase">${tierTxt[s2.tier]}</span></div>`).join('')}</div>`:''}
-  <button class="primary bigbtn" style="margin-top:14px" onclick="renderWinter()">Back to the window</button>`);
+  <button class="primary bigbtn" style="margin-top:14px" onclick="renderWinter()">‹ Back</button>`);
 }
 function renderWinter(){
   if(!W) return;
-  const r = W.review.find(x=>x.manager===WTAB) || W.review[0];
+  let r = W.review.find(x=>x.manager===WTAB);
+  if(!r){ WTAB=ME.name; r=W.review.find(x=>x.manager===WTAB)||W.review[0]; }
   if(!r) return;
   const mine = r.manager===ME.name && !ME.sacked;
   const canEdit = mine && !r.locked;
@@ -688,10 +699,11 @@ function renderWinter(){
   const pos = W.table.findIndex(t=>t.name===r.club)+1;
   const trow = W.table[pos-1];
   const ord=(n)=>n+(['th','st','nd','rd'][(n%100>10&&n%100<14)||n%10>3?0:n%10]);
-  $k(`${backBtn(1)}<div style="padding-top:50px"></div>
+  $k(`<div style="padding-top:14px"></div>
   <div class="eyebrow">Winter break</div>
   <div class="tabwrap"><div class="eyebrow" style="font-size:13px;margin-bottom:5px">Tap a manager to scout their squad</div>
-  <div class="tabrow">${W.review.map(t=>`<button class="tab ${t.manager===WTAB?'sel':''}" onclick="WTAB=this.dataset.m;renderWinter()" data-m="${esc(t.manager)}">${esc(t.manager)}${t.manager===ME.name?' (you)':''}${t.locked?' ✓':''}</button>`).join('')}</div></div>
+  <div class="tabrow">${W.review.map(t=>`<button class="tab ${t.manager===WTAB?'sel':''}" onclick="wTab(this.dataset.m)" data-m="${esc(t.manager)}">${esc(t.manager)}${t.manager===ME.name?' (you)':''}${t.locked?' ✓':''}</button>`).join('')}</div></div>
+  ${!mine && !ME.sacked ? `<button class="primary" style="width:100%;margin:4px 0 10px;font-size:17px" onclick="wTab('${esc(ME.name)}')">‹ Back to my squad</button>`:''}
   ${W.injuries.length?`<div class="panel">${W.injuries.map(i=>`<div>🤕 <b>${esc(i.player)}</b> (${esc(i.manager)}) — out for the season</div>`).join('')}</div>`:''}
   ${W.sackings.length?`<div class="panel" style="border-color:var(--att)">${W.sackings.map(x=>`<div>🪓 <b>${esc(x.manager)}</b> sacked — ${esc(x.club)} carry on without him</div>`).join('')}</div>`:''}
   <div class="row" style="margin:10px 0 2px">
@@ -709,7 +721,7 @@ function renderWinter(){
       <span class="bchip" style="font-size:17px;padding:10px 14px">🎰 Respins: <b>${r.spinsLeft}</b></span></div>
     <div class="row">${r.validFormations.map(f=>`<button class="fbtn ${WFORM===f?'sel':''}" ${canEdit?`onclick="wForm('${f}')"`:'disabled'}>${FLABEL[f]}</button>`).join('')}</div>
     <div class="pitch">${pitchRows}</div>
-    ${canEdit?`<button class="autobtn" onclick="autoXI()">⚡ Auto — field my best XI</button>`:''}`
+    ${canEdit?`<button class="autobtn" onclick="autoXI()">⚡ Auto-fill XI</button>`:''}`
   :`<h2 style="margin:10px 0">${esc(r.club)} — ${esc(r.manager)}${r.locked?' · locked in':''}</h2>
     <div class="muted" style="margin-bottom:8px">Respins left: ${r.spinsLeft}</div>`}
   <div class="panel" style="padding:10px">
@@ -728,6 +740,11 @@ function renderWinter(){
   <button class="primary bigbtn" style="margin-top:10px" ${used.length===5?'':'disabled'} onclick="wLock()">Lock in (${used.length}/5)</button>`
   :mine?`<div class="blackbox"><div class="score" style="font-size:26px">Locked in ✓</div><div class="muted" style="margin-top:6px">Watch the others sweat — second half starts when everyone's set.</div></div>`:''}
   ${ME.sacked?`<div class="panel center" style="border-color:var(--att)"><b style="font-family:var(--disp);text-transform:uppercase;font-size:20px">You've been sacked</b><div class="muted" style="margin-top:6px">Spectate the window — you'll still see every result and the finale.</div></div>`:''}`);
+}
+function wTab(m){
+  WTAB = W.review.some(x=>x.manager===m) ? m : ME.name;
+  renderWinter();
+  window.scrollTo(0,0);
 }
 function wForm(f){ WFORM=f; WSLOTS=SLOTS[f].map(pos=>({pos,player:null})); renderWinter(); }
 function wPlace(name,pos){

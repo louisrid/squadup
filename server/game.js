@@ -423,13 +423,13 @@ class Game {
       for (const pos of ['GK', 'DEF', 'MID', 'ATT']) {
         const needed = FORMATIONS[f].slots.filter((s) => s === pos).length;
         const ranked = avail.filter((p) => p.pos === pos && !starters.includes(p))
-          .sort((x, y) => (y.rating + (y.seasonMod || 0)) - (x.rating + (x.seasonMod || 0)));
+          .sort((x, y) => x.fc26 - y.fc26); // WORST visible XI by design — never leaks engine order
         if (ranked.length < needed) { ok = false; break; }
         starters.push(...ranked.slice(0, needed));
       }
       if (!ok) continue;
-      const score = starters.reduce((s, p) => s + p.rating + (p.seasonMod || 0), 0);
-      if (!best || score > best.score) best = { score, formation: f, starters: starters.map((p) => p.name) };
+      const score = starters.reduce((s, p) => s + p.fc26, 0);
+      if (!best || score < best.score) best = { score, formation: f, starters: starters.map((p) => p.name) };
     }
     if (!best) return { error: 'No legal formation' };
     return { ok: true, formation: best.formation, starters: best.starters };
@@ -453,8 +453,8 @@ class Game {
       const starters = [];
       for (const pos of ['GK', 'DEF', 'MID', 'ATT']) {
         const needed = FORMATIONS[f].slots.filter((s) => s === pos).length;
-        const best = avail.filter((p) => p.pos === pos && !starters.includes(p)).sort((a, b) => b.rating - a.rating);
-        starters.push(...best.slice(0, needed));
+        const cand = E.shuffle(avail.filter((p) => p.pos === pos && !starters.includes(p)));
+        starters.push(...cand.slice(0, needed));
       }
       m.formation = f;
       m.starters = starters;
@@ -547,28 +547,48 @@ class Game {
       queue.push({ tableMark: true, md });
     }
     const finalTable = this.table();
-    const step = (i) => {
-      if (this.paused) { this.timers.reveal = setTimeout(() => step(i), 500); return; }
-      if (i >= queue.length) { this.io.emit('halfDone', { table: finalTable }); return done(); }
-      const item = queue[i];
-      if (item.tableMark) {
-        this.io.emit('tableUpdate', { afterMatchday: item.md + 1 });
-        this.timers.reveal = setTimeout(() => step(i + 1), TIMINGS.REVEAL_MATCHDAY_GAP_MS);
-        return;
-      }
-      const featured = item.humans === 2;
-      this.io.emit('matchReveal', {
-        matchday: item.md + 1,
-        home: this.season.teams[item.a].name,
-        away: this.season.teams[item.b].name,
-        score: [item.goalsA, item.goalsB],
-        events: item.detail ? item.detail.events : [],
-        featured,
-        durationMs: featured ? TIMINGS.REVEAL_FEATURED_MS : TIMINGS.REVEAL_QUICK_MS,
-      });
-      this.timers.reveal = setTimeout(() => step(i + 1), featured ? TIMINGS.REVEAL_FEATURED_MS : TIMINGS.REVEAL_QUICK_MS);
+    this.reveal = { queue, i: 0, done, finalTable, waiting: false, last: null };
+    this.revealStep();
+  }
+
+  revealStep() {
+    const R = this.reveal;
+    if (!R) return;
+    if (this.paused) { this.timers.reveal = setTimeout(() => this.revealStep(), 500); return; }
+    while (R.i < R.queue.length && R.queue[R.i].tableMark) {
+      this.io.emit('tableUpdate', { afterMatchday: R.queue[R.i].md + 1 });
+      R.i++;
+    }
+    if (R.i >= R.queue.length) {
+      const doneFn = R.done;
+      this.io.emit('halfDone', { table: R.finalTable });
+      this.reveal = null;
+      return doneFn();
+    }
+    const item = R.queue[R.i];
+    const host = this.managers.find((m) => m.id === this.hostId);
+    R.last = {
+      matchday: item.md + 1,
+      home: this.season.teams[item.a].name,
+      away: this.season.teams[item.b].name,
+      score: [item.goalsA, item.goalsB],
+      events: item.detail ? item.detail.events : [],
+      featured: item.humans === 2,
+      hostName: host ? host.name : 'Host',
     };
-    step(0);
+    R.waiting = true;
+    this.io.emit('matchReveal', R.last);
+    if (FAST) this.timers.reveal = setTimeout(() => this.hostAdvanceReveal(this.hostId), 10);
+  }
+
+  hostAdvanceReveal(managerId) {
+    if (managerId !== this.hostId) return { error: 'Host only' };
+    const R = this.reveal;
+    if (!R || !R.waiting) return { error: 'Nothing to advance' };
+    R.waiting = false;
+    R.i++;
+    this.revealStep();
+    return { ok: true };
   }
 
   // ---------- winter: review + respins (no second auction) ----------
@@ -795,6 +815,10 @@ class Game {
         this.io.emit('hostChanged', { hostId: next.id, name: next.name });
         if (this.phase === 'auction' && this.auction && !this.auction.current && !this.paused) {
           this.io.emit('awaitNext', { hostName: next.name });
+        }
+        if (this.reveal && this.reveal.waiting && this.reveal.last) {
+          this.reveal.last.hostName = next.name;
+          this.io.emit('matchReveal', this.reveal.last);
         }
       }
     }

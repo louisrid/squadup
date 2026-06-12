@@ -117,6 +117,10 @@ io.on('connection', (socket) => {
     const g = current();
     cb && cb(g ? g.passLot(joined.managerId) : { error: 'No game' });
   });
+  socket.on('hostNextMatch', (cb) => {
+    const g = current();
+    cb && cb(g ? g.hostAdvanceReveal(joined.managerId) : { error: 'No game' });
+  });
   socket.on('hostNext', (cb) => {
     const g = current();
     cb && cb(g ? g.hostNextLot(joined.managerId) : { error: 'No game' });
