@@ -11,7 +11,7 @@
   --bg:#06060B; --surface:#12121A; --surface2:#191924; --line:#2A2A38;
   --pink:#FF3D8A; --pink-deep:#C2186B;
   --gk:#E8B931; --def:#3D7BFF; --mid:#2EC96E; --att:#FF5247;
-  --text:#F2F2F7; --muted:#E4E4EE;
+  --text:#F2F2F7; --muted:#B7B7C4;
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
 *{box-sizing:border-box}
@@ -214,7 +214,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v2.2';
+const VERSION = 'v2.3';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -242,10 +242,10 @@ function cardHTML(p, sm){
 
 /* ---------------- HOME ---------------- */
 function home(){
-  $(`<div class="screen center" id="homeScr" style="position:relative;overflow:hidden">
+  $(`<div class="screen center" id="homeScr" style="position:relative;overflow:hidden;min-height:100dvh;justify-content:center;padding-bottom:6vh">
   <div style="position:relative;z-index:1;width:100%;display:flex;flex-direction:column;align-items:center">
-  <h1 style="font-size:clamp(78px,13vw,170px);font-style:italic;font-weight:900;letter-spacing:-.01em;line-height:.95;text-shadow:0 8px 50px rgba(255,46,126,.5)"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
-  <div style="margin:30px 0 34px;font-size:19px;font-weight:800;color:#fff">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
+  <h1 style="font-size:clamp(78px,13vw,236px);font-style:italic;font-weight:900;letter-spacing:-.01em;line-height:.95;text-shadow:0 8px 50px rgba(255,46,126,.5)"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
+  <div style="margin:24px 0 30px;font-size:15px;font-weight:600;color:#A7A7B6">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
   <button class="primary bigbtn" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
   <div id="rejoinSlot" style="width:100%"></div>
@@ -324,8 +324,19 @@ function onJoined(r,name){ ME.id=r.managerId; ME.code=r.code; ME.name=name;
 function restoreFromSnapshot(snap){
   if(!snap) return;
   ME.isHost = snap.hostId===ME.id;
+  if(snap.serverV && snap.serverV!==VERSION) toast('⚠️ Server '+snap.serverV+' / client '+VERSION+' — redeploy ALL files');
   if(snap.reveal){ renderMatch(snap.reveal); return; }
   if(snap.winter && !snap.auction){ applyWinter(snap.winter); return; }
+  if(snap.pick){
+    if(snap.pick.locked){
+      $(`<div class="screen center"><div class="blackbox" style="width:100%"><div class="score">Locked in</div>
+      <div class="muted" style="margin-top:8px">Waiting for the other managers…</div></div></div>`);
+    } else {
+      pickState={half:snap.pick.half, squad:snap.pick.squad, slots:null};
+      initSlots(); renderPick();
+    }
+    return;
+  }
   if(snap.auction && snap.auction.player){
     A={ index:snap.auction.index, total:snap.auction.total, player:snap.auction.player,
         highBid:snap.auction.highBid, highBidder:snap.auction.highBidder,
@@ -484,19 +495,21 @@ function renderLot(){
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
   <div class="auctionWrap" style="justify-content:center;min-height:calc(100dvh - 310px)">
-  <div class="lotRow" style="align-items:center;gap:18px">
-    <div style="width:182px">${cardHTML(A.player)}</div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
-      <div class="ringWrap" style="width:128px;height:128px">
+  <div class="lotRow" style="align-items:center;justify-content:center;gap:20px">
+    <div style="width:194px">${cardHTML(A.player)}</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+      <div class="ringWrap" style="width:124px;height:124px">
         <svg class="ring" viewBox="0 0 156 156"><circle cx="78" cy="78" r="${R}" fill="none" stroke="var(--line)" stroke-width="6"/>
         <circle id="ringFg" cx="78" cy="78" r="${R}" fill="none" stroke="var(--pink)" stroke-width="6" stroke-linecap="round"
           stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
         <div id="ringSec" class="ringSec">${Math.max(0,Math.ceil(((A.deadline||0)-Date.now())/1000))||'–'}</div>
       </div>
-      ${ME.isHost?`<button id="pauseBtn" onclick="togglePause()" style="width:128px;font-size:17px;padding:12px;font-weight:800">${isPaused?'Resume':'Pause'}</button>
-      <button onclick="toggleSpeed()" style="width:128px;font-size:17px;padding:12px;font-weight:800;${SPEED===2?'background:#4FC3F7;border-color:#4FC3F7;color:#06222e':''}">${SPEED===2?'2x ✓':'2x'}</button>`:''}
+      ${ME.isHost?`<button id="pauseBtn" onclick="togglePause()" style="width:124px;font-size:17px;padding:12px;font-weight:800">${isPaused?'Resume':'Pause'}</button>`:''}
     </div>
   </div>
+  ${ME.isHost?`<div class="row" style="justify-content:center;margin-top:2px">
+    <button onclick="toggleSpeed()" style="width:194px;font-size:17px;padding:12px;font-weight:800;${SPEED===2?'background:#4FC3F7;border-color:#4FC3F7;color:#06222e':''}">${SPEED===2?'2x speed ✓':'2x speed'}</button>
+  </div>`:''}
   <div class="blackbox" style="margin:6px auto;width:min(320px,100%)">
     <div class="bidline" id="bidlineEl">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</div>
     <div class="bidder" id="bidderEl">${A.highBidder?esc(A.highBidder):'No bids yet'}</div>

@@ -162,6 +162,20 @@ class Game {
         pool[pool.indexOf(victim)] = repl;
       }
     }
+    // guarantee 1-2 wonderkids in the window
+    const wantWk = 1 + (Math.random() < 0.5 ? 1 : 0);
+    let haveWk = pool.filter((p) => p.wonderkid).length;
+    if (haveWk < wantWk) {
+      const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.wonderkid && !inPool.has(p.name) && !this.owned(p.name)));
+      for (const wk of cand) {
+        if (haveWk >= wantWk) break;
+        const victim = E.shuffle(pool.filter((p) => p.pos === wk.pos && !p.wonderkid))[0] || E.shuffle(pool.filter((p) => !p.wonderkid && p.pos !== 'GK'))[0];
+        if (!victim) break;
+        inPool.delete(victim.name); inPool.add(wk.name);
+        pool[pool.indexOf(victim)] = wk;
+        haveWk++;
+      }
+    }
     // first lot always FC26 <= 85; first two lots are the cheapest names
     pool.sort((a, b) => a.fc26 - b.fc26);
     const openers = pool.slice(0, 2);
@@ -760,7 +774,6 @@ class Game {
     // winter report first; host then opens the winter market (auction), then everyone picks
     this.io.emit('winter', this.winterPayload());
     this.broadcastBudgets();
-    if (FAST) setTimeout(() => this.startWinterAuction(), 30);
   }
 
   hostStartWinterAuction(managerId) {
@@ -787,7 +800,7 @@ class Game {
     const total = 3 * n;
     // 60% of windows feature 1 legend, 40% feature 2 — regardless of player count. NEVER keepers.
     const legendCount = Math.random() < 0.6 ? 1 : 2;
-    const legends = E.shuffle(LEGENDS.filter((l) => !this.owned(l.name) && l.pos !== 'GK')).slice(0, legendCount);
+    const legends = E.shuffle(LEGENDS.filter((l) => !this.owned(l.name) && l.pos !== 'GK')).slice(0, legendCount).map((l) => ({ ...l, rating: 96, pot: 96 }));
     const restCount = total - legends.length;
     const ok = (p, pos, lo) => p.pos === pos && p.fc26 >= lo && !p.wonderkid && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name);
     const fresh = (lo) => ({
@@ -980,6 +993,16 @@ class Game {
       table: this.season ? this.table() : null,
       winter: this.phase === 'winter' ? this.winterPayload() : null,
       reveal: this.reveal && this.reveal.waiting ? this.reveal.last : null,
+      pick: (this.phase === 'setup' && this.pendingStarters) ? (() => {
+        const me = this.managers.find((x) => x.id === forId);
+        if (!me || me.sacked) return null;
+        return {
+          half: this.startersHalf,
+          locked: !this.pendingStarters.has(forId),
+          squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
+        };
+      })() : null,
+      serverV: 'v2.3',
       paused: this.paused,
     };
   }

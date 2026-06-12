@@ -55,11 +55,11 @@
 "pos": "ATT",
 "league": "FOR",
 "fc26": 90,
-"rating": 96,
+"rating": 85,
 "wonderkid": true,
 "potential": 96,
 "age": "young",
-"pot": 96
+"pot": 90
 },
 {
 "name": "Mohamed Salah",
@@ -140,11 +140,11 @@
 "pos": "MID",
 "league": "PL",
 "fc26": 90,
-"rating": 87,
+"rating": 85,
 "wonderkid": true,
 "potential": 95,
 "age": "young",
-"pot": 91
+"pot": 87
 },
 {
 "name": "Jude Bellingham",
@@ -154,17 +154,17 @@
 "rating": 94,
 "potential": 96,
 "age": "young",
-"pot": 95
+"pot": 94
 },
 {
 "name": "Martin Ødegaard",
 "pos": "MID",
 "league": "PL",
 "fc26": 90,
-"rating": 87,
+"rating": 84,
 "potential": 87,
 "age": "prime",
-"pot": 88
+"pot": 85
 },
 {
 "name": "Lautaro Martínez",
@@ -201,11 +201,11 @@
 "pos": "MID",
 "league": "FOR",
 "fc26": 89,
-"rating": 88,
+"rating": 85,
 "wonderkid": true,
 "potential": 96,
 "age": "young",
-"pot": 90
+"pot": 91
 },
 {
 "name": "Alexander Isak",
@@ -917,10 +917,10 @@
 "pos": "ATT",
 "league": "PL",
 "fc26": 84,
-"rating": 86,
+"rating": 85,
 "potential": 86,
 "age": "prime",
-"pot": 85,
+"pot": 87,
 "wonderkid": true
 },
 {
@@ -1101,7 +1101,7 @@
 "rating": 80,
 "potential": 81,
 "age": "prime",
-"pot": 86,
+"pot": 94,
 "wonderkid": true
 },
 {
@@ -1270,20 +1270,22 @@
 "pos": "MID",
 "league": "FOR",
 "fc26": 84,
-"rating": 87,
+"rating": 85,
 "potential": 87,
 "age": "prime",
-"pot": 86
+"pot": 92,
+"wonderkid": true
 },
 {
 "name": "Kobbie Mainoo",
 "pos": "MID",
 "league": "PL",
 "fc26": 84,
-"rating": 87,
+"rating": 85,
 "potential": 88,
 "age": "prime",
-"pot": 87
+"pot": 88,
+"wonderkid": true
 },
 {
 "name": "Mateo Kovačić",
@@ -1404,7 +1406,7 @@
 "wonderkid": true,
 "potential": 93,
 "age": "young",
-"pot": 88
+"pot": 89
 },
 {
 "name": "Brennan Johnson",
@@ -1441,10 +1443,11 @@
 "pos": "ATT",
 "league": "FOR",
 "fc26": 82,
-"rating": 86,
+"rating": 85,
 "potential": 86,
 "age": "prime",
-"pot": 89
+"pot": 91,
+"wonderkid": true
 },
 {
 "name": "João Pedro",
@@ -3017,7 +3020,7 @@
 "wonderkid": true,
 "potential": 91,
 "age": "young",
-"pot": 87
+"pot": 89
 },
 {
 "name": "Alejandro Garnacho",
@@ -3039,7 +3042,7 @@
 "wonderkid": true,
 "potential": 91,
 "age": "young",
-"pot": 88
+"pot": 94
 },
 {
 "name": "Estêvão",
@@ -3050,7 +3053,7 @@
 "wonderkid": true,
 "potential": 88,
 "age": "young",
-"pot": 89
+"pot": 94
 },
 {
 "name": "Dean Huijsen",
@@ -3061,7 +3064,7 @@
 "wonderkid": true,
 "potential": 91,
 "age": "young",
-"pot": 92
+"pot": 91
 },
 {
 "name": "Franco Mastantuono",
@@ -3072,7 +3075,7 @@
 "wonderkid": true,
 "potential": 86,
 "age": "young",
-"pot": 86
+"pot": 88
 },
 {
 "name": "Nico Paz",
@@ -3083,7 +3086,7 @@
 "wonderkid": true,
 "potential": 92,
 "age": "young",
-"pot": 92
+"pot": 88
 },
 {
 "name": "Geovany Quenda",
@@ -3094,7 +3097,7 @@
 "wonderkid": true,
 "potential": 86,
 "age": "young",
-"pot": 84
+"pot": 91
 },
 {
 "name": "Myles Lewis-Skelly",
@@ -3105,7 +3108,7 @@
 "wonderkid": true,
 "potential": 87,
 "age": "young",
-"pot": 85
+"pot": 90
 },
 {
 "name": "Lucas Chevalier",
@@ -3156,7 +3159,7 @@
 "wonderkid": true,
 "potential": 88,
 "age": "young",
-"pot": 88
+"pot": 94
 },
 {
 "name": "Castello Lukeba",
@@ -3233,11 +3236,11 @@
 "pos": "MID",
 "league": "EU",
 "fc26": 83,
-"rating": 86,
+"rating": 85,
 "wonderkid": true,
 "potential": 92,
 "age": "young",
-"pot": 92
+"pot": 86
 },
 {
 "name": "Eduardo Camavinga",
@@ -3428,5 +3431,59 @@
 "rating": 80,
 "old": true,
 "pot": 77
+},
+{
+"name": "JJ Gabriel",
+"pos": "ATT",
+"league": "EU",
+"fc26": 78,
+"rating": 78,
+"wonderkid": true,
+"pot": 92
+},
+{
+"name": "Max Dowman",
+"pos": "MID",
+"league": "EU",
+"fc26": 77,
+"rating": 77,
+"wonderkid": true,
+"pot": 94
+},
+{
+"name": "Rio Ngumoha",
+"pos": "ATT",
+"league": "EU",
+"fc26": 78,
+"rating": 78,
+"wonderkid": true,
+"pot": 93
+},
+{
+"name": "Nico O’Reilly",
+"pos": "DEF",
+"league": "EU",
+"fc26": 81,
+"rating": 81,
+"wonderkid": true,
+"pot": 93
+},
+{
+"name": "Rodrigo Mora",
+"pos": "MID",
+"league": "EU",
+"fc26": 80,
+"rating": 80,
+"wonderkid": true,
+"pot": 94
+},
+{
+"name": "Chido Obi-Martin",
+"pos": "ATT",
+"league": "EU",
+"fc26": 76,
+"rating": 76,
+"wonderkid": true,
+"pot": 94
 }
 ]

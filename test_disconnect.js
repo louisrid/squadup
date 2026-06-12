@@ -1,6 +1,6 @@
 // Test: disconnect mid-auction pauses; rejoin resumes with snapshot.
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3140';
+const URL = 'http://localhost:3149';
 let failures = [];
 const assert = (c, m) => { if (!c) { failures.push(m); console.log('ASSERT FAIL:', m); } };
 const connected = (s) => s.connected ? Promise.resolve() : new Promise((r) => s.once('connect', r));

@@ -206,10 +206,14 @@ function winterGrowth(p, form) {
   const gap = pot - p.rating;
   let d;
   if (p.wonderkid) {
-    // wonderkids: usually +1..2, sometimes the leap (+5..6) — never decline
-    d = Math.random() < 0.4 ? 5 + Math.floor(Math.random() * 2) : 1 + Math.floor(Math.random() * 2);
-    if (gap <= 0) d = 0;            // already at potential
-    else d = Math.min(d, gap);      // potential is the hard ceiling
+    // 70%: the leap — lands at 86 minimum, can go way higher. 30%: a smaller step. Never declines.
+    if (gap <= 0) d = 0;
+    else if (Math.random() < 0.7) {
+      const target = Math.min(pot, Math.max(86, p.rating + 5 + Math.floor(Math.random() * 5)));
+      d = Math.max(1, target - p.rating);
+    } else {
+      d = Math.min(gap, 2 + Math.floor(Math.random() * 3));
+    }
   } else if (p.old || gap <= -1) {
     // old: usually fade 1-2, but proven class can still tick up 1-2
     const r = Math.random();

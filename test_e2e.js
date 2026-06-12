@@ -1,6 +1,6 @@
 // E2E: 4 bot managers play a complete game over real websockets.
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3140';
+const URL = 'http://localhost:3149';
 
 const NAMES = ['Louis', 'Tom', 'Ben', 'Jack'];
 const log = (...a) => console.log(...a);
@@ -50,6 +50,9 @@ function makeBot(name, i) {
     bot.seen.winter = w;
     const me = (w.budgets || []).find((b) => b.manager === name);
     if (me) assert(me.budget >= 50, `${name} winter budget not topped up: ${me.budget}`);
+    if (name === 'Louis') setTimeout(() => s.emit('startWinterAuction', (r) => {
+      assert(r && r.ok, 'host could not open winter market: ' + (r && r.error));
+    }), 120); // the REAL host-button path
   });
   s.on('matchReveal', () => { bot.seen.reveals = (bot.seen.reveals || 0) + 1; });
   s.on('phase', (p) => { bot.seen['phase_' + p.phase] = true; if (p.phase === 'auction') bot.seen['auction_' + (p.window || 'main')] = true; });
