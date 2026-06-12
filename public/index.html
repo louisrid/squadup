@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0B0B10; --surface:#14141C; --surface2:#1B1B26; --line:#262633;
+  --bg:#06060B; --surface:#12121A; --surface2:#191924; --line:#2A2A38;
   --pink:#FF3D8A; --pink-deep:#C2186B;
   --gk:#E8B931; --def:#3D7BFF; --mid:#2EC96E; --att:#FF5247;
   --text:#F2F2F7; --muted:#8A8A99;
@@ -162,22 +162,27 @@ tr.me td{background:rgba(255,61,138,.14)}
   -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
   animation:wonderSpin 5s linear infinite}
 @keyframes wonderSpin{to{filter:hue-rotate(360deg)}}
+.tbadge{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:16px;
+  font-family:var(--disp);font-weight:900;font-size:21px;letter-spacing:.03em;color:#fff;border:2px solid rgba(255,255,255,.25)}
+.tbadge.hu{background:linear-gradient(150deg,#FF3D8A,#7d1244)}
+.tbadge.hu2{background:linear-gradient(150deg,#9B5CFF,#3c1a78)}
+.tbadge.ai{background:linear-gradient(150deg,#3a4356,#181c26)}
+.ftbox{opacity:0;transform:translateY(-26px) scale(.9)}
+.ftbox.show{animation:ftSlam .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes ftSlam{to{opacity:1;transform:translateY(0) scale(1)}}
 .heroWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.heroCard{position:absolute;width:150px;height:205px;border-radius:16px;padding:12px;
-  display:flex;flex-direction:column;justify-content:flex-end;
-  font-family:var(--disp);font-weight:800;color:#fff;
-  box-shadow:0 18px 50px rgba(0,0,0,.55);border:1.5px solid rgba(255,255,255,.22);
-  animation:heroFloat 5.2s ease-in-out infinite}
-.heroCard .hcPos{font-size:13px;letter-spacing:.14em;opacity:.85}
-.heroCard .hcName{font-size:19px;line-height:1.05;text-transform:uppercase}
-.heroCard .hcR{position:absolute;top:10px;right:12px;font-size:26px}
+.heroFloat{position:absolute;animation:heroFloat 5.4s ease-in-out infinite;filter:drop-shadow(0 18px 40px rgba(0,0,0,.6));opacity:.94}
+.heroFloat .pcard{width:138px;margin:0}
 @keyframes heroFloat{0%,100%{transform:translateY(0) rotate(var(--rot))}50%{transform:translateY(-12px) rotate(var(--rot))}}
-.hc1{background:linear-gradient(160deg,#FF2E7E,#8b1043)}
-.hc2{background:linear-gradient(160deg,#2E86FF,#0d2f66)}
-.hc3{background:linear-gradient(160deg,#C9A227,#6e520e);border-color:#FFD75E}
-.hc4{background:linear-gradient(160deg,#19c37d,#0a5237)}
-.hc5{background:linear-gradient(160deg,#9B5CFF,#3c1a78)}
-.hc6{background:linear-gradient(160deg,#FF7847,#7a2c10)}
+@media(min-width:760px){
+  .heroFloat .pcard{width:170px}
+  .heroFloat.hp1{left:5%!important;top:9%!important}
+  .heroFloat.hp2{right:5%!important;top:7%!important}
+  .heroFloat.hp3{left:8%!important;bottom:13%!important}
+  .heroFloat.hp4{right:8%!important;bottom:15%!important}
+  .heroFloat.hp5{left:27%!important;bottom:-26px!important}
+  .heroFloat.hp6{right:27%!important;bottom:-32px!important}
+}
 .wonderchip{position:absolute;top:6px;left:8px;font-size:22px;filter:drop-shadow(0 0 6px rgba(255,215,94,.8))}
 /* ---------- winter hub ---------- */
 .tabrow{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
@@ -263,16 +268,16 @@ function cardHTML(p, sm){
 function home(){
   $(`<div class="screen center" id="homeScr" style="position:relative;overflow:hidden">
   <div class="heroWrap">
-    <div class="heroCard hc1" style="--rot:-9deg;top:4%;left:-58px"><span class="hcR">⚡</span><span class="hcPos">ATT</span><span class="hcName">Mbappé</span></div>
-    <div class="heroCard hc3" style="--rot:7deg;top:1%;right:-62px;border-width:2px"><span class="hcR">⭐</span><span class="hcPos">ATT · WONDERKID</span><span class="hcName">Yamal</span></div>
-    <div class="heroCard hc2" style="--rot:8deg;bottom:18%;left:-66px;animation-delay:1.1s"><span class="hcR">🧱</span><span class="hcPos">DEF</span><span class="hcName">Van Dijk</span></div>
-    <div class="heroCard hc5" style="--rot:-7deg;bottom:24%;right:-58px;animation-delay:1.7s"><span class="hcR">🎯</span><span class="hcPos">MID</span><span class="hcName">Bellingham</span></div>
-    <div class="heroCard hc6" style="--rot:-12deg;bottom:-44px;left:18%;width:128px;height:175px;animation-delay:.6s"><span class="hcR">🥅</span><span class="hcPos">ATT</span><span class="hcName">Haaland</span></div>
-    <div class="heroCard hc4" style="--rot:11deg;bottom:-50px;right:14%;width:128px;height:175px;animation-delay:2.3s"><span class="hcR">👑</span><span class="hcPos">LEGEND</span><span class="hcName">Pelé</span></div>
+    <div class="heroFloat hp1" style="--rot:-8deg;top:3%;left:-50px">${cardHTML({name:'Kylian Mbappé',pos:'ATT',hint:'88–93'})}</div>
+    <div class="heroFloat hp2" style="--rot:7deg;top:2%;right:-54px;animation-delay:1.1s">${cardHTML({name:'Lamine Yamal',pos:'ATT',hint:'85–90',wonderkid:true})}</div>
+    <div class="heroFloat hp3" style="--rot:8deg;bottom:21%;left:-56px;animation-delay:1.7s">${cardHTML({name:'Virgil van Dijk',pos:'DEF',hint:'86–91'})}</div>
+    <div class="heroFloat hp4" style="--rot:-7deg;bottom:23%;right:-52px;animation-delay:.6s">${cardHTML({name:'Pelé',pos:'ATT',legend:true})}</div>
+    <div class="heroFloat hp5" style="--rot:-10deg;bottom:-44px;left:15%;animation-delay:2.2s">${cardHTML({name:'Pedri',pos:'MID',hint:'84–89'})}</div>
+    <div class="heroFloat hp6" style="--rot:10deg;bottom:-50px;right:13%;animation-delay:2.8s">${cardHTML({name:'Alisson',pos:'GK',hint:'85–88'})}</div>
   </div>
   <div style="position:relative;z-index:1;width:100%;display:flex;flex-direction:column;align-items:center">
-  <h1 style="font-size:64px;letter-spacing:.01em;text-shadow:0 6px 40px rgba(255,46,126,.45)"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
-  <div class="muted" style="margin-bottom:26px;font-size:17px">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
+  <h1 style="font-size:clamp(74px,12vw,118px);font-style:italic;font-weight:900;letter-spacing:-.01em;line-height:.95;text-shadow:0 8px 50px rgba(255,46,126,.5)"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
+  <div class="muted" style="margin:30px 0 34px;font-size:18px">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
   <button class="primary bigbtn" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
   <div id="rejoinSlot" style="width:100%"></div>
@@ -413,12 +418,20 @@ s.on('phase',(p)=>{
   if(p.phase==='auction') MYSQUAD.length=0;
   if(p.phase==='auction'){
     const winter = p.window==='winter';
-    $(`<div class="screen center" style="min-height:92vh;padding-bottom:16vh">
-    <h1 style="font-size:46px;color:${winter?'#C9A227':'var(--pink)'};line-height:1.05">${winter?'WINTER<br>MARKET!':'BID TO BUILD<br>YOUR SQUAD!'}</h1>
-    ${winter?`<div class="muted" style="margin-top:8px;font-size:17px">Big names. Legends in the pool. £50m fresh in every pocket.</div>`:''}
-    ${p.managerCount?`<div class="muted" style="margin-top:10px;font-size:17px">${p.managerCount} managers · ${p.poolSize} players in the window</div>`:''}
-    <div class="muted" style="margin-top:12px;font-size:18px">${p.poolSize} players · 6 each · £100m budget</div>
-    <div id="budgets" class="budgets"></div></div>`);
+    $(`<div class="screen center" style="min-height:92vh;position:relative;overflow:hidden">
+    <div class="heroWrap">
+      <div class="heroFloat hp1" style="--rot:-9deg;top:5%;left:-50px">${winter?cardHTML({name:'Diego Maradona',pos:'ATT',legend:true}):cardHTML({name:'Erling Haaland',pos:'ATT',hint:'89–94'})}</div>
+      <div class="heroFloat hp2" style="--rot:9deg;top:8%;right:-54px;animation-delay:1.2s">${winter?cardHTML({name:'Lamine Yamal',pos:'ATT',hint:'86–91',wonderkid:true}):cardHTML({name:'Rodri',pos:'MID',hint:'85–90'})}</div>
+      <div class="heroFloat hp5" style="--rot:-8deg;bottom:-46px;left:13%;animation-delay:.7s">${cardHTML({name:'William Saliba',pos:'DEF',hint:'85–90'})}</div>
+    </div>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%">
+    <h1 style="font-size:48px;font-style:italic;font-weight:900;color:${winter?'#C9A227':'var(--pink)'};line-height:1.05;text-shadow:0 6px 36px ${winter?'rgba(201,162,39,.45)':'rgba(255,46,126,.4)'}">${winter?'WINTER<br>MARKET!':'BID TO BUILD<br>YOUR SQUAD!'}</h1>
+    ${winter
+      ?`<div class="muted" style="margin-top:12px;font-size:17px">All 86+ rated · 1-2 LEGENDS in the pool<br>£50m fresh in every pocket</div>`
+      :`<div class="muted" style="margin-top:12px;font-size:17px">£100m each · sign as many as you can afford<br>Only rule: one keeper</div>`}
+    ${p.managerCount?`<div class="muted" style="margin-top:12px;font-size:16px">${p.managerCount} managers · ${p.poolSize} players in the window</div>`:''}
+    <div id="budgets" class="budgets"></div>
+    </div></div>`);
   }
 });
 s.on('lot',(l)=>{ A={...l, highBid:0, highBidder:null, out:false, start: l.deadline - Date.now()}; renderLot(); });
@@ -731,30 +744,56 @@ function renderLockWait(){
 
 /* ---------------- SEASON REVEALS ---------------- */
 let MATCHLIVE=false;
+let MTIMERS=[];
+function abbr(n){ return (n||'').replace(/[^A-Za-z0-9 ]/g,'').trim().slice(0,3).toUpperCase()||'???'; }
 function renderMatch(m){
   MATCHLIVE=true;
   clearInterval(timerInt);
+  MTIMERS.forEach(clearTimeout); MTIMERS=[];
   const yours = ME.club && (m.home===ME.club || m.away===ME.club);
+  const bcls=(mgr,alt)=> mgr ? (alt?'hu2':'hu') : 'ai';
+  const side=(name,mgr,alt)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;min-width:0">
+    <span class="tbadge ${bcls(mgr,alt)}">${abbr(name)}</span>
+    <span style="font-family:var(--disp);font-weight:800;font-size:15px;line-height:1.1">${esc(name)}</span>
+    ${mgr?`<span class="muted" style="font-size:13px">(${esc(mgr)})</span>`:''}
+  </div>`;
+  const evs=m.events||[];
   $(`<div class="screen" style="justify-content:center">
     <div class="center">
       <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
       ${yours?`<div style="font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.1em;color:var(--pink);margin-bottom:8px">YOUR MATCH</div>`:''}
-      ${(m.suspended&&m.suspended.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:16px;color:#FFB347;margin-bottom:8px">⛔ Suspended this game: ${m.suspended.map(esc).join(', ')}</div>`:''}
-      <div class="score" style="font-size:34px;opacity:0;animation:cerIn .5s .1s forwards">${esc(m.home)}${m.homeMgr?` <span style="font-size:20px;color:var(--muted)">(${esc(m.homeMgr)})</span>`:''}</div>
-      <div class="muted" style="font-size:16px;margin:4px 0;opacity:0;animation:cerIn .4s .5s forwards">vs</div>
-      <div class="score" style="font-size:34px;opacity:0;animation:cerIn .5s .8s forwards">${esc(m.away)}</div>
-      <div class="blackbox" style="margin:16px auto;width:min(260px,90%);opacity:0;animation:cerIn .5s 1.5s forwards">
-        <div class="score" style="font-size:44px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div>
+      ${(m.suspended&&m.suspended.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:15px;color:#FFB347;margin-bottom:8px">⛔ Suspended this game: ${m.suspended.map(esc).join(', ')}</div>`:''}
+      <div class="row" style="align-items:flex-start;gap:8px;margin:6px 0 14px;opacity:0;animation:cerIn .5s .1s forwards">
+        ${side(m.home,m.homeMgr,false)}
+        <div class="muted" style="font-family:var(--disp);font-weight:800;font-size:18px;padding-top:18px">VS</div>
+        ${side(m.away,m.awayMgr,m.homeMgr&&m.awayMgr)}
       </div>
-      <div style="text-align:left;max-width:420px;margin:0 auto">
-        ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${(2.1+i*0.5).toFixed(1)}s">${esc(e.text)}</div>`).join('')||'<div class="muted center">No goals. Grim.</div>'}
-      </div>
-      ${ME.isHost
-        ?`<button class="primary bigbtn" style="margin-top:22px;max-width:340px" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
-        :`<div class="muted" style="margin-top:22px">${esc(m.hostName)} controls the remote…</div>`}
+      <div id="evfeed" style="text-align:left;max-width:420px;margin:0 auto;min-height:${Math.max(34, evs.length*34)}px"></div>
+      <div id="ftslot" style="margin:14px auto 0;width:min(280px,90%)"></div>
+      <div id="mctrl" style="opacity:0;transition:opacity .4s"></div>
     </div>
   </div>`);
+  const dripMs = evs.length>7 ? 650 : 950;
+  evs.forEach((e,i)=>{
+    MTIMERS.push(setTimeout(()=>{
+      const f=document.getElementById('evfeed');
+      if(f) f.insertAdjacentHTML('beforeend',`<div class="evt" style="animation-delay:0s">${esc(e.text)}</div>`);
+    }, 600 + i*dripMs));
+  });
+  const ftAt = 600 + evs.length*dripMs + 350;
+  MTIMERS.push(setTimeout(()=>{
+    const f=document.getElementById('evfeed');
+    if(f && !evs.length) f.innerHTML='<div class="muted center">No goals. Grim.</div>';
+    const ft=document.getElementById('ftslot');
+    if(ft) ft.innerHTML=`<div class="blackbox ftbox show" style="background:#000;border-color:${yours?'var(--pink)':'var(--line)'}">
+      <div class="muted" style="font-size:13px;letter-spacing:.2em">FULL TIME</div>
+      <div class="score" style="font-size:46px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div></div>`;
+    const c=document.getElementById('mctrl');
+    if(c){ c.style.opacity='1'; c.innerHTML = ME.isHost
+      ?`<button class="primary bigbtn" style="margin-top:16px;max-width:340px" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
+      :`<div class="muted" style="margin-top:16px">${esc(m.hostName)} controls the remote…</div>`; }
+  }, ftAt));
 }
 s.on('matchReveal',renderMatch);
 s.on('halfDone',(h)=>{ lastTable=h.table; });
