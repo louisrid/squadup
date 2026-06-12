@@ -41,7 +41,7 @@ const TIMINGS = {
   AUCTION_BID_ADD_MS: FAST ? 60 : 3000,
   AUCTION_MAX_MS: FAST ? 600 : 12000,
   AUCTION_BETWEEN_MS: FAST ? 30 : 4000,
-  LOT_REVEAL_MS: FAST ? 20 : 3400,
+  LOT_REVEAL_MS: FAST ? 20 : 4400,
   REVEAL_QUICK_MS: FAST ? 15 : 3000,
   REVEAL_FEATURED_MS: FAST ? 25 : 13000,
   REVEAL_MATCHDAY_GAP_MS: FAST ? 5 : 800,
@@ -329,6 +329,7 @@ class Game {
   }
 
   endAuction() {
+    this.auction.current = null; // never let a finished lot leak into snapshots
     if (this.auction.window === 'winter') {
       this.phase = 'setup';
       this.io.emit('phase', { phase: 'setup' });
@@ -379,14 +380,13 @@ class Game {
     this.pendingStarters = new Set(this.activeManagers().map((m) => m.id));
     this.io.emit('pickStarters', {
       half,
-      deadlineMs: TIMINGS.PICK_STARTERS_MS,
+      deadlineMs: null, // no time limit on squad assembly
       perManager: this.activeManagers().map((m) => ({
         id: m.id,
         squad: m.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === m.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
       })),
     });
     clearTimeout(this.timers.starters);
-    this.timers.starters = setTimeout(() => this.autoPickRemaining(half), TIMINGS.PICK_STARTERS_MS);
     this.startersHalf = half;
   }
 
@@ -437,7 +437,7 @@ class Game {
     const m = this.managers.find((x) => x.id === managerId);
     if (!m || m.sacked) return { error: 'Not in game' };
     const avail = m.squad.filter((p) => p.name !== m.injured);
-    const five = Game.legalFive(avail, (l) => [...l].sort((a, b) => a.rating - b.rating)); // worst legal XI by design
+    const five = Game.legalFive(avail, (l) => [...l].sort((a, b) => b.rating - a.rating)); // best five by current rating
     if (!five) return { error: 'Not enough players' };
     return { ok: true, formation: 'FREE', starters: five.map((p) => p.name) };
   }
@@ -448,7 +448,19 @@ class Game {
       const m = this.managers.find((x) => x.id === id);
       return m && m.connected;
     });
-    if (!pendingConnected) this.autoPickRemaining(this.startersHalf);
+    if (!pendingConnected) {
+      // grace period: a tabbed-out phone is not an abandoned seat
+      clearTimeout(this.timers.ghostPick);
+      const wait = FAST ? 250 : 60000;
+      this.timers.ghostPick = setTimeout(() => {
+        if (!this.pendingStarters || this.pendingStarters.size === 0) return;
+        const stillGhosts = ![...this.pendingStarters].some((id) => {
+          const m = this.managers.find((x) => x.id === id);
+          return m && m.connected;
+        });
+        if (stillGhosts) this.autoPickRemaining(this.startersHalf);
+      }, wait);
+    }
   }
 
   autoPickRemaining(half) {
@@ -522,7 +534,7 @@ class Game {
       const sA = TA.type === 'human' ? this.managers[TA.mIdx].starters : null;
       const sB = TB.type === 'human' ? this.managers[TB.mIdx].starters : null;
       if (sA || sB) {
-        detail = E.buildCommentary(r, sA || [{ name: TA.name, pos: 'ATT', rating: 80 }], sB || [{ name: TB.name, pos: 'ATT', rating: 80 }]);
+        detail = E.buildCommentary(r, sA || [{ name: TA.name, pos: 'ATT', rating: 80 }], sB || [{ name: TB.name, pos: 'ATT', rating: 80 }], { redA: !!sA, redB: !!sB });
         this.suspensions = this.suspensions || {};
         for (const red of detail.reds || []) {
           if ((red.side === 'A' && sA) || (red.side === 'B' && sB)) this.suspensions[red.name] = md + 1;
@@ -594,6 +606,8 @@ class Game {
       away: this.season.teams[item.b].name,
       homeMgr: this.season.teams[item.a].type === 'human' ? this.managers[this.season.teams[item.a].mIdx].name : null,
       awayMgr: this.season.teams[item.b].type === 'human' ? this.managers[this.season.teams[item.b].mIdx].name : null,
+      homePos: this.season.teams[item.a].type === 'ai' ? this.table().findIndex((r) => r.name === this.season.teams[item.a].name) + 1 : null,
+      awayPos: this.season.teams[item.b].type === 'ai' ? this.table().findIndex((r) => r.name === this.season.teams[item.b].name) + 1 : null,
       score: [item.goalsA, item.goalsB],
       events: item.detail ? item.detail.events : [],
       suspended: item.suspended || [],
@@ -775,10 +789,11 @@ class Game {
     const legendCount = Math.random() < 0.6 ? 1 : 2;
     const legends = E.shuffle(LEGENDS.filter((l) => !this.owned(l.name) && l.pos !== 'GK')).slice(0, legendCount);
     const restCount = total - legends.length;
+    const ok = (p, pos, lo) => p.pos === pos && p.fc26 >= lo && !p.wonderkid && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name);
     const fresh = (lo) => ({
-      DEF: E.shuffle(ALL_PLAYERS.filter((p) => p.pos === 'DEF' && p.fc26 >= lo && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name))),
-      MID: E.shuffle(ALL_PLAYERS.filter((p) => p.pos === 'MID' && p.fc26 >= lo && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name))),
-      ATT: E.shuffle(ALL_PLAYERS.filter((p) => p.pos === 'ATT' && p.fc26 >= lo && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name))),
+      DEF: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'DEF', lo))),
+      MID: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'MID', lo))),
+      ATT: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'ATT', lo))),
     });
     const byPos = fresh(86);
     const backup = fresh(85);
@@ -797,6 +812,19 @@ class Game {
 
   startSecondHalf() {
     for (const m of this.activeManagers()) for (const p of m.squad) if (p.seasonMod === undefined) p.seasonMod = E.rollSeasonEvent();
+    // re-anchor AI clubs to the post-winter human level so scorelines stay sane
+    const live = this.activeManagers();
+    if (live.length) {
+      const strengths = live.map((m) => E.teamStrength(m.starters, m.formation));
+      const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / live.length;
+      for (const t of this.season.teams) {
+        if (t.type === 'ai' && !t.wasHuman) {
+          const base = avg + E.gauss() * 1.1 - 2.2;
+          t.attack = base + E.gauss() * 0.6;
+          t.defence = base + E.gauss() * 0.6;
+        }
+      }
+    }
     this.phase = 'secondHalf';
     this.io.emit('phase', { phase: 'secondHalf' });
     this.revealHalf(11, 22, () => this.finish());
@@ -896,7 +924,7 @@ class Game {
       clearTimeout(this.timers.pause);
       this.timers.pause = setTimeout(() => this.resume(), TIMINGS.DISCONNECT_PAUSE_MS);
     }
-    if (connected && this.paused) this.resume();
+    if (connected && this.paused && !this.hostPaused) this.resume();
   }
 
   hostPause(managerId) {
@@ -941,9 +969,9 @@ class Game {
         squad: m.id === forId ? m.squad.map((p) => ({ name: p.name, pos: p.pos })) : { count: m.squad.length },
         sacked: m.sacked, injured: m.injured,
       })),
-      auction: this.auction && this.auction.current ? {
+      auction: this.phase === 'auction' && this.auction && this.auction.current ? {
         window: this.auction.window,
-        player: { name: this.auction.current.name, pos: this.auction.current.pos },
+        player: { name: this.auction.current.name, pos: this.auction.current.pos, hint: this.hintFor(this.auction.current), legend: !!this.auction.current.legend, wonderkid: !!this.auction.current.wonderkid },
         highBid: this.auction.highBid,
         highBidder: this.auction.highBidder ? (this.managers.find((x) => x.id === this.auction.highBidder) || {}).name : null,
         deadline: this.auction.deadline,

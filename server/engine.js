@@ -10,7 +10,7 @@ const PARAMS = {
   AI_MEAN_OFF: { 2: -6.2, 3: -5.4, 4: -4.5, 5: -4.0, 6: -3.5 },
   AI_SD: 3.4,
   COMEBACK: 0.8,
-  MATCH_NOISE: 1.35,
+  MATCH_NOISE: 1.45,
 };
 
 // ---------- randomness ----------
@@ -162,7 +162,7 @@ const TPL = {
 function fill(t, p, m) { return t.replace('{p}', p).replace('{m}', m); }
 
 // builds short text event list for a match result
-function buildCommentary(result, startersA, startersB) {
+function buildCommentary(result, startersA, startersB, opts) {
   const events = [];
   const sA = attributeAssists(attributeGoals(result.goalsA, startersA), startersA);
   const sB = attributeAssists(attributeGoals(result.goalsB, startersB), startersB);
@@ -180,7 +180,9 @@ function buildCommentary(result, startersA, startersB) {
   for (const s of sB) events.push({ minute: s.minute, side: 'B', scorer: s.og ? null : s.name, assist: s.assist, text: s.og ? `🥅 Own goal! ${s.ogBy} turns it into his own net (${s.minute}')` : fill(pick(TPL.goal), s.name, s.minute) });
   // red cards: ~4% per side per match (outfielders only)
   const reds = [];
+  const redOk = { A: !opts || opts.redA !== false, B: !opts || opts.redB !== false };
   for (const [side, st] of [['A', startersA], ['B', startersB]]) {
+    if (!redOk[side]) continue;
     if (Math.random() < 0.04) {
       const p = pick(st.filter((x) => x.pos !== 'GK')); if (!p) continue;
       const minute = 20 + Math.floor(Math.random() * 70);

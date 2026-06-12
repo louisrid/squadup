@@ -55,7 +55,7 @@
 "pos": "ATT",
 "league": "FOR",
 "fc26": 90,
-"rating": 94,
+"rating": 96,
 "wonderkid": true,
 "potential": 96,
 "age": "young",
@@ -920,7 +920,8 @@
 "rating": 86,
 "potential": 86,
 "age": "prime",
-"pot": 85
+"pot": 85,
+"wonderkid": true
 },
 {
 "name": "Anthony Gordon",
@@ -1100,7 +1101,8 @@
 "rating": 80,
 "potential": 81,
 "age": "prime",
-"pot": 80
+"pot": 86,
+"wonderkid": true
 },
 {
 "name": "Ben White",

@@ -11,11 +11,12 @@
   --bg:#06060B; --surface:#12121A; --surface2:#191924; --line:#2A2A38;
   --pink:#FF3D8A; --pink-deep:#C2186B;
   --gk:#E8B931; --def:#3D7BFF; --mid:#2EC96E; --att:#FF5247;
-  --text:#F2F2F7; --muted:#8A8A99;
+  --text:#F2F2F7; --muted:#E4E4EE;
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);-webkit-tap-highlight-color:transparent}
+.muted{color:var(--muted)!important;font-weight:600}
 body{max-width:500px;margin:0 auto;padding:16px 16px 150px;min-height:100vh;font-size:16px;font-weight:600}
 .screen{min-height:86vh;display:flex;flex-direction:column;justify-content:center}
 @media (min-width:700px){
@@ -47,7 +48,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .grow{flex:1}
 .center{text-align:center}
 /* ---------- player card ---------- */
-.pcard{position:relative;width:176px;aspect-ratio:3/4.3;border-radius:14px;overflow:hidden;margin:0 auto;
+.pcard{position:relative;width:176px;aspect-ratio:3/4.3;border-radius:14px;overflow:hidden;margin:0 auto;border:2px solid rgba(255,255,255,.3);
   border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 34px rgba(0,0,0,.55)}
 .pcard .bgGrad{position:absolute;inset:0}
 .pcard.GK .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#5a4710 0%,#241d08 58%,#101010 100%)}
@@ -156,34 +157,10 @@ tr.me td{background:rgba(255,61,138,.14)}
 .pcard.legend .posb{background:#C9A227!important;color:#fff!important}
 .hintchip{position:absolute;top:8px;right:8px;font-family:var(--disp);font-weight:800;font-size:19px;letter-spacing:.04em;
   background:rgba(0,0,0,.62);border:1px solid var(--line);border-radius:8px;padding:3px 9px;color:#fff}
-.pcard.wonder{border:none;box-shadow:0 0 26px rgba(255,215,94,.3)}
-.pcard.wonder::after{content:'';position:absolute;inset:-5px;border-radius:20px;padding:5px;pointer-events:none;
-  background:conic-gradient(#FF3D8A,#FF9F45,#FFE34D,#3DDC84,#4FC3F7,#9B5CFF,#FF3D8A);
-  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
-  animation:wonderSpin 5s linear infinite}
-@keyframes wonderSpin{to{filter:hue-rotate(360deg)}}
-.tbadge{display:inline-flex;align-items:center;justify-content:center;width:64px;height:64px;border-radius:16px;
-  font-family:var(--disp);font-weight:900;font-size:21px;letter-spacing:.03em;color:#fff;border:2px solid rgba(255,255,255,.25)}
-.tbadge.hu{background:linear-gradient(150deg,#FF3D8A,#7d1244)}
-.tbadge.hu2{background:linear-gradient(150deg,#9B5CFF,#3c1a78)}
-.tbadge.ai{background:linear-gradient(150deg,#3a4356,#181c26)}
-.ftbox{opacity:0;transform:translateY(-26px) scale(.9)}
-.ftbox.show{animation:ftSlam .45s cubic-bezier(.2,1.6,.4,1) forwards}
-@keyframes ftSlam{to{opacity:1;transform:translateY(0) scale(1)}}
-.heroWrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.heroFloat{position:absolute;animation:heroFloat 5.4s ease-in-out infinite;filter:drop-shadow(0 18px 40px rgba(0,0,0,.6));opacity:.94}
-.heroFloat .pcard{width:138px;margin:0}
-@keyframes heroFloat{0%,100%{transform:translateY(0) rotate(var(--rot))}50%{transform:translateY(-12px) rotate(var(--rot))}}
-@media(min-width:760px){
-  .heroFloat .pcard{width:170px}
-  .heroFloat.hp1{left:5%!important;top:9%!important}
-  .heroFloat.hp2{right:5%!important;top:7%!important}
-  .heroFloat.hp3{left:8%!important;bottom:13%!important}
-  .heroFloat.hp4{right:8%!important;bottom:15%!important}
-  .heroFloat.hp5{left:27%!important;bottom:-26px!important}
-  .heroFloat.hp6{right:27%!important;bottom:-32px!important}
-}
-.wonderchip{position:absolute;top:6px;left:8px;font-size:22px;filter:drop-shadow(0 0 6px rgba(255,215,94,.8))}
+.pcard.wonder .bgGrad{background:linear-gradient(165deg,#FF3D8A 0%,#FF9F45 22%,#FFE34D 42%,#3DDC84 62%,#4FC3F7 80%,#9B5CFF 100%)}
+.pcard.wonder .nm,.pcard.wonder .posb{text-shadow:0 1px 6px rgba(0,0,0,.85)}
+.pcard.wonder .hintchip{background:rgba(0,0,0,.78)}}
+
 /* ---------- winter hub ---------- */
 .tabrow{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
 .tab{flex:0 0 auto;padding:12px 17px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);
@@ -237,7 +214,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v2.1';
+const VERSION = 'v2.2';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -259,7 +236,6 @@ function cardHTML(p, sm){
     <div class="bgGrad"></div>${SIL}
     <div class="posb">${p.pos}</div>
     ${p.hint?`<div class="hintchip">${p.hint}</div>`:''}
-    ${p.wonderkid?`<div class="wonderchip">⭐</div>`:''}
     <div class="nm">${esc(p.name)}</div>
   </div>`;
 }
@@ -267,21 +243,13 @@ function cardHTML(p, sm){
 /* ---------------- HOME ---------------- */
 function home(){
   $(`<div class="screen center" id="homeScr" style="position:relative;overflow:hidden">
-  <div class="heroWrap">
-    <div class="heroFloat hp1" style="--rot:-8deg;top:3%;left:-50px">${cardHTML({name:'Kylian Mbappé',pos:'ATT',hint:'88–93'})}</div>
-    <div class="heroFloat hp2" style="--rot:7deg;top:2%;right:-54px;animation-delay:1.1s">${cardHTML({name:'Lamine Yamal',pos:'ATT',hint:'85–90',wonderkid:true})}</div>
-    <div class="heroFloat hp3" style="--rot:8deg;bottom:21%;left:-56px;animation-delay:1.7s">${cardHTML({name:'Virgil van Dijk',pos:'DEF',hint:'86–91'})}</div>
-    <div class="heroFloat hp4" style="--rot:-7deg;bottom:23%;right:-52px;animation-delay:.6s">${cardHTML({name:'Pelé',pos:'ATT',legend:true})}</div>
-    <div class="heroFloat hp5" style="--rot:-10deg;bottom:-44px;left:15%;animation-delay:2.2s">${cardHTML({name:'Pedri',pos:'MID',hint:'84–89'})}</div>
-    <div class="heroFloat hp6" style="--rot:10deg;bottom:-50px;right:13%;animation-delay:2.8s">${cardHTML({name:'Alisson',pos:'GK',hint:'85–88'})}</div>
-  </div>
   <div style="position:relative;z-index:1;width:100%;display:flex;flex-direction:column;align-items:center">
-  <h1 style="font-size:clamp(74px,12vw,118px);font-style:italic;font-weight:900;letter-spacing:-.01em;line-height:.95;text-shadow:0 8px 50px rgba(255,46,126,.5)"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
-  <div class="muted" style="margin:30px 0 34px;font-size:18px">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
+  <h1 style="font-size:clamp(78px,13vw,170px);font-style:italic;font-weight:900;letter-spacing:-.01em;line-height:.95;text-shadow:0 8px 50px rgba(255,46,126,.5)"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
+  <div style="margin:30px 0 34px;font-size:19px;font-weight:800;color:#fff">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
   <button class="primary bigbtn" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
   <div id="rejoinSlot" style="width:100%"></div>
-  <button style="margin-top:18px;font-size:15px;padding:10px 16px;opacity:.85" onclick="renderHowTo()">📖 How to play</button>
+  <button style="margin-top:18px;font-size:16px;padding:11px 18px;font-weight:800;color:#fff" onclick="renderHowTo()">📖 How to play</button>
   <div class="muted" style="margin-top:18px;font-size:13px;opacity:.6">${VERSION}</div>
   </div>
   </div>`);
@@ -419,13 +387,8 @@ s.on('phase',(p)=>{
   if(p.phase==='auction'){
     const winter = p.window==='winter';
     $(`<div class="screen center" style="min-height:92vh;position:relative;overflow:hidden">
-    <div class="heroWrap">
-      <div class="heroFloat hp1" style="--rot:-9deg;top:5%;left:-50px">${winter?cardHTML({name:'Diego Maradona',pos:'ATT',legend:true}):cardHTML({name:'Erling Haaland',pos:'ATT',hint:'89–94'})}</div>
-      <div class="heroFloat hp2" style="--rot:9deg;top:8%;right:-54px;animation-delay:1.2s">${winter?cardHTML({name:'Lamine Yamal',pos:'ATT',hint:'86–91',wonderkid:true}):cardHTML({name:'Rodri',pos:'MID',hint:'85–90'})}</div>
-      <div class="heroFloat hp5" style="--rot:-8deg;bottom:-46px;left:13%;animation-delay:.7s">${cardHTML({name:'William Saliba',pos:'DEF',hint:'85–90'})}</div>
-    </div>
-    <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%">
-    <h1 style="font-size:48px;font-style:italic;font-weight:900;color:${winter?'#C9A227':'var(--pink)'};line-height:1.05;text-shadow:0 6px 36px ${winter?'rgba(201,162,39,.45)':'rgba(255,46,126,.4)'}">${winter?'WINTER<br>MARKET!':'BID TO BUILD<br>YOUR SQUAD!'}</h1>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;width:100%">
+    <h1 style="font-size:clamp(52px,9vw,84px);font-style:italic;font-weight:900;color:${winter?'#C9A227':'var(--pink)'};line-height:1.05;text-shadow:0 6px 36px ${winter?'rgba(201,162,39,.45)':'rgba(255,46,126,.4)'}">${winter?'WINTER<br>MARKET!':'BID TO BUILD<br>YOUR SQUAD!'}</h1>
     ${winter
       ?`<div class="muted" style="margin-top:12px;font-size:17px">All 86+ rated · 1-2 LEGENDS in the pool<br>£50m fresh in every pocket</div>`
       :`<div class="muted" style="margin-top:12px;font-size:17px">£100m each · sign as many as you can afford<br>Only rule: one keeper</div>`}
@@ -495,8 +458,8 @@ s.on('awaitNext',(x)=>{
 s.on('lotReveal',(l)=>{ BIDAMT=null;
   clearInterval(timerInt);
   const base = l.revealMs||2800;
-  const fadeMs = Math.round(base*0.55);            // bob in fast, then a beat to SEE the player (~1.65s)
-  const unit = Math.round((base-fadeMs)/3);        // rapid 3-2-1, ~0.45s ticks
+  const fadeMs = Math.round(base*0.42);            // see the player first (~1.85s)
+  const unit = Math.round((base-fadeMs)/3);        // deliberate 3-2-1 (~0.85s ticks)
   $(`<div class="screen center">
     <div class="eyebrow" style="margin-bottom:18px">Lot ${l.index+1}/${l.total}</div>
     <div class="revealCard" style="--fade:${Math.min(450,fadeMs)}ms">${cardHTML(l.player)}</div>
@@ -520,20 +483,20 @@ function renderLot(){
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
-  <div class="auctionWrap">
-  <div class="lotRow">
-    <div style="width:150px">${cardHTML(A.player)}</div>
-    <div class="ringWrap" style="width:156px;height:156px">
-      <svg class="ring" viewBox="0 0 156 156"><circle cx="78" cy="78" r="${R}" fill="none" stroke="var(--line)" stroke-width="6"/>
-      <circle id="ringFg" cx="78" cy="78" r="${R}" fill="none" stroke="var(--pink)" stroke-width="6" stroke-linecap="round"
-        stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
-      <div id="ringSec" class="ringSec">${Math.max(0,Math.ceil(((A.deadline||0)-Date.now())/1000))||'–'}</div>
+  <div class="auctionWrap" style="justify-content:center;min-height:calc(100dvh - 310px)">
+  <div class="lotRow" style="align-items:center;gap:18px">
+    <div style="width:182px">${cardHTML(A.player)}</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+      <div class="ringWrap" style="width:128px;height:128px">
+        <svg class="ring" viewBox="0 0 156 156"><circle cx="78" cy="78" r="${R}" fill="none" stroke="var(--line)" stroke-width="6"/>
+        <circle id="ringFg" cx="78" cy="78" r="${R}" fill="none" stroke="var(--pink)" stroke-width="6" stroke-linecap="round"
+          stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
+        <div id="ringSec" class="ringSec">${Math.max(0,Math.ceil(((A.deadline||0)-Date.now())/1000))||'–'}</div>
+      </div>
+      ${ME.isHost?`<button id="pauseBtn" onclick="togglePause()" style="width:128px;font-size:17px;padding:12px;font-weight:800">${isPaused?'Resume':'Pause'}</button>
+      <button onclick="toggleSpeed()" style="width:128px;font-size:17px;padding:12px;font-weight:800;${SPEED===2?'background:#4FC3F7;border-color:#4FC3F7;color:#06222e':''}">${SPEED===2?'2x ✓':'2x'}</button>`:''}
     </div>
   </div>
-  ${ME.isHost?`<div class="row" style="justify-content:center">
-    <button onclick="togglePause(this)" style="width:150px;font-size:18px;padding:14px">${hostPausedLocal?'Resume':'Pause'}</button>
-    <button onclick="toggleSpeed()" style="width:110px;font-size:18px;padding:14px;${SPEED===2?'background:#4FC3F7;border-color:#4FC3F7;color:#06222e':''}">${SPEED===2?'2x ✓':'2x'}</button>
-  </div>`:''}
   <div class="blackbox" style="margin:6px auto;width:min(320px,100%)">
     <div class="bidline" id="bidlineEl">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</div>
     <div class="bidder" id="bidderEl">${A.highBidder?esc(A.highBidder):'No bids yet'}</div>
@@ -570,10 +533,11 @@ function renderLot(){
     if(sec) sec.textContent=Math.ceil(ms/1000);
   },80);
 }
-function togglePause(btn){
-  if(hostPausedLocal){ s.emit('hostResume',(r)=>{ if(r&&r.error) return toast(r.error); hostPausedLocal=false; btn.textContent='Pause'; }); }
-  else { s.emit('hostPause',(r)=>{ if(r&&r.error) return toast(r.error); hostPausedLocal=true; btn.textContent='Resume'; }); }
+function togglePause(){
+  if(isPaused){ s.emit('hostResume',(r)=>{ if(r&&r.error) toast(r.error); }); }
+  else { s.emit('hostPause',(r)=>{ if(r&&r.error) toast(r.error); }); }
 }
+function syncPauseBtn(){ const b=document.getElementById('pauseBtn'); if(b) b.textContent=isPaused?'Resume':'Pause'; }
 let BIDAMT=null;
 function clampBid(n){
   const minBid=(A?A.highBid:0)+1, maxBid=ME.budget;
@@ -744,56 +708,38 @@ function renderLockWait(){
 
 /* ---------------- SEASON REVEALS ---------------- */
 let MATCHLIVE=false;
-let MTIMERS=[];
-function abbr(n){ return (n||'').replace(/[^A-Za-z0-9 ]/g,'').trim().slice(0,3).toUpperCase()||'???'; }
+function evLine(e){
+  const t=(e.text||'').replace(/\(\d+'\)/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s+/g,' ').trim();
+  return `<b>${e.minute!=null?e.minute+"'":''}</b> ${esc(t)}`;
+}
 function renderMatch(m){
   MATCHLIVE=true;
   clearInterval(timerInt);
-  MTIMERS.forEach(clearTimeout); MTIMERS=[];
   const yours = ME.club && (m.home===ME.club || m.away===ME.club);
-  const bcls=(mgr,alt)=> mgr ? (alt?'hu2':'hu') : 'ai';
-  const side=(name,mgr,alt)=>`<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;min-width:0">
-    <span class="tbadge ${bcls(mgr,alt)}">${abbr(name)}</span>
-    <span style="font-family:var(--disp);font-weight:800;font-size:15px;line-height:1.1">${esc(name)}</span>
-    ${mgr?`<span class="muted" style="font-size:13px">(${esc(mgr)})</span>`:''}
+  const teamLine=(name,mgr,pos,delay)=>`<div style="opacity:0;animation:cerIn .5s ${delay}s forwards">
+    ${pos?`<div class="muted" style="font-size:13px;letter-spacing:.12em">#${pos} IN THE LEAGUE</div>`:''}
+    <div class="score" style="font-size:34px">${esc(name)}${mgr?` <span style="font-size:20px;color:var(--muted)">(${esc(mgr)})</span>`:''}</div>
   </div>`;
-  const evs=m.events||[];
   $(`<div class="screen" style="justify-content:center">
     <div class="center">
       <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
       ${yours?`<div style="font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.1em;color:var(--pink);margin-bottom:8px">YOUR MATCH</div>`:''}
       ${(m.suspended&&m.suspended.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:15px;color:#FFB347;margin-bottom:8px">⛔ Suspended this game: ${m.suspended.map(esc).join(', ')}</div>`:''}
-      <div class="row" style="align-items:flex-start;gap:8px;margin:6px 0 14px;opacity:0;animation:cerIn .5s .1s forwards">
-        ${side(m.home,m.homeMgr,false)}
-        <div class="muted" style="font-family:var(--disp);font-weight:800;font-size:18px;padding-top:18px">VS</div>
-        ${side(m.away,m.awayMgr,m.homeMgr&&m.awayMgr)}
+      ${teamLine(m.home,m.homeMgr,m.homePos,0.1)}
+      <div class="muted" style="font-size:16px;margin:4px 0;opacity:0;animation:cerIn .4s .5s forwards">vs</div>
+      ${teamLine(m.away,m.awayMgr,m.awayPos,0.8)}
+      <div class="blackbox" style="margin:16px auto;width:min(260px,90%);opacity:0;animation:cerIn .5s 1.5s forwards">
+        <div class="score" style="font-size:44px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div>
       </div>
-      <div id="evfeed" style="text-align:left;max-width:420px;margin:0 auto;min-height:${Math.max(34, evs.length*34)}px"></div>
-      <div id="ftslot" style="margin:14px auto 0;width:min(280px,90%)"></div>
-      <div id="mctrl" style="opacity:0;transition:opacity .4s"></div>
+      <div style="text-align:left;max-width:420px;margin:0 auto">
+        ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${(2.1+i*0.5).toFixed(1)}s">${evLine(e)}</div>`).join('')||'<div class="muted center">No goals. Grim.</div>'}
+      </div>
+      ${ME.isHost
+        ?`<button class="primary bigbtn" style="margin-top:22px;max-width:340px" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
+        :`<div class="muted" style="margin-top:22px">${esc(m.hostName)} controls the remote…</div>`}
     </div>
   </div>`);
-  const dripMs = evs.length>7 ? 650 : 950;
-  evs.forEach((e,i)=>{
-    MTIMERS.push(setTimeout(()=>{
-      const f=document.getElementById('evfeed');
-      if(f) f.insertAdjacentHTML('beforeend',`<div class="evt" style="animation-delay:0s">${esc(e.text)}</div>`);
-    }, 600 + i*dripMs));
-  });
-  const ftAt = 600 + evs.length*dripMs + 350;
-  MTIMERS.push(setTimeout(()=>{
-    const f=document.getElementById('evfeed');
-    if(f && !evs.length) f.innerHTML='<div class="muted center">No goals. Grim.</div>';
-    const ft=document.getElementById('ftslot');
-    if(ft) ft.innerHTML=`<div class="blackbox ftbox show" style="background:#000;border-color:${yours?'var(--pink)':'var(--line)'}">
-      <div class="muted" style="font-size:13px;letter-spacing:.2em">FULL TIME</div>
-      <div class="score" style="font-size:46px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div></div>`;
-    const c=document.getElementById('mctrl');
-    if(c){ c.style.opacity='1'; c.innerHTML = ME.isHost
-      ?`<button class="primary bigbtn" style="margin-top:16px;max-width:340px" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
-      :`<div class="muted" style="margin-top:16px">${esc(m.hostName)} controls the remote…</div>`; }
-  }, ftAt));
 }
 s.on('matchReveal',renderMatch);
 s.on('halfDone',(h)=>{ lastTable=h.table; });
@@ -924,7 +870,7 @@ function showFinal(){
 }
 
 /* ---------------- CONNECTION ---------------- */
-s.on('paused',(p)=>{ isPaused=true; const b=document.getElementById('pausebar');
+s.on('paused',(p)=>{ isPaused=true; syncPauseBtn(); const b=document.getElementById('pausebar');
   b.textContent = p.byHost ? '⏸ Paused' : `⏸ ${p.manager} disconnected — paused`;
   b.style.display='block'; });
 let isPaused=false;
@@ -932,7 +878,7 @@ s.on('hostChanged',(x)=>{
   ME.isHost = x.hostId===ME.id;
   toast(esc(x.name)+' is now host');
 });
-s.on('resumed',(r)=>{ isPaused=false; hostPausedLocal=false;
+s.on('resumed',(r)=>{ isPaused=false; hostPausedLocal=false; syncPauseBtn();
   const b=document.getElementById('pausebar'); if(b) b.style.display='none';
   if(A&&r&&r.deadline) A.deadline=r.deadline; });
 s.on('autoFill',(x)=>{ if(x.manager===ME.name){ MYSQUAD.push({name:x.player,pos:x.pos}); toast(`Auto-fill: ${x.player} (${x.pos})`);} });
