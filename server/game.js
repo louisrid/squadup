@@ -103,7 +103,7 @@ class Game {
     this.io.emit('lobby', {
       code: this.code,
       hostId: this.hostId,
-      managers: this.managers.map((m) => ({ id: m.id, name: m.name, club: m.club, ready: m.ready })),
+      managers: this.managers.map((m) => ({ id: m.id, name: m.name, club: m.club, ready: m.ready, connected: m.connected })),
     });
   }
 
@@ -177,7 +177,7 @@ class Game {
       window: 'main', queue: pool, index: -1,
       current: null, highBid: 0, highBidder: null, deadline: 0, unsold: [], outs: new Set(),
     };
-    this.io.emit('phase', { phase: 'auction', window: 'main', poolSize: pool.length });
+    this.io.emit('phase', { phase: 'auction', window: 'main', poolSize: pool.length, managerCount: this.managers.length });
     this.nextLot();
   }
 
@@ -793,8 +793,20 @@ class Game {
     if (!m) return;
     m.connected = connected;
     if (this.phase === 'lobby') {
-      if (!connected) this.managers = this.managers.filter((x) => x.id !== id);
-      if (this.hostId === id && this.managers.length) this.hostId = this.managers[0].id;
+      this.lobbyDrop = this.lobbyDrop || {};
+      if (!connected) {
+        clearTimeout(this.lobbyDrop[id]);
+        this.lobbyDrop[id] = setTimeout(() => {
+          if (this.phase !== 'lobby') return;
+          const still = this.managers.find((x) => x.id === id);
+          if (!still || still.connected) return;
+          this.managers = this.managers.filter((x) => x.id !== id);
+          if (this.hostId === id && this.managers.length) this.hostId = this.managers[0].id;
+          this.broadcastLobby();
+        }, FAST ? 50 : 25000);
+      } else {
+        clearTimeout(this.lobbyDrop[id]);
+      }
       this.broadcastLobby();
       return;
     }

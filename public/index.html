@@ -211,7 +211,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v1.19';
+const VERSION = 'v1.21';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -346,7 +346,7 @@ function renderLobby(l){
   <div class="muted center">Share the code with your mates · 2–6 managers</div>
   <div class="panel">
     ${l.managers.map(m=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)">
-      <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span></span>
+      <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
       <span>${m.ready?'🟢':'⚪️'}</span></div>`).join('')}
   </div>
   <button class="primary" style="width:100%" onclick="s.emit('ready',{ready:true})">I'm ready</button>
@@ -365,6 +365,7 @@ s.on('phase',(p)=>{
   if(p.phase==='auction'){
     $(`<div class="screen center" style="min-height:92vh;padding-bottom:16vh">
     <h1 style="font-size:46px;color:var(--pink);line-height:1.05">BID TO BUILD<br>YOUR SQUAD!</h1>
+    ${p.managerCount?`<div class="muted" style="margin-top:10px;font-size:17px">${p.managerCount} managers · ${p.poolSize} players in the window</div>`:''}
     <div class="muted" style="margin-top:12px;font-size:18px">${p.poolSize} players · 6 each · £100m budget</div>
     <div id="budgets" class="budgets"></div></div>`);
   }
@@ -380,8 +381,8 @@ s.on('bid',(b)=>{ if(!A) return;
   bl.classList.remove('bidflash'); void bl.offsetWidth; bl.classList.add('bidflash');
   const minBid=A.highBid+1;
   if(BIDAMT!=null && BIDAMT<minBid){ BIDAMT=minBid; }
-  if(am){ am.textContent='£'+BIDAMT+'m'; }
-  const bb=document.getElementById('bidBtnAmt'); if(bb) bb.textContent=BIDAMT;
+  const rg=document.getElementById('bidRange'); if(rg) rg.min=minBid;
+  bidSync();
 });
 const MYSQUAD=[];
 s.on('lotSold',(x)=>{
@@ -479,12 +480,14 @@ function renderLot(){
     ${MYSQUAD.length?`<div class="minirow">${MYSQUAD.map(p=>`<span class="mini"><span class="pos ${p.pos}" style="margin-right:0">${p.pos}</span>${esc(p.name)}</span>`).join('')}</div>`:''}
     ${A.out
     ?`<div class="center muted" style="padding:10px 0;font-size:17px">You're out of this lot</div>`
-    :canAfford?`<div class="row" style="width:100%;align-items:center;justify-content:center;gap:10px">
-      <button class="stepbtn" onclick="bidStep(-5)">−5</button>
+    :canAfford?`<div class="row" style="width:100%">
+      <input type="range" id="bidRange" class="grow" min="${minBid}" max="${maxBid}" step="1" value="${BIDAMT=clampBid(BIDAMT??minBid)}"
+        oninput="bidSet(parseInt(this.value))">
+    </div>
+    <div class="row" style="width:100%;align-items:center;justify-content:center;gap:10px;margin-top:8px">
       <button class="stepbtn" onclick="bidStep(-1)">−1</button>
-      <span id="bidAmt" class="disp" style="font-size:30px;font-weight:800;min-width:96px;text-align:center">£${BIDAMT=clampBid(BIDAMT??minBid)}m</span>
+      <span id="bidAmt" class="disp" style="font-size:30px;font-weight:800;min-width:96px;text-align:center">£${BIDAMT}m</span>
       <button class="stepbtn" onclick="bidStep(1)">+1</button>
-      <button class="stepbtn" onclick="bidStep(5)">+5</button>
     </div>
     <div class="row" style="width:100%;margin-top:10px">
       <button class="primary grow" style="font-size:19px" onclick="bid(BIDAMT)">Place bid £<span id="bidBtnAmt">${BIDAMT}</span>m</button>
@@ -513,11 +516,13 @@ function clampBid(n){
   const minBid=(A?A.highBid:0)+1, maxBid=ME.budget;
   return Math.max(minBid, Math.min(maxBid, n));
 }
-function bidStep(d){
-  BIDAMT=clampBid((BIDAMT??0)+d);
+function bidSync(){
   const am=document.getElementById('bidAmt'); if(am) am.textContent='£'+BIDAMT+'m';
   const bb=document.getElementById('bidBtnAmt'); if(bb) bb.textContent=BIDAMT;
+  const rg=document.getElementById('bidRange'); if(rg && parseInt(rg.value)!==BIDAMT) rg.value=BIDAMT;
 }
+function bidSet(n){ BIDAMT=clampBid(n); bidSync(); }
+function bidStep(d){ BIDAMT=clampBid((BIDAMT??0)+d); bidSync(); }
 function bid(n){ s.emit('bid',{amount:n},(r)=>{ if(r&&r.error) toast(r.error); }); }
 function giveUp(){
   s.emit('passLot',(r)=>{
