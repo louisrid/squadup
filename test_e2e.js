@@ -1,6 +1,6 @@
 // E2E: 4 bot managers play a complete game over real websockets.
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3136';
+const URL = 'http://localhost:3138';
 
 const NAMES = ['Louis', 'Tom', 'Ben', 'Jack'];
 const log = (...a) => console.log(...a);

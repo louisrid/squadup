@@ -38,10 +38,10 @@ const FORMATIONS = {
 const FAST = process.env.FAST === '1';
 const TIMINGS = {
   AUCTION_START_MS: FAST ? 150 : 16000,
-  AUCTION_BID_ADD_MS: FAST ? 60 : 2000,
-  AUCTION_MAX_MS: FAST ? 600 : 40000,
+  AUCTION_BID_ADD_MS: FAST ? 60 : 3000,
+  AUCTION_MAX_MS: FAST ? 600 : 12000,
   AUCTION_BETWEEN_MS: FAST ? 30 : 4000,
-  LOT_REVEAL_MS: FAST ? 20 : 2800,
+  LOT_REVEAL_MS: FAST ? 20 : 3400,
   REVEAL_QUICK_MS: FAST ? 15 : 3000,
   REVEAL_FEATURED_MS: FAST ? 25 : 13000,
   REVEAL_MATCHDAY_GAP_MS: FAST ? 5 : 800,
@@ -63,7 +63,7 @@ class Game {
     this.season = null;
     this.timers = {};
     this.paused = false;
-    this.speed = 1; // host toggle: 1x or 2x auction pace
+    this.speed = 2; // host toggle: 1x or 2x auction pace (2x is the default)
     this.showHints = false; // host option: show fuzzy FC26 ranges on cards
     this.hints = {};
   }
@@ -285,13 +285,12 @@ class Game {
     if (amount < minBid) return { error: `Min bid £${minBid}m` };
     if (amount > m.budget) return { error: 'Not enough budget' };
     if (a.highBidder === m.id) return { error: 'Already highest bidder' };
-    if (m.squad.length >= 6) return { error: 'Squad full' };
-    if (!this.purchaseLegal(m, a.current.pos)) return { error: 'Would make required positions unfillable' };
     if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) return { error: 'You already have a keeper' };
     if (a.outs.has(m.id)) return { error: 'You gave up on this lot' };
     a.highBid = amount;
     a.highBidder = m.id;
-    a.deadline = Math.min(a.deadline + this.sp(TIMINGS.AUCTION_BID_ADD_MS), Date.now() + this.sp(TIMINGS.AUCTION_MAX_MS));
+    // +3s per bid, but the clock can never exceed a 12s ceiling (and never shrinks)
+    a.deadline = Math.max(a.deadline, Math.min(a.deadline + this.sp(TIMINGS.AUCTION_BID_ADD_MS), Date.now() + this.sp(TIMINGS.AUCTION_MAX_MS)));
     this.io.emit('bid', { player: a.current.name, amount, manager: m.name, deadline: a.deadline });
     this.armLotTimer();
     this.resolveEarly();
@@ -300,7 +299,7 @@ class Game {
 
   passLot(managerId) {
     const a = this.auction;
-    if (!a || !a.current) return { error: 'No live lot' };
+    if (!a || !a.current || this.paused) return { error: this.paused ? 'Auction is paused' : 'No live lot' };
     const m = this.managers.find((x) => x.id === managerId);
     if (!m || m.sacked) return { error: 'Not in game' };
     if (a.highBidder === managerId) return { error: "You're the highest bidder" };
@@ -314,13 +313,11 @@ class Game {
   // if nobody can outbid the current state, settle the lot immediately
   resolveEarly() {
     const a = this.auction;
-    if (!a || !a.current) return;
+    if (!a || !a.current || this.paused) return;
     const contenders = this.activeManagers().filter((m) => {
       if (a.outs.has(m.id)) return false;
       if (m.id === a.highBidder) return false;
-      if (m.squad.length >= 6) return false;
       if (m.budget < a.highBid + 1) return false;
-      if (!this.purchaseLegal(m, a.current.pos)) return false;
       if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) return false;
       return true;
     });
@@ -595,6 +592,8 @@ class Game {
       matchday: item.md + 1,
       home: this.season.teams[item.a].name,
       away: this.season.teams[item.b].name,
+      homeMgr: this.season.teams[item.a].type === 'human' ? this.managers[this.season.teams[item.a].mIdx].name : null,
+      awayMgr: this.season.teams[item.b].type === 'human' ? this.managers[this.season.teams[item.b].mIdx].name : null,
       score: [item.goalsA, item.goalsB],
       events: item.detail ? item.detail.events : [],
       suspended: item.suspended || [],
