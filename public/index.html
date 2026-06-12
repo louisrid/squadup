@@ -82,7 +82,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .cf{position:fixed;top:-12px;width:10px;height:14px;z-index:60;pointer-events:none;animation:cfFall linear forwards}
 @keyframes cfFall{to{transform:translateY(110vh) rotate(720deg)}}
 /* ---------- my squad mini ---------- */
-.minirow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
+.minirow{flex-wrap:wrap;max-height:76px;overflow-y:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
 .mini{display:flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--line);
   border-radius:8px;padding:4px 8px;font-size:13px;font-weight:600}
 @media (prefers-reduced-motion: reduce){.cf{display:none}.startready{animation:none}.bidflash{animation:none}}
@@ -222,7 +222,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v2.7';
+const VERSION = 'v2.8';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -278,24 +278,20 @@ function renderWhatsNew(){
   <div class="eyebrow" style="padding-left:48px">What's new</div>
   <h1 style="color:#FFD75E;text-shadow:0 0 16px rgba(255,215,94,.4)">⭐ The big update</h1>
   <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">ADDED</h2>
-    ${li(`<b>The WINTER MARKET</b> — at the halfway break everyone banks <b>+£50m</b>, then a second auction fires: 3 players per manager, all <b>87+ rated</b>, plus <b>1-2 LEGENDS 👑</b> (Pelé, Maradona, Zidane… all 96 rated)`)}
-    ${li(`<b>Wonderkids</b> ⭐ — rainbow cards, young stars rated 85 or less who explode by <b>+6 to +11</b> at winter (capped 94). 1-2 guaranteed in every opening auction`)}
-    ${li(`<b>Player development</b> — everyone grows or fades at winter based on potential, age and form. Green/red boxes show every change`)}
-    ${li(`<b>Unlimited squads</b> — buy as many players as your budget allows. Only rule: one keeper`)}
-    ${li(`<b>Red cards & suspensions</b> — a sending-off means that player misses the next match. Plus <b>own goals</b> in commentary`)}
-    ${li(`<b>Real ratings revealed</b> — exact rating shown the moment a player is signed; winter market cards show exact ratings up front`)}
-    ${li(`<b>⚔️ ATTACK / 🛡️ DEFENCE</b> live team ratings while you build your five`)}
-    ${li(`<b>Assistant's notes</b> — honest squad tips at the winter break`)}
-    ${li(`<b>Ageing icons</b> — Messi, Ronaldo, Modrić, Neymar & co join the pool, rated for their age`)}
-    ${li(`<b>THE HALFTIME SPIN</b> 🎡 — every manager spins a one-of-a-kind wheel at the break. Struggling? The wheel loves you back`)}
-    ${li(`<b>Eastvale Rovers</b> — the AI club you do NOT want on a bad day`)}
-    ${li(`<b>2x speed by default</b>, AI league positions on matchdays, manager names next to clubs, and a full How to play guide`)}
+    ${li(`🎡 <b>THE HALFTIME SPIN</b> — one free player. Your odds? The table decides`)}
+    ${li(`❄️ <b>THE WINTER MARKET</b> — +£50m, bigger names, and <b>LEGENDS 👑</b>`)}
+    ${li(`⭐ <b>WONDERKIDS</b> — rainbow cards that explode at the break`)}
+    ${li(`📈 <b>PLAYER DEVELOPMENT</b> — squads grow, fade and surprise you`)}
+    ${li(`♾️ <b>UNLIMITED SQUADS</b> — one keeper. No other limits`)}
+    ${li(`🟥 <b>RED CARDS, SUSPENSIONS & OWN GOALS</b>`)}
+    ${li(`🎯 <b>EXACT RATINGS</b> revealed the moment you sign — plus live team ⚔️/🛡️`)}
+    ${li(`…and icons, faster auctions, and a meaner league`)}
   </div>
   <div class="panel" style="border-color:#FF5470"><h2 style="margin-top:0;color:#FF5470">REMOVED</h2>
-    ${li(`<b>Respins</b> — the winter slot machine is gone. The winter market replaced it`)}
-    ${li(`<b>The 6-player squad cap</b> — gone. Budget is the only limit`)}
-    ${li(`<b>Time limits on picking your five</b> — take as long as you need, nobody gets auto-picked for being slow`)}
-    ${li(`<b>The wall of fake formations</b> — now 3 real shapes (2-1-1, 1-2-1, 1-1-2), every five fields at least one of each position`)}
+    ${li(`🎰 Respins — gone`)}
+    ${li(`The 6-player squad cap — gone`)}
+    ${li(`Pick timers — take your time`)}
+    ${li(`Fake formations — 3 real shapes now`)}
   </div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
 }
@@ -308,7 +304,7 @@ function renderHowTo(){
   <div class="panel"><h2 style="margin-top:0">2 · Pick your five</h2>
   <div style="font-size:16px;line-height:1.5">Field <b>1 GK + 4 outfielders</b> in a real shape: <b>2-1-1, 1-2-1 or 1-1-2</b> — at least one defender, one midfielder and one attacker. The live <b>⚔️ ATTACK / 🛡️ DEFENCE</b> box shows your team's true strength as you build. Auto-fill places your best players into your selected shape. There's <b>no time limit</b> — the game waits for everyone. Some players secretly over- or under-perform each half.</div></div>
   <div class="panel"><h2 style="margin-top:0">3 · The season</h2>
-  <div style="font-size:16px;line-height:1.5">22 matchdays vs your mates and AI clubs — watch out for <b>Eastvale Rovers</b> — and one or two AI clubs hide a surprise…. Full commentary: goals, assists, <b>own goals</b>, and <b>red cards — a sending-off suspends that player for exactly one match</b> and your team plays it weakened. Better attacks score more, better defences concede less, but upsets and demolitions are always live. The bottom human far adrift at the break gets <b>sacked</b>.</div></div>
+  <div style="font-size:16px;line-height:1.5">22 matchdays vs your mates and AI clubs — and a couple of them are hiding surprises… Full commentary: goals, assists, <b>own goals</b>, and <b>red cards — a sending-off suspends that player for exactly one match</b> and your team plays it weakened. Better attacks score more, better defences concede less, but upsets and demolitions are always live. The bottom human far adrift at the break gets <b>sacked</b>.</div></div>
   <div class="panel"><h2 style="margin-top:0">4 · Halftime & the winter market</h2>
   <div style="font-size:16px;line-height:1.5">First, the <b>🎡 halftime spin</b>: every manager spins a unique wheel for one free player — the lower you sit in the table, the juicier your odds. Then everyone banks <b>+£50m</b> and every player develops — young players rise, ageing stars fade, in-form players never decline, and <b>wonderkids jump +6 to +11</b> (capped at 94). Then the market opens: <b>3 players per manager, all 87+ rated with exact ratings shown</b>, plus <b>1-2 LEGENDS 👑</b> rated 96. Re-pick your five and chase the title.</div></div>
   <div class="panel"><h2 style="margin-top:0">5 · Glory</h2>
