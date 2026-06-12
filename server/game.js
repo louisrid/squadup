@@ -136,10 +136,10 @@ class Game {
     const posQuota = { GK: n + 1, DEF: 2 * n, MID: 2 * n, ATT: 2 * n - 1 }; // sums to 7n
     const stars = Math.max(2, n - 1); // always at least two 90+ headliners, scales with lobby size
     const S = 7 * n;
-    const cElite = Math.max(2, Math.round(0.10 * S)); // always at least two 90+
-    const cHigh = Math.round(0.18 * S);               // 87-89
-    const cGood = Math.round(0.22 * S);               // 85-86
-    const cMid = Math.round(0.32 * S);                // 82-84
+    const cElite = Math.max(2, Math.round(0.12 * S)); // always at least two 90+
+    const cHigh = Math.round(0.22 * S);               // 87-89
+    const cGood = Math.round(0.25 * S);               // 85-86
+    const cMid = Math.round(0.27 * S);                // 82-84
     const tiers = [
       { lo: 90, hi: 99, count: cElite },
       { lo: 87, hi: 89, count: cHigh },
