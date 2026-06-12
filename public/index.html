@@ -145,6 +145,8 @@ tr.me td{background:rgba(255,61,138,.14)}
 .fbtn.sel{background:var(--pink);border-color:var(--pink);color:#fff}
 .slot .plus{font-size:24px;line-height:1;color:var(--muted);opacity:.7;margin-bottom:3px}
 .autobtn{width:100%;margin-top:10px;border-color:#4FC3F7;color:#4FC3F7;background:transparent;font-size:17px}
+.stepbtn{font-family:var(--disp);font-weight:800;font-size:20px;min-width:54px;padding:12px 0;background:var(--surface2);border:1px solid var(--line);border-radius:12px;color:#fff}
+.stepbtn:active{background:var(--pink);border-color:var(--pink)}
 /* ---------- legend card ---------- */
 .pcard.legend .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#fffdf4 0%,#f5ecd0 58%,#e8d9a8 100%)}
 .pcard.legend{border:2px solid #C9A227;box-shadow:0 0 24px rgba(201,162,39,.45)}
@@ -209,7 +211,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v1.15';
+const VERSION = 'v1.19';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -371,17 +373,15 @@ s.on('lot',(l)=>{ A={...l, highBid:0, highBidder:null, out:false, start: l.deadl
 s.on('bid',(b)=>{ if(!A) return;
   A.highBid=b.amount; A.highBidder=b.manager; A.deadline=b.deadline;
   const bl=document.getElementById('bidlineEl'), bd=document.getElementById('bidderEl'),
-        rg=document.getElementById('bidRange'), am=document.getElementById('bidAmt');
+        am=document.getElementById('bidAmt');
   if(!bl) return renderLot();
   bl.innerHTML=`£${A.highBid}<small>m</small>`;
   bd.textContent=A.highBidder;
   bl.classList.remove('bidflash'); void bl.offsetWidth; bl.classList.add('bidflash');
-  if(rg){
-    const minBid=A.highBid+1;
-    rg.min=minBid;
-    if(parseInt(rg.value)<minBid) rg.value=minBid;
-    if(am) am.textContent='£'+rg.value+'m';
-  }
+  const minBid=A.highBid+1;
+  if(BIDAMT!=null && BIDAMT<minBid){ BIDAMT=minBid; }
+  if(am){ am.textContent='£'+BIDAMT+'m'; }
+  const bb=document.getElementById('bidBtnAmt'); if(bb) bb.textContent=BIDAMT;
 });
 const MYSQUAD=[];
 s.on('lotSold',(x)=>{
@@ -427,7 +427,7 @@ s.on('awaitNext',(x)=>{
   if(el) el.innerHTML=inner;
   else $(`<div class="screen center">${inner}<div id="budgets" class="budgets" style="margin-top:18px"></div></div>`);
 });
-s.on('lotReveal',(l)=>{
+s.on('lotReveal',(l)=>{ BIDAMT=null;
   clearInterval(timerInt);
   const base = l.revealMs||2800;
   const fadeMs = Math.round(base*0.55);            // bob in fast, then a beat to SEE the player (~1.65s)
@@ -479,14 +479,15 @@ function renderLot(){
     ${MYSQUAD.length?`<div class="minirow">${MYSQUAD.map(p=>`<span class="mini"><span class="pos ${p.pos}" style="margin-right:0">${p.pos}</span>${esc(p.name)}</span>`).join('')}</div>`:''}
     ${A.out
     ?`<div class="center muted" style="padding:10px 0;font-size:17px">You're out of this lot</div>`
-    :canAfford?`<div class="row" style="width:100%">
-      <input type="range" id="bidRange" class="grow" min="${minBid}" max="${maxBid}" value="${minBid}" step="1"
-        oninput="document.getElementById('bidAmt').textContent='£'+this.value+'m'">
-      <span id="bidAmt" class="disp" style="font-size:24px;font-weight:800;min-width:74px;text-align:right">£${minBid}m</span>
+    :canAfford?`<div class="row" style="width:100%;align-items:center;justify-content:center;gap:10px">
+      <button class="stepbtn" onclick="bidStep(-5)">−5</button>
+      <button class="stepbtn" onclick="bidStep(-1)">−1</button>
+      <span id="bidAmt" class="disp" style="font-size:30px;font-weight:800;min-width:96px;text-align:center">£${BIDAMT=clampBid(BIDAMT??minBid)}m</span>
+      <button class="stepbtn" onclick="bidStep(1)">+1</button>
+      <button class="stepbtn" onclick="bidStep(5)">+5</button>
     </div>
     <div class="row" style="width:100%;margin-top:10px">
-      <button class="primary grow" style="font-size:19px"
-        onclick="bid(parseInt(document.getElementById('bidRange').value))">Place bid</button>
+      <button class="primary grow" style="font-size:19px" onclick="bid(BIDAMT)">Place bid £<span id="bidBtnAmt">${BIDAMT}</span>m</button>
       <button class="giveup" onclick="giveUp()">Give up</button>
     </div>`
     :`<div class="row" style="width:100%"><div class="center muted grow" style="padding:8px 0;font-size:16px">Can't afford the next bid (£${minBid}m)</div>
@@ -506,6 +507,16 @@ function renderLot(){
 function togglePause(btn){
   if(hostPausedLocal){ s.emit('hostResume',(r)=>{ if(r&&r.error) return toast(r.error); hostPausedLocal=false; btn.textContent='Pause'; }); }
   else { s.emit('hostPause',(r)=>{ if(r&&r.error) return toast(r.error); hostPausedLocal=true; btn.textContent='Resume'; }); }
+}
+let BIDAMT=null;
+function clampBid(n){
+  const minBid=(A?A.highBid:0)+1, maxBid=ME.budget;
+  return Math.max(minBid, Math.min(maxBid, n));
+}
+function bidStep(d){
+  BIDAMT=clampBid((BIDAMT??0)+d);
+  const am=document.getElementById('bidAmt'); if(am) am.textContent='£'+BIDAMT+'m';
+  const bb=document.getElementById('bidBtnAmt'); if(bb) bb.textContent=BIDAMT;
 }
 function bid(n){ s.emit('bid',{amount:n},(r)=>{ if(r&&r.error) toast(r.error); }); }
 function giveUp(){
@@ -535,8 +546,10 @@ function feasibleForms(avail){
   return FORMSETS.filter(([d,m2,a])=>c.DEF>=d&&c.MID>=m2&&c.ATT>=a);
 }
 function formChips(avail, onpick){
-  return `<div class="row" style="flex-wrap:wrap;gap:7px;margin-bottom:8px">${feasibleForms(avail).map(([d,m2,a])=>
-    `<button class="fbtn ${CURFORM[0]===d&&CURFORM[1]===m2&&CURFORM[2]===a?'sel':''}" style="padding:9px 11px" onclick="${onpick}(${d},${m2},${a})">${d}-${m2}-${a}</button>`).join('')}</div>`;
+  const ok=feasibleForms(avail);
+  const inj = avail.length < 6 ? `<div class="muted" style="font-size:13px;margin:-3px 0 8px;color:#FFB347">🤕 Injury limits your options — only ${ok.length} shape${ok.length===1?'':'s'} possible with ${avail.length} fit players.</div>` : '';
+  return `<div class="row" style="flex-wrap:wrap;gap:7px;margin-bottom:8px">${ok.map(([d,m2,a])=>
+    `<button class="fbtn ${CURFORM[0]===d&&CURFORM[1]===m2&&CURFORM[2]===a?'sel':''}" style="padding:9px 11px" onclick="${onpick}(${d},${m2},${a})">${d}-${m2}-${a}</button>`).join('')}</div>${inj}`;
 }
 function rebuildSlots(oldSlots, avail, d, m2, a){
   const placed=oldSlots.filter(x=>x.player).map(x=>({name:x.player,pos:x.ppos}));
@@ -697,9 +710,22 @@ function applyWinter(w){
   const mine=w.review.find(r=>r.manager===ME.name);
   if(mine && !hadHub){
     const av=mine.players.filter(x=>!x.injured);
-    const ok=feasibleForms(av);
-    CURFORM = ok.some(f=>f[0]===1&&f[1]===2&&f[2]===1)?[1,2,1]:(ok[0]||[1,2,1]);
-    WSLOTS = slotsFor(...CURFORM);
+    const st=(mine.starters||[]).map(n=>av.find(p=>p.name===n)).filter(Boolean);
+    if(st.length){
+      // carry your first-half XI straight in; injured player's slot stays open in their old shape
+      const all=(mine.starters||[]).map(n=>mine.players.find(p=>p.name===n)).filter(Boolean);
+      CURFORM=[all.filter(p=>p.pos==='DEF').length, all.filter(p=>p.pos==='MID').length, all.filter(p=>p.pos==='ATT').length];
+      if(!feasibleForms(av).some(f=>f[0]===CURFORM[0]&&f[1]===CURFORM[1]&&f[2]===CURFORM[2])){
+        const ok=feasibleForms(av);
+        CURFORM = ok.some(f=>f[0]===1&&f[1]===2&&f[2]===1)?[1,2,1]:(ok[0]||CURFORM);
+      }
+      WSLOTS=slotsFor(...CURFORM);
+      for(const p of st){ const sl=WSLOTS.find(x=>x.pos===p.pos&&!x.player); if(sl){ sl.player=p.name; sl.ppos=p.pos; } }
+    } else {
+      const ok=feasibleForms(av);
+      CURFORM = ok.some(f=>f[0]===1&&f[1]===2&&f[2]===1)?[1,2,1]:(ok[0]||[1,2,1]);
+      WSLOTS = slotsFor(...CURFORM);
+    }
   }
   if(!mine) WTAB = w.review.length ? w.review[0].manager : null;
   renderWinter();
@@ -711,7 +737,11 @@ s.on('respinResult',(x)=>{
   W.review=x.review;
   if(x.spins) W.spins=x.spins;
   const me = x.manager===ME.name;
-  if(me && WSLOTS) for(const sl of WSLOTS) if(sl.player===x.oldPlayer.name) sl.player=null;
+  if(me && WSLOTS){
+    for(const sl of WSLOTS) if(sl.player===x.oldPlayer.name){ sl.player=null; sl.ppos=null; }
+    const free=WSLOTS.find(s2=>s2.pos===x.newPlayer.pos && !s2.player);
+    if(free){ free.player=x.newPlayer.name; free.ppos=x.newPlayer.pos; }
+  }
   if(me){ showSpinResult(x); } else {
     renderWinter();
     toast(x.tier==='legend' ? '👑 '+esc(x.manager)+' spun a LEGEND: '+esc(x.newPlayer.name)+'!' : esc(x.manager)+' respun '+esc(x.oldPlayer.name)+' → '+esc(x.newPlayer.name));

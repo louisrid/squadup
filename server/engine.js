@@ -3,7 +3,7 @@
 
 const PARAMS = {
   BASE_LAMBDA: 1.35,
-  K: 0.095,
+  K: 0.085,
   EVENT_RATE: 1 / 12,
   EVENT_SIZE: 5,
   FORM_MOD: 2.0,

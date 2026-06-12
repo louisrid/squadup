@@ -462,7 +462,7 @@ class Game {
     const humanTeams = this.managers.map((m, i) => ({ type: 'human', mIdx: i, name: m.club }));
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
-    const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => ({ type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 0.45, defence: s.defence - 0.45 }));
+    const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => ({ type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.25, defence: s.defence - 1.25 }));
     this.season = {
       teams: [...humanTeams, ...ais],
       fixtures: E.buildFixtures(12),
@@ -621,6 +621,7 @@ class Game {
         spinsLeft: m.spinsLeft,
         locked: this.pendingStarters ? !this.pendingStarters.has(m.id) : false,
         units: this.unitScores(m),
+        starters: (m.starters || []).map((p) => p.name),
         validFormations: this.validFormations(m),
         players: m.squad.map((p) => ({
           name: p.name, pos: p.pos, legend: !!p.legend, fc26: p.fc26,
