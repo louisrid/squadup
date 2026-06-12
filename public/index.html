@@ -228,7 +228,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v3.7';
+const VERSION = 'v3.8';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -291,7 +291,7 @@ function renderWhatsNew(){
     ${li(`📈 <b>PLAYER DEVELOPMENT</b> — squads grow, fade and surprise you`)}
     ${li(`♾️ <b>UNLIMITED SQUADS</b> — one keeper. No other limits`)}
     ${li(`🟥 <b>RED CARDS, SUSPENSIONS & OWN GOALS</b>`)}
-    ${li(`🎯 <b>EXACT RATINGS</b> revealed the moment you sign — plus live team ⚔️/🛡️`)}
+    ${li(`🎯 <b>EXACT RATINGS</b> the moment you sign — plus live team ⚔️/🛡️`)}
     ${li(`…and icons, faster auctions, and a meaner league`)}
   </div>
   <div class="panel" style="border-color:#FF5470"><h2 style="margin-top:0;color:#FF5470">REMOVED</h2>
@@ -313,7 +313,7 @@ function renderHowTo(){
   <div class="panel"><h2 style="margin-top:0">3 · The season</h2>
   <div style="font-size:16px;line-height:1.5">22 matchdays vs your mates and AI clubs — and a couple of them are hiding surprises… Full commentary: goals, assists, <b>own goals</b>, and <b>red cards — a sending-off suspends that player for exactly one match</b> and your team plays it weakened. Better attacks score more, better defences concede less, but upsets and demolitions are always live. The bottom human far adrift at the break gets <b>sacked</b>.</div></div>
   <div class="panel"><h2 style="margin-top:0">4 · Halftime & the winter market</h2>
-  <div style="font-size:16px;line-height:1.5">First, the <b>🎡 halftime spin</b>: every manager spins a unique wheel for one free player — the lower you sit in the table, the juicier your odds. Then everyone banks <b>+£50m</b> and every player develops — young players rise, ageing stars fade, in-form players never decline, and <b>wonderkids jump +6 to +11</b> (capped at 94). Then the market opens: <b>3 players per manager, all 87+ rated with exact ratings shown</b>, plus <b>1-2 LEGENDS 👑</b> rated 96. Re-pick your five and chase the title.</div></div>
+  <div style="font-size:16px;line-height:1.5">First, the <b>🎡 halftime spin</b>: every manager spins a unique wheel for one free player — the lower you sit in the table, the juicier your odds. Then everyone banks <b>+£50m</b> and every player develops — young players rise, ageing stars fade, in-form players never decline, and <b>wonderkids jump +6 to +11</b> (capped at 94). Then the market opens: <b>3 players per manager, all 88+ rated</b>, plus <b>1-2 LEGENDS 👑</b> rated 96. Re-pick your five and chase the title.</div></div>
   <div class="panel"><h2 style="margin-top:0">5 · Glory</h2>
   <div style="font-size:16px;line-height:1.5">Most points wins the league. Golden Boot, assists king, best bargain, biggest flop and the winter splash all get their moment at the ceremony — and the stats stay up as long as you want them.</div></div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
@@ -395,6 +395,14 @@ function restoreFromSnapshot(snap){
   if(snap.serverV && snap.serverV!==VERSION) toast('⚠️ Server '+snap.serverV+' / client '+VERSION+' — redeploy ALL files');
   if(snap.reveal){ renderMatch(snap.reveal); return; }
   if(snap.winter && !snap.auction){ applyWinter(snap.winter); return; }
+  if(snap.awaitingNext){
+    flashResult(`Lot ${snap.awaitingNext.index}/${snap.awaitingNext.total} done`,'Ready for the next player');
+    const el=document.getElementById('nextslot');
+    if(el) el.innerHTML = ME.isHost
+      ? `<button class="primary" style="width:80%" onclick="s.emit('hostNext',(r)=>{if(r&&r.error)toast(r.error)})">Next player</button>`
+      : `<div class="muted">Waiting for ${esc(snap.awaitingNext.hostName)} to bring up the next player…</div>`;
+    return;
+  }
   if(snap.spin){ SPIN={segments:snap.spin.segments,spun:snap.spin.spun}; if(snap.spin.spun) renderSpinWait(); else renderSpinReady(); return; }
   if(snap.pick){
     if(snap.pick.locked){
@@ -544,9 +552,9 @@ function s_lotReveal(l){ BIDAMT=null;
   const base = l.revealMs||2800;
   const fadeMs = Math.round(base*0.42);            // see the player first (~1.85s)
   const unit = Math.round((base-fadeMs)/3);        // deliberate 3-2-1 (~0.85s ticks)
-  $(`<div class="screen center" data-lock style="justify-content:flex-start;padding-top:max(9vh,64px)">
+  $(`<div class="screen center" data-lock style="justify-content:flex-start;align-items:center;text-align:center;padding-top:max(9vh,64px)">
     <div class="eyebrow" style="margin-bottom:18px;height:20px">Lot ${l.index+1}/${l.total}</div>
-    <div class="revealCard" style="--fade:${Math.min(450,fadeMs)}ms;width:210px;height:300px">${cardHTML(l.player)}</div>
+    <div class="revealCard" style="--fade:${Math.min(450,fadeMs)}ms;width:210px;height:300px;margin-left:auto;margin-right:auto">${cardHTML(l.player)}</div>
     <div id="cdWrap" style="margin-top:14px;height:96px;position:relative;width:100%"></div>
   </div>`);
   [3,2,1].forEach((n,i)=>{

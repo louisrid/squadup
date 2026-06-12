@@ -304,7 +304,7 @@ class Game {
     a.revealUntil = Date.now() + this.sp(TIMINGS.LOT_REVEAL_MS);
     this.io.emit('lotReveal', {
       index: a.index, total: a.queue.length,
-      player: { name: a.current.name, pos: a.current.pos, hint: a.window === 'winter' ? String(a.current.rating) : this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
+      player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
       revealMs: this.sp(TIMINGS.LOT_REVEAL_MS),
     });
     setTimeout(() => {
@@ -313,7 +313,7 @@ class Game {
       a.revealUntil = 0;
       this.io.emit('lot', {
         index: a.index, total: a.queue.length,
-        player: { name: a.current.name, pos: a.current.pos, hint: a.window === 'winter' ? String(a.current.rating) : this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
+        player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
         deadline: a.deadline,
       });
       this.armLotTimer();
@@ -1141,6 +1141,10 @@ class Game {
       table: this.season ? this.table() : null,
       winter: this.phase === 'winter' ? this.winterPayload() : null,
       reveal: this.reveal && this.reveal.waiting ? this.reveal.last : null,
+      awaitingNext: (this.phase === 'auction' && this.auction && !this.auction.current && this.auction.index < this.auction.queue.length) ? {
+        index: this.auction.index, total: this.auction.queue.length,
+        hostName: (this.managers.find((x) => x.id === this.hostId) || {}).name || 'Host',
+      } : null,
       spin: (this.phase === 'spin' && this.wheels && this.wheels[forId]) ? {
         segments: this.wheels[forId].segments.map((s) => ({ name: s.name, pos: s.pos, rating: s.rating, kind: s.kind })),
         spun: this.pendingSpins ? !this.pendingSpins.has(forId) : true,
@@ -1154,7 +1158,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v3.7',
+      serverV: 'v3.8',
       paused: this.paused,
     };
   }

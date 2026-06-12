@@ -3489,5 +3489,176 @@
 "rating": 76,
 "wonderkid": true,
 "pot": 94
+},
+{
+"name": "Jarrad Branthwaite",
+"pos": "DEF",
+"league": "EU",
+"fc26": 84,
+"rating": 84,
+"pot": 86,
+"age": "young"
+},
+{
+"name": "Gonçalo Inácio",
+"pos": "DEF",
+"league": "EU",
+"fc26": 84,
+"rating": 84,
+"pot": 86,
+"age": "young"
+},
+{
+"name": "Antonio Silva",
+"pos": "DEF",
+"league": "EU",
+"fc26": 83,
+"rating": 83,
+"pot": 85,
+"age": "young"
+},
+{
+"name": "Pervis Estupiñán",
+"pos": "DEF",
+"league": "EU",
+"fc26": 82,
+"rating": 82,
+"pot": 83,
+"age": "prime"
+},
+{
+"name": "Facundo Medina",
+"pos": "DEF",
+"league": "EU",
+"fc26": 82,
+"rating": 82,
+"pot": 83,
+"age": "prime"
+},
+{
+"name": "Tyrick Mitchell",
+"pos": "DEF",
+"league": "EU",
+"fc26": 81,
+"rating": 81,
+"pot": 82,
+"age": "prime"
+},
+{
+"name": "Lutsharel Geertruida",
+"pos": "DEF",
+"league": "EU",
+"fc26": 81,
+"rating": 81,
+"pot": 82,
+"age": "prime"
+},
+{
+"name": "Morten Hjulmand",
+"pos": "MID",
+"league": "EU",
+"fc26": 84,
+"rating": 84,
+"pot": 85,
+"age": "prime"
+},
+{
+"name": "Lucas Paquetá",
+"pos": "MID",
+"league": "EU",
+"fc26": 84,
+"rating": 84,
+"pot": 85,
+"age": "prime"
+},
+{
+"name": "Teun Koopmeiners",
+"pos": "MID",
+"league": "EU",
+"fc26": 83,
+"rating": 83,
+"pot": 84,
+"age": "prime"
+},
+{
+"name": "Hugo Larsson",
+"pos": "MID",
+"league": "EU",
+"fc26": 82,
+"rating": 82,
+"pot": 84,
+"age": "young"
+},
+{
+"name": "Mats Wieffer",
+"pos": "MID",
+"league": "EU",
+"fc26": 81,
+"rating": 81,
+"pot": 82,
+"age": "prime"
+},
+{
+"name": "Johnny Cardoso",
+"pos": "MID",
+"league": "EU",
+"fc26": 81,
+"rating": 81,
+"pot": 83,
+"age": "young"
+},
+{
+"name": "Arthur Vermeeren",
+"pos": "MID",
+"league": "EU",
+"fc26": 80,
+"rating": 80,
+"pot": 82,
+"age": "young"
+},
+{
+"name": "Jamie Gittens",
+"pos": "ATT",
+"league": "EU",
+"fc26": 83,
+"rating": 83,
+"pot": 85,
+"age": "young"
+},
+{
+"name": "Maghnes Akliouche",
+"pos": "ATT",
+"league": "EU",
+"fc26": 83,
+"rating": 83,
+"pot": 85,
+"age": "young"
+},
+{
+"name": "Yoane Wissa",
+"pos": "ATT",
+"league": "EU",
+"fc26": 82,
+"rating": 82,
+"pot": 83,
+"age": "prime"
+},
+{
+"name": "Emanuel Emegha",
+"pos": "ATT",
+"league": "EU",
+"fc26": 81,
+"rating": 81,
+"pot": 83,
+"age": "young"
+},
+{
+"name": "Dango Ouattara",
+"pos": "ATT",
+"league": "EU",
+"fc26": 80,
+"rating": 80,
+"pot": 82,
+"age": "young"
 }
 ]
