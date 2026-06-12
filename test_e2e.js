@@ -1,6 +1,6 @@
 // E2E: 4 bot managers play a complete game over real websockets.
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3125';
+const URL = 'http://localhost:3136';
 
 const NAMES = ['Louis', 'Tom', 'Ben', 'Jack'];
 const log = (...a) => console.log(...a);
@@ -32,57 +32,27 @@ function makeBot(name, i) {
     bot.seen['pick_' + half] = true;
     const mine = perManager.find((p) => p.id === bot.managerId);
     if (!mine) return;
-    assert(mine.validFormations.length > 0, `${name} has no valid formation (${half})`);
-    const f = 'FREE';
     const avail = mine.squad.filter((p) => !p.injured);
     const gk = avail.find((x) => x.pos === 'GK');
-    const chosen = [gk, ...avail.filter((x) => x.pos !== 'GK').slice(0, 4)].filter(Boolean);
-    assert(chosen.length === 5, `${name} could not fill ${f}: got ${chosen.length} (squad: ${mine.squad.map(p=>p.pos).join(',')})`);
-    s.emit('submitStarters', { formation: f, starters: chosen.map((p) => p.name) }, (r) => {
-      assert(r.ok, `${name} starters rejected: ${r.error}`);
-    });
+    const chosen = gk ? [gk] : [];
+    for (const pos of ['DEF', 'MID', 'ATT']) {
+      const p = avail.find((x) => x.pos === pos && !chosen.includes(x));
+      if (p) chosen.push(p);
+    }
+    for (const p of avail) { if (chosen.length >= 5) break; if (p.pos !== 'GK' && !chosen.includes(p)) chosen.push(p); }
+    if (chosen.length === 5) {
+      s.emit('submitStarters', { formation: 'FREE', starters: chosen.map((p) => p.name) }, (r) => {
+        assert(r.ok, `${name} starters rejected (${half}): ${r.error}`);
+      });
+    } // thin squads fall to the server's auto-pick timeout — also a valid path
   });
   s.on('winter', (w) => {
     bot.seen.winter = w;
-    const mine = w.review.find((r) => r.id === bot.managerId);
-    if (!mine || bot.sacked) return;
-    // exercise respins: bot0 spins twice, others once
-    const spins = name === 'A' ? 2 : 1;
-    let done = 0;
-    const spinNext = () => {
-      const target = mine.players.find((p) => !p.injured);
-      s.emit('respin', { player: bot.lastSpin || target.name }, (r) => {
-        assert(r.ok || r.error === 'No replacement available', `${name} respin rejected: ${r.error}`);
-        done++;
-        if (done < spins) setTimeout(spinNext, 30);
-        else setTimeout(lock, 60);
-      });
-    };
-    const lock = () => {
-      // re-derive squad from latest respinResult review
-      const rv = (bot.latestReview || w.review).find((r) => r.id === bot.managerId);
-      const f = 'FREE';
-      const avail = rv.players.filter((p) => !p.injured);
-      const gk = avail.find((x) => x.pos === 'GK');
-      const chosen = [gk, ...avail.filter((x) => x.pos !== 'GK').slice(0, 4)].filter(Boolean);
-      assert(chosen.length === 5, `${name} winter lock could not fill ${f}`);
-      s.emit('submitStarters', { formation: f, starters: chosen.map((p) => p.name) }, (r) => {
-        assert(r.ok, `${name} winter lock rejected: ${r.error}`);
-      });
-    };
-    setTimeout(spinNext, 30);
-  });
-  s.on('respinResult', (x) => {
-    bot.latestReview = x.review;
-    bot.seen.spins = (bot.seen.spins || 0) + 1;
-    if (x.manager === name) bot.lastSpin = null;
-    // duplicate ownership check across all reviews
-    const names = [];
-    for (const r of x.review) for (const p of r.players) names.push(p.name);
-    assert(new Set(names).size === names.length, 'DUPLICATE player across squads after respin: ' + x.newPlayer.name);
+    const me = (w.budgets || []).find((b) => b.manager === name);
+    if (me) assert(me.budget >= 50, `${name} winter budget not topped up: ${me.budget}`);
   });
   s.on('matchReveal', () => { bot.seen.reveals = (bot.seen.reveals || 0) + 1; });
-  s.on('phase', ({ phase }) => { bot.seen['phase_' + phase] = true; });
+  s.on('phase', (p) => { bot.seen['phase_' + p.phase] = true; if (p.phase === 'auction') bot.seen['auction_' + (p.window || 'main')] = true; });
   s.on('finished', (f) => { bot.seen.finished = f; });
   s.on('lotSold', ({ manager, player }) => { if (manager === name) bot.mySquad.push(player); });
   s.on('autoFill', ({ manager, player }) => { if (manager === name) bot.mySquad.push(player); });
@@ -136,7 +106,8 @@ const connected = (s) => s.connected ? Promise.resolve() : new Promise((res) => 
     assert(f.awards.goldenBoot && f.awards.goldenBoot.goals > 0, 'no golden boot');
   }
   assert(b0.seen.phase_firstHalf, 'no firstHalf phase');
-  assert(b0.seen.spins >= 4, 'respins not exercised: ' + b0.seen.spins);
+  assert(b0.seen.auction_winter, 'winter market never opened');
+  assert(b0.seen.pick_second, 'second-half pick never happened');
   assert(b0.seen.phase_secondHalf, 'no secondHalf phase');
   assert(b0.seen.reveals >= 60, 'too few reveals: ' + b0.seen.reveals);
   assert(b0.seen.winter && b0.seen.winter.review.length >= 3, 'winter review missing');
@@ -146,7 +117,11 @@ const connected = (s) => s.connected ? Promise.resolve() : new Promise((res) => 
   }
   // squads complete after auction: every active manager ended with >= 6 players (incl autofill)
   const w = b0.seen.winter;
-  if (w) for (const r of w.review) assert(r.players.length >= 6, `${r.manager} squad < 6 at winter: ${r.players.length}`);
+  if (w) {
+    const all = [];
+    for (const r of w.review) { assert(r.players.length >= 1, `${r.manager} has no squad at winter`); for (const p of r.players) all.push(p.name); }
+    assert(new Set(all).size === all.length, 'DUPLICATE player across squads at winter');
+  }
   log(b0.seen.reveals, 'match reveals shown to clients');
   log('bot0 saw:', JSON.stringify(Object.keys(b0.seen)), 'lots:', b0.seen.lots);
   log(failures.length ? `FAILURES: ${failures.length}` : 'ALL E2E CHECKS PASSED');

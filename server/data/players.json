@@ -1,2095 +1,3430 @@
 [
- {
-  "name": "Erling Haaland",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 91,
-  "rating": 94
- },
- {
-  "name": "Kylian Mbappé",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 91,
-  "rating": 92
- },
- {
-  "name": "Rodri",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 91,
-  "rating": 86
- },
- {
-  "name": "Bukayo Saka",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 90,
-  "rating": 85
- },
- {
-  "name": "Harry Kane",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 90,
-  "rating": 92
- },
- {
-  "name": "Lamine Yamal",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 90,
-  "rating": 94
- },
- {
-  "name": "Mohamed Salah",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 90,
-  "rating": 87
- },
- {
-  "name": "Robert Lewandowski",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 90,
-  "rating": 84
- },
- {
-  "name": "Vinicius Jr",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 90,
-  "rating": 90
- },
- {
-  "name": "Achraf Hakimi",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 90,
-  "rating": 89
- },
- {
-  "name": "Virgil van Dijk",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 90,
-  "rating": 91
- },
- {
-  "name": "Thibaut Courtois",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 90,
-  "rating": 95
- },
- {
-  "name": "Federico Valverde",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 90,
-  "rating": 92
- },
- {
-  "name": "Florian Wirtz",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 90,
-  "rating": 87
- },
- {
-  "name": "Jude Bellingham",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 90,
-  "rating": 94
- },
- {
-  "name": "Martin Ødegaard",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 90,
-  "rating": 83
- },
- {
-  "name": "Lautaro Martínez",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 89,
-  "rating": 86
- },
- {
-  "name": "Ousmane Dembélé",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 89,
-  "rating": 92
- },
- {
-  "name": "Gianluigi Donnarumma",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 89,
-  "rating": 89
- },
- {
-  "name": "Jamal Musiala",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 89,
-  "rating": 88
- },
- {
-  "name": "Alexander Isak",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 88,
-  "rating": 90
- },
- {
-  "name": "Cole Palmer",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 88,
-  "rating": 89
- },
- {
-  "name": "Rafael Leão",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 88,
-  "rating": 87
- },
- {
-  "name": "Victor Osimhen",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 88,
-  "rating": 86
- },
- {
-  "name": "Ruben Dias",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 88,
-  "rating": 84
- },
- {
-  "name": "William Saliba",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 88,
-  "rating": 89
- },
- {
-  "name": "Bruno Fernandes",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 88,
-  "rating": 93
- },
- {
-  "name": "Declan Rice",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 88,
-  "rating": 90
- },
- {
-  "name": "Joshua Kimmich",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 88,
-  "rating": 89
- },
- {
-  "name": "Kevin De Bruyne",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 88,
-  "rating": 82
- },
- {
-  "name": "Pedri",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 88,
-  "rating": 90
- },
- {
-  "name": "Phil Foden",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 88,
-  "rating": 84
- },
- {
-  "name": "Khvicha Kvaratskhelia",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 92
- },
- {
-  "name": "Nico Williams",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 81
- },
- {
-  "name": "Raphinha",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 90
- },
- {
-  "name": "Son Heung-min",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 84
- },
- {
-  "name": "Antonio Rüdiger",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 91
- },
- {
-  "name": "Cristian Romero",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 87,
-  "rating": 86
- },
- {
-  "name": "Gabriel Magalhães",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 87,
-  "rating": 90
- },
- {
-  "name": "Marquinhos",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 86
- },
- {
-  "name": "Éder Militão",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 88
- },
- {
-  "name": "Ederson",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 87,
-  "rating": 80
- },
- {
-  "name": "Marc-André ter Stegen",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 89
- },
- {
-  "name": "Mike Maignan",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 85
- },
- {
-  "name": "Bernardo Silva",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 87,
-  "rating": 84
- },
- {
-  "name": "Bruno Guimarães",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 87,
-  "rating": 88
- },
- {
-  "name": "Moisés Caicedo",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 87,
-  "rating": 87
- },
- {
-  "name": "Nicolò Barella",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 85
- },
- {
-  "name": "Vitinha",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 87,
-  "rating": 94
- },
- {
-  "name": "Luis Díaz",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 86,
-  "rating": 89
- },
- {
-  "name": "Viktor Gyökeres",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 86,
-  "rating": 87
- },
- {
-  "name": "Alessandro Bastoni",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 86,
-  "rating": 91
- },
- {
-  "name": "Josko Gvardiol",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 86,
-  "rating": 86
- },
- {
-  "name": "Ronald Araújo",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 86,
-  "rating": 88
- },
- {
-  "name": "Gregor Kobel",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 86,
-  "rating": 89
- },
- {
-  "name": "Jan Oblak",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 86,
-  "rating": 90
- },
- {
-  "name": "Alexis Mac Allister",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 86,
-  "rating": 80
- },
- {
-  "name": "Dominik Szoboszlai",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 86,
-  "rating": 89
- },
- {
-  "name": "Hakan Çalhanoğlu",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 86,
-  "rating": 83
- },
- {
-  "name": "Cody Gakpo",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 79
- },
- {
-  "name": "Kai Havertz",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 88
- },
- {
-  "name": "Marcus Thuram",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 86
- },
- {
-  "name": "Ollie Watkins",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 89
- },
- {
-  "name": "Serhou Guirassy",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 86
- },
- {
-  "name": "Andrew Robertson",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 75
- },
- {
-  "name": "Federico Dimarco",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 84
- },
- {
-  "name": "Gleison Bremer",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 80
- },
- {
-  "name": "Ibrahima Konaté",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 85
- },
- {
-  "name": "Jules Koundé",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 89
- },
- {
-  "name": "Jurriën Timber",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 90
- },
- {
-  "name": "Manuel Akanji",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 83
- },
- {
-  "name": "Marc Cucurella",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 91
- },
- {
-  "name": "Matthijs de Ligt",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 90
- },
- {
-  "name": "Nuno Mendes",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 89
- },
- {
-  "name": "Pau Cubarsí",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 87
- },
- {
-  "name": "Reece James",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 85
- },
- {
-  "name": "David Raya",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 92
- },
- {
-  "name": "Diogo Costa",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 91
- },
- {
-  "name": "Emiliano Martínez",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 86
- },
- {
-  "name": "Yann Sommer",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 84
- },
- {
-  "name": "Dejan Kulusevski",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 80
- },
- {
-  "name": "Eberechi Eze",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 86
- },
- {
-  "name": "Enzo Fernández",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 87
- },
- {
-  "name": "James Maddison",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 82
- },
- {
-  "name": "João Neves",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 90
- },
- {
-  "name": "Ryan Gravenberch",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 87
- },
- {
-  "name": "Sandro Tonali",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 88
- },
- {
-  "name": "Scott McTominay",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 85,
-  "rating": 90
- },
- {
-  "name": "Xavi Simons",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 85,
-  "rating": 81
- },
- {
-  "name": "Ademola Lookman",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 85
- },
- {
-  "name": "Amad Diallo",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 89
- },
- {
-  "name": "Anthony Gordon",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 84
- },
- {
-  "name": "Bradley Barcola",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 86
- },
- {
-  "name": "Bryan Mbeumo",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 87
- },
- {
-  "name": "Darwin Núñez",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 88
- },
- {
-  "name": "Dušan Vlahović",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 81
- },
- {
-  "name": "Gabriel Jesus",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 77
- },
- {
-  "name": "Gabriel Martinelli",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 74
- },
- {
-  "name": "Jarrod Bowen",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 85
- },
- {
-  "name": "Jérémy Doku",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 88
- },
- {
-  "name": "Kaoru Mitoma",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 84
- },
- {
-  "name": "Kenan Yıldız",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 83
- },
- {
-  "name": "Leandro Trossard",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 81
- },
- {
-  "name": "Leroy Sané",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 74
- },
- {
-  "name": "Matheus Cunha",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 84
- },
- {
-  "name": "Mohammed Kudus",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 83
- },
- {
-  "name": "Nicolas Jackson",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 90
- },
- {
-  "name": "Paulo Dybala",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 83
- },
- {
-  "name": "Savinho",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 80
- },
- {
-  "name": "Ben White",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 81
- },
- {
-  "name": "David Alaba",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 80
- },
- {
-  "name": "Dayot Upamecano",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 87
- },
- {
-  "name": "John Stones",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 77
- },
- {
-  "name": "Jonathan Tah",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 81
- },
- {
-  "name": "Kieran Trippier",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 80
- },
- {
-  "name": "Levi Colwill",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 81
- },
- {
-  "name": "Lisandro Martínez",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 80
- },
- {
-  "name": "Marc Guéhi",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 85
- },
- {
-  "name": "Micky van de Ven",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 89
- },
- {
-  "name": "Nathan Aké",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 80
- },
- {
-  "name": "André Onana",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 89
- },
- {
-  "name": "Guglielmo Vicario",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 80
- },
- {
-  "name": "Jordan Pickford",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 86
- },
- {
-  "name": "Wojciech Szczęsny",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 87
- },
- {
-  "name": "Casemiro",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 82
- },
- {
-  "name": "Désiré Doué",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 84,
-  "rating": 90
- },
- {
-  "name": "Kobbie Mainoo",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 87
- },
- {
-  "name": "Mateo Kovačić",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 80
- },
- {
-  "name": "Morgan Gibbs-White",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 84,
-  "rating": 87
- },
- {
-  "name": "Jack Grealish",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 83,
-  "rating": 77
- },
- {
-  "name": "Pedro Neto",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 83,
-  "rating": 74
- },
- {
-  "name": "Rasmus Højlund",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 83,
-  "rating": 78
- },
- {
-  "name": "João Cancelo",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 83,
-  "rating": 81
- },
- {
-  "name": "Anatoliy Trubin",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 83,
-  "rating": 83
- },
- {
-  "name": "Conor Gallagher",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 83,
-  "rating": 80
- },
- {
-  "name": "Joelinton",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 83,
-  "rating": 84
- },
- {
-  "name": "Mikel Merino",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 83,
-  "rating": 86
- },
- {
-  "name": "Tijjani Reijnders",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 83,
-  "rating": 81
- },
- {
-  "name": "Warren Zaïre-Emery",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 83,
-  "rating": 85
- },
- {
-  "name": "Brennan Johnson",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 79
- },
- {
-  "name": "Dominic Solanke",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 81
- },
- {
-  "name": "Federico Chiesa",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 85
- },
- {
-  "name": "Ferran Torres",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 82,
-  "rating": 90
- },
- {
-  "name": "João Pedro",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 87
- },
- {
-  "name": "Karim Adeyemi",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 82,
-  "rating": 81
- },
- {
-  "name": "Karim Benzema",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 82,
-  "rating": 80
- },
- {
-  "name": "Marcus Rashford",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 84
- },
- {
-  "name": "Destiny Udogie",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 76
- },
- {
-  "name": "Diogo Dalot",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 85
- },
- {
-  "name": "Ezri Konsa",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 87
- },
- {
-  "name": "Kalidou Koulibaly",
-  "pos": "DEF",
-  "league": "FOR",
-  "fc26": 82,
-  "rating": 82
- },
- {
-  "name": "Rayan Aït-Nouri",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 85
- },
- {
-  "name": "Bernd Leno",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 81
- },
- {
-  "name": "Manuel Neuer",
-  "pos": "GK",
-  "league": "FOR",
-  "fc26": 82,
-  "rating": 89
- },
- {
-  "name": "Julian Brandt",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 82,
-  "rating": 85
- },
- {
-  "name": "Matheus Nunes",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 80
- },
- {
-  "name": "N'Golo Kanté",
-  "pos": "MID",
-  "league": "FOR",
-  "fc26": 82,
-  "rating": 85
- },
- {
-  "name": "Rodrigo Bentancur",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 81
- },
- {
-  "name": "Youri Tielemans",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 82,
-  "rating": 86
- },
- {
-  "name": "Aleksandar Mitrović",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 81,
-  "rating": 70
- },
- {
-  "name": "Anthony Elanga",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 81
- },
- {
-  "name": "Jean-Philippe Mateta",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 86
- },
- {
-  "name": "Joshua Zirkzee",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 80
- },
- {
-  "name": "Nick Woltemade",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 84
- },
- {
-  "name": "Riyad Mahrez",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 81,
-  "rating": 80
- },
- {
-  "name": "Álvaro Morata",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 81,
-  "rating": 79
- },
- {
-  "name": "Antonee Robinson",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 86
- },
- {
-  "name": "Lewis Dunk",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 84
- },
- {
-  "name": "Aaron Ramsdale",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 81
- },
- {
-  "name": "Dean Henderson",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 80
- },
- {
-  "name": "Robert Sánchez",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 76
- },
- {
-  "name": "Adam Wharton",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 89
- },
- {
-  "name": "Alex Iwobi",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 85
- },
- {
-  "name": "Carlos Baleba",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 87
- },
- {
-  "name": "Curtis Jones",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 86
- },
- {
-  "name": "Elliot Anderson",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 87
- },
- {
-  "name": "Manuel Ugarte",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 76
- },
- {
-  "name": "Morgan Rogers",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 81,
-  "rating": 84
- },
- {
-  "name": "Chris Wood",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Cristiano Ronaldo",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 80,
-  "rating": 86
- },
- {
-  "name": "Crysencio Summerville",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 85
- },
- {
-  "name": "Harvey Barnes",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 81
- },
- {
-  "name": "Ismaïla Sarr",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 84
- },
- {
-  "name": "Ivan Toney",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 80,
-  "rating": 74
- },
- {
-  "name": "Jadon Sancho",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 69
- },
- {
-  "name": "Raheem Sterling",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 62
- },
- {
-  "name": "Sadio Mané",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 80,
-  "rating": 82
- },
- {
-  "name": "Conor Bradley",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 86
- },
- {
-  "name": "Daniel Muñoz",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "James Tarkowski",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 83
- },
- {
-  "name": "Jan Paul van Hecke",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 85
- },
- {
-  "name": "Joachim Andersen",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 81
- },
- {
-  "name": "Max Kilman",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Ola Aina",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Mark Flekken",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 84
- },
- {
-  "name": "Matz Sels",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Andreas Pereira",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Dwight McNeil",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Emile Smith Rowe",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "John McGinn",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Jordan Henderson",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Mario Lemina",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Pierre-Emile Højbjerg",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Tomáš Souček",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Wilfred Ndidi",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Yves Bissouma",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 80,
-  "rating": 80
- },
- {
-  "name": "Adama Traoré",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Jordan Ayew",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Raúl Jiménez",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Rodrigo Muniz",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Harry Maguire",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Joe Gomez",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Lewis Hall",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Neco Williams",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Timothy Castagne",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Filip Jörgensen",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Mads Hermansen",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Đorđe Petrović",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Jacob Ramsey",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Wataru Endo",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 89
- },
- {
-  "name": "Danny Welbeck",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Dominic Calvert-Lewin",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Jamie Vardy",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 84
- },
- {
-  "name": "Liam Delap",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Roberto Firmino",
-  "pos": "ATT",
-  "league": "FOR",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Axel Disasi",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 70
- },
- {
-  "name": "Calvin Bassey",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 84
- },
- {
-  "name": "Maxence Lacroix",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Nathan Collins",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Rico Lewis",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Tosin Adarabioyo",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Trevoh Chalobah",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 84
- },
- {
-  "name": "Tyrone Mings",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 80
- },
- {
-  "name": "Martin Dúbravka",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Sam Johnstone",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Łukasz Fabiański",
-  "pos": "GK",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Christian Nørgaard",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "James McAtee",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Ross Barkley",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Sean Longstaff",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Eddie Nketiah",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Evan Ferguson",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Kevin Schade",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Taiwo Awoniyi",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Ben Davies",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Ethan Pinnock",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Kurt Zouma",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Victor Lindelöf",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Wout Faes",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Bilal El Khannouss",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Che Adams",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 76,
-  "rating": 76
- },
- {
-  "name": "Ben Mee",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 76,
-  "rating": 76
- },
- {
-  "name": "Taylor Harwood-Bellis",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 76,
-  "rating": 76
- },
- {
-  "name": "Idrissa Gueye",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 76,
-  "rating": 76
- },
- {
-  "name": "Lewis Cook",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 76,
-  "rating": 76
- },
- {
-  "name": "Mathias Jensen",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 76,
-  "rating": 76
- },
- {
-  "name": "Ryan Christie",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 76,
-  "rating": 76
- },
- {
-  "name": "Beto",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 75,
-  "rating": 64
- },
- {
-  "name": "Conor Coady",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 75,
-  "rating": 75
- },
- {
-  "name": "Issa Diop",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 75,
-  "rating": 75
- },
- {
-  "name": "Sepp van den Berg",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 75,
-  "rating": 75
- },
- {
-  "name": "Tyrell Malacia",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 75,
-  "rating": 75
- },
- {
-  "name": "Tom Cairney",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 75,
-  "rating": 75
- },
- {
-  "name": "Armando Broja",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 74
- },
- {
-  "name": "Michail Antonio",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 79
- },
- {
-  "name": "Wilson Isidor",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 80
- },
- {
-  "name": "Aaron Cresswell",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 74
- },
- {
-  "name": "Mads Roerslev",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 74
- },
- {
-  "name": "Sergio Reguilón",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 74
- },
- {
-  "name": "Hannibal Mejbri",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 74
- },
- {
-  "name": "Harrison Reed",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 74
- },
- {
-  "name": "Will Hughes",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 74
- },
- {
-  "name": "Jeffrey Schlupp",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 73,
-  "rating": 73
- },
- {
-  "name": "Brandon Williams",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 71,
-  "rating": 84
- },
- {
-  "name": "Calum Chambers",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 72,
-  "rating": 72
- },
- {
-  "name": "Jonny Evans",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 74
- },
- {
-  "name": "Scott McKenna",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 73,
-  "rating": 73
- },
- {
-  "name": "Ashley Young",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 74
- },
- {
-  "name": "Kyle Walker-Peters",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Tino Livramento",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Ryan Fraser",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 73,
-  "rating": 73
- },
- {
-  "name": "Solly March",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Joe Willock",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "James Ward-Prowse",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Lewis O'Brien",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 72,
-  "rating": 72
- },
- {
-  "name": "Adam Lallana",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 73,
-  "rating": 73
- },
- {
-  "name": "Stuart Armstrong",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 74,
-  "rating": 74
- },
- {
-  "name": "Ryan Yates",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 75,
-  "rating": 75
- },
- {
-  "name": "Jefferson Lerma",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Pablo Fornals",
-  "pos": "MID",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Said Benrahma",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 77,
-  "rating": 77
- },
- {
-  "name": "Demarai Gray",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 76,
-  "rating": 76
- },
- {
-  "name": "Emil Krafth",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 72,
-  "rating": 72
- },
- {
-  "name": "Tariq Lamptey",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 76,
-  "rating": 76
- },
- {
-  "name": "Bobby Reid",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 73,
-  "rating": 73
- },
- {
-  "name": "Yankuba Minteh",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 78,
-  "rating": 78
- },
- {
-  "name": "Antoine Semenyo",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Justin Kluivert",
-  "pos": "ATT",
-  "league": "PL",
-  "fc26": 79,
-  "rating": 79
- },
- {
-  "name": "Lloyd Kelly",
-  "pos": "DEF",
-  "league": "PL",
-  "fc26": 75,
-  "rating": 75
- }
+{
+"name": "Erling Haaland",
+"pos": "ATT",
+"league": "PL",
+"fc26": 91,
+"rating": 94,
+"potential": 95,
+"age": "prime",
+"pot": 93
+},
+{
+"name": "Kylian Mbappé",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 91,
+"rating": 92,
+"potential": 92,
+"age": "prime",
+"pot": 92
+},
+{
+"name": "Rodri",
+"pos": "MID",
+"league": "PL",
+"fc26": 91,
+"rating": 89,
+"potential": 90,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Bukayo Saka",
+"pos": "ATT",
+"league": "PL",
+"fc26": 90,
+"rating": 88,
+"potential": 88,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Harry Kane",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 90,
+"rating": 92,
+"potential": 92,
+"age": "prime",
+"old": true,
+"pot": 89
+},
+{
+"name": "Lamine Yamal",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 90,
+"rating": 94,
+"wonderkid": true,
+"potential": 96,
+"age": "young",
+"pot": 96
+},
+{
+"name": "Mohamed Salah",
+"pos": "ATT",
+"league": "PL",
+"fc26": 90,
+"rating": 87,
+"potential": 86,
+"age": "old",
+"old": true,
+"pot": 84
+},
+{
+"name": "Robert Lewandowski",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 90,
+"rating": 87,
+"potential": 85,
+"age": "old",
+"old": true,
+"pot": 86
+},
+{
+"name": "Vinicius Jr",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 90,
+"rating": 90,
+"potential": 90,
+"age": "prime",
+"pot": 92
+},
+{
+"name": "Achraf Hakimi",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 90,
+"rating": 89,
+"potential": 89,
+"age": "prime",
+"pot": 91
+},
+{
+"name": "Virgil van Dijk",
+"pos": "DEF",
+"league": "PL",
+"fc26": 90,
+"rating": 91,
+"potential": 91,
+"age": "old",
+"old": true,
+"pot": 88
+},
+{
+"name": "Thibaut Courtois",
+"pos": "GK",
+"league": "FOR",
+"fc26": 90,
+"rating": 92,
+"potential": 92,
+"age": "prime",
+"old": true,
+"pot": 89
+},
+{
+"name": "Federico Valverde",
+"pos": "MID",
+"league": "FOR",
+"fc26": 90,
+"rating": 92,
+"potential": 93,
+"age": "prime",
+"pot": 93
+},
+{
+"name": "Florian Wirtz",
+"pos": "MID",
+"league": "PL",
+"fc26": 90,
+"rating": 87,
+"wonderkid": true,
+"potential": 95,
+"age": "young",
+"pot": 93
+},
+{
+"name": "Jude Bellingham",
+"pos": "MID",
+"league": "FOR",
+"fc26": 90,
+"rating": 94,
+"potential": 96,
+"age": "young",
+"pot": 95
+},
+{
+"name": "Martin Ødegaard",
+"pos": "MID",
+"league": "PL",
+"fc26": 90,
+"rating": 87,
+"potential": 87,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Lautaro Martínez",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 89,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Ousmane Dembélé",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 89,
+"rating": 92,
+"potential": 93,
+"age": "prime",
+"pot": 91
+},
+{
+"name": "Gianluigi Donnarumma",
+"pos": "GK",
+"league": "FOR",
+"fc26": 89,
+"rating": 89,
+"potential": 89,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Jamal Musiala",
+"pos": "MID",
+"league": "FOR",
+"fc26": 89,
+"rating": 88,
+"wonderkid": true,
+"potential": 96,
+"age": "young",
+"pot": 96
+},
+{
+"name": "Alexander Isak",
+"pos": "ATT",
+"league": "PL",
+"fc26": 88,
+"rating": 90,
+"potential": 92,
+"age": "young",
+"pot": 91
+},
+{
+"name": "Cole Palmer",
+"pos": "ATT",
+"league": "PL",
+"fc26": 88,
+"rating": 89,
+"potential": 89,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Rafael Leão",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 88,
+"rating": 87,
+"potential": 87,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Victor Osimhen",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 88,
+"rating": 86,
+"potential": 87,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Ruben Dias",
+"pos": "DEF",
+"league": "PL",
+"fc26": 88,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "William Saliba",
+"pos": "DEF",
+"league": "PL",
+"fc26": 88,
+"rating": 89,
+"potential": 89,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Bruno Fernandes",
+"pos": "MID",
+"league": "PL",
+"fc26": 88,
+"rating": 90,
+"potential": 90,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Declan Rice",
+"pos": "MID",
+"league": "PL",
+"fc26": 88,
+"rating": 90,
+"potential": 90,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Joshua Kimmich",
+"pos": "MID",
+"league": "FOR",
+"fc26": 88,
+"rating": 89,
+"potential": 90,
+"age": "prime",
+"pot": 90
+},
+{
+"name": "Kevin De Bruyne",
+"pos": "MID",
+"league": "FOR",
+"fc26": 88,
+"rating": 85,
+"potential": 83,
+"age": "old",
+"old": true,
+"pot": 84
+},
+{
+"name": "Pedri",
+"pos": "MID",
+"league": "FOR",
+"fc26": 88,
+"rating": 90,
+"potential": 90,
+"age": "prime",
+"pot": 90
+},
+{
+"name": "Phil Foden",
+"pos": "MID",
+"league": "PL",
+"fc26": 88,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Khvicha Kvaratskhelia",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 87,
+"rating": 89,
+"potential": 93,
+"age": "young",
+"pot": 90
+},
+{
+"name": "Nico Williams",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 87,
+"rating": 84,
+"potential": 87,
+"age": "young",
+"pot": 84
+},
+{
+"name": "Raphinha",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 87,
+"rating": 90,
+"potential": 90,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Son Heung-min",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 87,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"old": true,
+"pot": 81
+},
+{
+"name": "Antonio Rüdiger",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 87,
+"rating": 91,
+"potential": 91,
+"age": "old",
+"pot": 92
+},
+{
+"name": "Cristian Romero",
+"pos": "DEF",
+"league": "PL",
+"fc26": 87,
+"rating": 86,
+"potential": 87,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Gabriel Magalhães",
+"pos": "DEF",
+"league": "PL",
+"fc26": 87,
+"rating": 90,
+"potential": 90,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Marquinhos",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 87,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Éder Militão",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 87,
+"rating": 88,
+"potential": 88,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Ederson",
+"pos": "GK",
+"league": "PL",
+"fc26": 87,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Marc-André ter Stegen",
+"pos": "GK",
+"league": "FOR",
+"fc26": 87,
+"rating": 89,
+"potential": 88,
+"age": "old",
+"pot": 89
+},
+{
+"name": "Mike Maignan",
+"pos": "GK",
+"league": "FOR",
+"fc26": 87,
+"rating": 85,
+"potential": 86,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Bernardo Silva",
+"pos": "MID",
+"league": "PL",
+"fc26": 87,
+"rating": 84,
+"potential": 82,
+"age": "old",
+"old": true,
+"pot": 81
+},
+{
+"name": "Bruno Guimarães",
+"pos": "MID",
+"league": "PL",
+"fc26": 87,
+"rating": 88,
+"potential": 89,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Moisés Caicedo",
+"pos": "MID",
+"league": "PL",
+"fc26": 87,
+"rating": 87,
+"potential": 91,
+"age": "young",
+"pot": 88
+},
+{
+"name": "Nicolò Barella",
+"pos": "MID",
+"league": "FOR",
+"fc26": 87,
+"rating": 85,
+"potential": 86,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Vitinha",
+"pos": "MID",
+"league": "FOR",
+"fc26": 87,
+"rating": 90,
+"potential": 91,
+"age": "prime",
+"pot": 92
+},
+{
+"name": "Luis Díaz",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 86,
+"rating": 89,
+"potential": 90,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Viktor Gyökeres",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 86,
+"rating": 87,
+"potential": 87,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Alessandro Bastoni",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 86,
+"rating": 88,
+"potential": 88,
+"age": "prime",
+"pot": 90
+},
+{
+"name": "Josko Gvardiol",
+"pos": "DEF",
+"league": "PL",
+"fc26": 86,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Ronald Araújo",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 86,
+"rating": 88,
+"potential": 88,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Gregor Kobel",
+"pos": "GK",
+"league": "FOR",
+"fc26": 86,
+"rating": 89,
+"potential": 90,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Jan Oblak",
+"pos": "GK",
+"league": "FOR",
+"fc26": 86,
+"rating": 90,
+"potential": 89,
+"age": "old",
+"pot": 90
+},
+{
+"name": "Alexis Mac Allister",
+"pos": "MID",
+"league": "PL",
+"fc26": 86,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Dominik Szoboszlai",
+"pos": "MID",
+"league": "PL",
+"fc26": 86,
+"rating": 89,
+"potential": 93,
+"age": "young",
+"pot": 90
+},
+{
+"name": "Hakan Çalhanoğlu",
+"pos": "MID",
+"league": "FOR",
+"fc26": 86,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Cody Gakpo",
+"pos": "ATT",
+"league": "PL",
+"fc26": 85,
+"rating": 82,
+"potential": 85,
+"age": "young",
+"pot": 83
+},
+{
+"name": "Kai Havertz",
+"pos": "ATT",
+"league": "PL",
+"fc26": 85,
+"rating": 88,
+"potential": 88,
+"age": "prime",
+"pot": 90
+},
+{
+"name": "Marcus Thuram",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 85,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Ollie Watkins",
+"pos": "ATT",
+"league": "PL",
+"fc26": 85,
+"rating": 89,
+"potential": 90,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Serhou Guirassy",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 85,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Andrew Robertson",
+"pos": "DEF",
+"league": "PL",
+"fc26": 85,
+"rating": 81,
+"potential": 79,
+"age": "old",
+"old": true,
+"pot": 79
+},
+{
+"name": "Federico Dimarco",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 85,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Gleison Bremer",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 85,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Ibrahima Konaté",
+"pos": "DEF",
+"league": "PL",
+"fc26": 85,
+"rating": 85,
+"potential": 86,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Jules Koundé",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 85,
+"rating": 89,
+"potential": 89,
+"age": "prime",
+"pot": 91
+},
+{
+"name": "Jurriën Timber",
+"pos": "DEF",
+"league": "PL",
+"fc26": 85,
+"rating": 87,
+"potential": 87,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Manuel Akanji",
+"pos": "DEF",
+"league": "PL",
+"fc26": 85,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Marc Cucurella",
+"pos": "DEF",
+"league": "PL",
+"fc26": 85,
+"rating": 88,
+"potential": 89,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Matthijs de Ligt",
+"pos": "DEF",
+"league": "PL",
+"fc26": 85,
+"rating": 87,
+"potential": 88,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Nuno Mendes",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 85,
+"rating": 89,
+"potential": 90,
+"age": "prime",
+"pot": 91
+},
+{
+"name": "Pau Cubarsí",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 85,
+"rating": 87,
+"potential": 88,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Reece James",
+"pos": "DEF",
+"league": "PL",
+"fc26": 85,
+"rating": 85,
+"potential": 85,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "David Raya",
+"pos": "GK",
+"league": "PL",
+"fc26": 85,
+"rating": 88,
+"potential": 88,
+"age": "prime",
+"pot": 90
+},
+{
+"name": "Diogo Costa",
+"pos": "GK",
+"league": "FOR",
+"fc26": 85,
+"rating": 88,
+"potential": 89,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Emiliano Martínez",
+"pos": "GK",
+"league": "PL",
+"fc26": 85,
+"rating": 86,
+"potential": 87,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Yann Sommer",
+"pos": "GK",
+"league": "FOR",
+"fc26": 85,
+"rating": 84,
+"potential": 81,
+"age": "old",
+"old": true,
+"pot": 82
+},
+{
+"name": "Dejan Kulusevski",
+"pos": "MID",
+"league": "PL",
+"fc26": 85,
+"rating": 83,
+"potential": 83,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Eberechi Eze",
+"pos": "MID",
+"league": "PL",
+"fc26": 85,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Enzo Fernández",
+"pos": "MID",
+"league": "PL",
+"fc26": 85,
+"rating": 87,
+"potential": 88,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "James Maddison",
+"pos": "MID",
+"league": "PL",
+"fc26": 85,
+"rating": 82,
+"potential": 83,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "João Neves",
+"pos": "MID",
+"league": "FOR",
+"fc26": 85,
+"rating": 87,
+"potential": 88,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Ryan Gravenberch",
+"pos": "MID",
+"league": "PL",
+"fc26": 85,
+"rating": 87,
+"potential": 88,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Sandro Tonali",
+"pos": "MID",
+"league": "PL",
+"fc26": 85,
+"rating": 88,
+"potential": 89,
+"age": "prime",
+"pot": 90
+},
+{
+"name": "Scott McTominay",
+"pos": "MID",
+"league": "PL",
+"fc26": 85,
+"rating": 87,
+"potential": 87,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Xavi Simons",
+"pos": "MID",
+"league": "FOR",
+"fc26": 85,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Ademola Lookman",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 84,
+"rating": 85,
+"potential": 86,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Amad Diallo",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Anthony Gordon",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Bradley Barcola",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 84,
+"rating": 86,
+"potential": 89,
+"age": "young",
+"pot": 87
+},
+{
+"name": "Bryan Mbeumo",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 87,
+"potential": 87,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Darwin Núñez",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 84,
+"rating": 88,
+"potential": 88,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Dušan Vlahović",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 84,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Gabriel Jesus",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 81,
+"potential": 81,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Gabriel Martinelli",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Jarrod Bowen",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 85,
+"potential": 86,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Jérémy Doku",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 88,
+"potential": 89,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Kaoru Mitoma",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 84,
+"potential": 85,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Kenan Yıldız",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 84,
+"rating": 83,
+"potential": 83,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Leandro Trossard",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 81,
+"potential": 81,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Leroy Sané",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 84,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Matheus Cunha",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 84,
+"potential": 85,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Mohammed Kudus",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Nicolas Jackson",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 87,
+"potential": 87,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Paulo Dybala",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 84,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Savinho",
+"pos": "ATT",
+"league": "PL",
+"fc26": 84,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Ben White",
+"pos": "DEF",
+"league": "PL",
+"fc26": 84,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "David Alaba",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 84,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Dayot Upamecano",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 84,
+"rating": 87,
+"potential": 88,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "John Stones",
+"pos": "DEF",
+"league": "PL",
+"fc26": 84,
+"rating": 81,
+"potential": 81,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Jonathan Tah",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 84,
+"rating": 81,
+"potential": 81,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Kieran Trippier",
+"pos": "DEF",
+"league": "PL",
+"fc26": 84,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Levi Colwill",
+"pos": "DEF",
+"league": "PL",
+"fc26": 84,
+"rating": 81,
+"potential": 83,
+"age": "young",
+"pot": 82
+},
+{
+"name": "Lisandro Martínez",
+"pos": "DEF",
+"league": "PL",
+"fc26": 84,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Marc Guéhi",
+"pos": "DEF",
+"league": "PL",
+"fc26": 84,
+"rating": 85,
+"potential": 85,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Micky van de Ven",
+"pos": "DEF",
+"league": "PL",
+"fc26": 84,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Nathan Aké",
+"pos": "DEF",
+"league": "PL",
+"fc26": 84,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "André Onana",
+"pos": "GK",
+"league": "PL",
+"fc26": 84,
+"rating": 86,
+"potential": 87,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Guglielmo Vicario",
+"pos": "GK",
+"league": "PL",
+"fc26": 84,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Jordan Pickford",
+"pos": "GK",
+"league": "PL",
+"fc26": 84,
+"rating": 86,
+"potential": 87,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Wojciech Szczęsny",
+"pos": "GK",
+"league": "FOR",
+"fc26": 84,
+"rating": 87,
+"potential": 88,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Casemiro",
+"pos": "MID",
+"league": "PL",
+"fc26": 84,
+"rating": 82,
+"potential": 81,
+"age": "old",
+"old": true,
+"pot": 81
+},
+{
+"name": "Désiré Doué",
+"pos": "MID",
+"league": "FOR",
+"fc26": 84,
+"rating": 87,
+"potential": 87,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Kobbie Mainoo",
+"pos": "MID",
+"league": "PL",
+"fc26": 84,
+"rating": 87,
+"potential": 88,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Mateo Kovačić",
+"pos": "MID",
+"league": "PL",
+"fc26": 84,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Morgan Gibbs-White",
+"pos": "MID",
+"league": "PL",
+"fc26": 84,
+"rating": 87,
+"potential": 88,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Jack Grealish",
+"pos": "ATT",
+"league": "PL",
+"fc26": 83,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Pedro Neto",
+"pos": "ATT",
+"league": "PL",
+"fc26": 83,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Rasmus Højlund",
+"pos": "ATT",
+"league": "PL",
+"fc26": 83,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "João Cancelo",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 83,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Anatoliy Trubin",
+"pos": "GK",
+"league": "FOR",
+"fc26": 83,
+"rating": 83,
+"potential": 86,
+"age": "young",
+"pot": 84
+},
+{
+"name": "Conor Gallagher",
+"pos": "MID",
+"league": "PL",
+"fc26": 83,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Joelinton",
+"pos": "MID",
+"league": "PL",
+"fc26": 83,
+"rating": 84,
+"potential": 85,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Mikel Merino",
+"pos": "MID",
+"league": "FOR",
+"fc26": 83,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Tijjani Reijnders",
+"pos": "MID",
+"league": "PL",
+"fc26": 83,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Warren Zaïre-Emery",
+"pos": "MID",
+"league": "FOR",
+"fc26": 83,
+"rating": 85,
+"wonderkid": true,
+"potential": 93,
+"age": "young",
+"pot": 92
+},
+{
+"name": "Brennan Johnson",
+"pos": "ATT",
+"league": "PL",
+"fc26": 82,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Dominic Solanke",
+"pos": "ATT",
+"league": "PL",
+"fc26": 82,
+"rating": 81,
+"potential": 81,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Federico Chiesa",
+"pos": "ATT",
+"league": "PL",
+"fc26": 82,
+"rating": 85,
+"potential": 85,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Ferran Torres",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 82,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "João Pedro",
+"pos": "ATT",
+"league": "PL",
+"fc26": 82,
+"rating": 84,
+"potential": 85,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Karim Adeyemi",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 82,
+"rating": 81,
+"potential": 81,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Karim Benzema",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 82,
+"rating": 80,
+"potential": 79,
+"age": "old",
+"pot": 84
+},
+{
+"name": "Marcus Rashford",
+"pos": "ATT",
+"league": "PL",
+"fc26": 82,
+"rating": 84,
+"potential": 85,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Destiny Udogie",
+"pos": "DEF",
+"league": "PL",
+"fc26": 82,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Diogo Dalot",
+"pos": "DEF",
+"league": "PL",
+"fc26": 82,
+"rating": 85,
+"potential": 85,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Ezri Konsa",
+"pos": "DEF",
+"league": "PL",
+"fc26": 82,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Kalidou Koulibaly",
+"pos": "DEF",
+"league": "FOR",
+"fc26": 82,
+"rating": 82,
+"potential": 82,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Rayan Aït-Nouri",
+"pos": "DEF",
+"league": "PL",
+"fc26": 82,
+"rating": 85,
+"potential": 85,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Bernd Leno",
+"pos": "GK",
+"league": "PL",
+"fc26": 82,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Manuel Neuer",
+"pos": "GK",
+"league": "FOR",
+"fc26": 82,
+"rating": 85,
+"potential": 82,
+"age": "old",
+"pot": 87
+},
+{
+"name": "Julian Brandt",
+"pos": "MID",
+"league": "FOR",
+"fc26": 82,
+"rating": 85,
+"potential": 85,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Matheus Nunes",
+"pos": "MID",
+"league": "PL",
+"fc26": 82,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "N'Golo Kanté",
+"pos": "MID",
+"league": "FOR",
+"fc26": 82,
+"rating": 85,
+"potential": 85,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Rodrigo Bentancur",
+"pos": "MID",
+"league": "PL",
+"fc26": 82,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Youri Tielemans",
+"pos": "MID",
+"league": "PL",
+"fc26": 82,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Aleksandar Mitrović",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 81,
+"rating": 77,
+"potential": 78,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Anthony Elanga",
+"pos": "ATT",
+"league": "PL",
+"fc26": 81,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Jean-Philippe Mateta",
+"pos": "ATT",
+"league": "PL",
+"fc26": 81,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Joshua Zirkzee",
+"pos": "ATT",
+"league": "PL",
+"fc26": 81,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Nick Woltemade",
+"pos": "ATT",
+"league": "PL",
+"fc26": 81,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Riyad Mahrez",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 81,
+"rating": 80,
+"potential": 79,
+"age": "old",
+"old": true,
+"pot": 79
+},
+{
+"name": "Álvaro Morata",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 81,
+"rating": 79,
+"potential": 80,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Antonee Robinson",
+"pos": "DEF",
+"league": "PL",
+"fc26": 81,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Lewis Dunk",
+"pos": "DEF",
+"league": "PL",
+"fc26": 81,
+"rating": 84,
+"potential": 85,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Aaron Ramsdale",
+"pos": "GK",
+"league": "PL",
+"fc26": 81,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Dean Henderson",
+"pos": "GK",
+"league": "PL",
+"fc26": 81,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Robert Sánchez",
+"pos": "GK",
+"league": "PL",
+"fc26": 81,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Adam Wharton",
+"pos": "MID",
+"league": "PL",
+"fc26": 81,
+"rating": 85,
+"potential": 87,
+"age": "young",
+"pot": 87
+},
+{
+"name": "Alex Iwobi",
+"pos": "MID",
+"league": "PL",
+"fc26": 81,
+"rating": 85,
+"potential": 85,
+"age": "prime",
+"pot": 87
+},
+{
+"name": "Carlos Baleba",
+"pos": "MID",
+"league": "PL",
+"fc26": 81,
+"rating": 84,
+"potential": 85,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Curtis Jones",
+"pos": "MID",
+"league": "PL",
+"fc26": 81,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Elliot Anderson",
+"pos": "MID",
+"league": "PL",
+"fc26": 81,
+"rating": 84,
+"potential": 87,
+"age": "young",
+"pot": 87
+},
+{
+"name": "Manuel Ugarte",
+"pos": "MID",
+"league": "PL",
+"fc26": 81,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Morgan Rogers",
+"pos": "MID",
+"league": "PL",
+"fc26": 81,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Chris Wood",
+"pos": "ATT",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Cristiano Ronaldo",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 80,
+"rating": 83,
+"potential": 80,
+"age": "old",
+"pot": 86
+},
+{
+"name": "Crysencio Summerville",
+"pos": "ATT",
+"league": "PL",
+"fc26": 80,
+"rating": 82,
+"potential": 83,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Harvey Barnes",
+"pos": "ATT",
+"league": "PL",
+"fc26": 80,
+"rating": 81,
+"potential": 81,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Ismaïla Sarr",
+"pos": "ATT",
+"league": "PL",
+"fc26": 80,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Ivan Toney",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 80,
+"rating": 77,
+"potential": 78,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Jadon Sancho",
+"pos": "ATT",
+"league": "PL",
+"fc26": 80,
+"rating": 76,
+"potential": 76,
+"age": "prime",
+"pot": 77
+},
+{
+"name": "Raheem Sterling",
+"pos": "ATT",
+"league": "PL",
+"fc26": 80,
+"rating": 76,
+"potential": 73,
+"age": "old",
+"old": true,
+"pot": 75
+},
+{
+"name": "Sadio Mané",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 80,
+"rating": 82,
+"potential": 83,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Conor Bradley",
+"pos": "DEF",
+"league": "PL",
+"fc26": 80,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Daniel Muñoz",
+"pos": "DEF",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "James Tarkowski",
+"pos": "DEF",
+"league": "PL",
+"fc26": 80,
+"rating": 83,
+"potential": 84,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Jan Paul van Hecke",
+"pos": "DEF",
+"league": "PL",
+"fc26": 80,
+"rating": 82,
+"potential": 82,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Joachim Andersen",
+"pos": "DEF",
+"league": "PL",
+"fc26": 80,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Max Kilman",
+"pos": "DEF",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Ola Aina",
+"pos": "DEF",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Mark Flekken",
+"pos": "GK",
+"league": "PL",
+"fc26": 80,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Matz Sels",
+"pos": "GK",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Andreas Pereira",
+"pos": "MID",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Dwight McNeil",
+"pos": "MID",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Emile Smith Rowe",
+"pos": "MID",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "John McGinn",
+"pos": "MID",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Jordan Henderson",
+"pos": "MID",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Mario Lemina",
+"pos": "MID",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Pierre-Emile Højbjerg",
+"pos": "MID",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Tomáš Souček",
+"pos": "MID",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Wilfred Ndidi",
+"pos": "MID",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Yves Bissouma",
+"pos": "MID",
+"league": "PL",
+"fc26": 80,
+"rating": 80,
+"potential": 80,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Adama Traoré",
+"pos": "ATT",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 80,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Jordan Ayew",
+"pos": "ATT",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 80,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Raúl Jiménez",
+"pos": "ATT",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 80,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Rodrigo Muniz",
+"pos": "ATT",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 80,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Harry Maguire",
+"pos": "DEF",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Joe Gomez",
+"pos": "DEF",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Lewis Hall",
+"pos": "DEF",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Neco Williams",
+"pos": "DEF",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Timothy Castagne",
+"pos": "DEF",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 80,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Filip Jörgensen",
+"pos": "GK",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Mads Hermansen",
+"pos": "GK",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 80,
+"age": "prime",
+"pot": 83
+},
+{
+"name": "Đorđe Petrović",
+"pos": "GK",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Jacob Ramsey",
+"pos": "MID",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 80,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Wataru Endo",
+"pos": "MID",
+"league": "PL",
+"fc26": 79,
+"rating": 83,
+"potential": 83,
+"age": "prime",
+"pot": 84
+},
+{
+"name": "Danny Welbeck",
+"pos": "ATT",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 79,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Dominic Calvert-Lewin",
+"pos": "ATT",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 79,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Jamie Vardy",
+"pos": "ATT",
+"league": "PL",
+"fc26": 78,
+"rating": 81,
+"potential": 78,
+"age": "old",
+"pot": 82
+},
+{
+"name": "Liam Delap",
+"pos": "ATT",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 78,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Roberto Firmino",
+"pos": "ATT",
+"league": "FOR",
+"fc26": 78,
+"rating": 78,
+"potential": 78,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Axel Disasi",
+"pos": "DEF",
+"league": "PL",
+"fc26": 78,
+"rating": 74,
+"potential": 75,
+"age": "prime",
+"pot": 76
+},
+{
+"name": "Calvin Bassey",
+"pos": "DEF",
+"league": "PL",
+"fc26": 78,
+"rating": 81,
+"potential": 81,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Maxence Lacroix",
+"pos": "DEF",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 79,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Nathan Collins",
+"pos": "DEF",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 78,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Rico Lewis",
+"pos": "DEF",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 79,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Tosin Adarabioyo",
+"pos": "DEF",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 79,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Trevoh Chalobah",
+"pos": "DEF",
+"league": "PL",
+"fc26": 78,
+"rating": 81,
+"potential": 81,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Tyrone Mings",
+"pos": "DEF",
+"league": "PL",
+"fc26": 78,
+"rating": 80,
+"potential": 81,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Martin Dúbravka",
+"pos": "GK",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 79,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Sam Johnstone",
+"pos": "GK",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 79,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Łukasz Fabiański",
+"pos": "GK",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 78,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Christian Nørgaard",
+"pos": "MID",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 78,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "James McAtee",
+"pos": "MID",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 78,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Ross Barkley",
+"pos": "MID",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 78,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Sean Longstaff",
+"pos": "MID",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 78,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Eddie Nketiah",
+"pos": "ATT",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Evan Ferguson",
+"pos": "ATT",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 78,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Kevin Schade",
+"pos": "ATT",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Taiwo Awoniyi",
+"pos": "ATT",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 78,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Ben Davies",
+"pos": "DEF",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 78,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Ethan Pinnock",
+"pos": "DEF",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Kurt Zouma",
+"pos": "DEF",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 78
+},
+{
+"name": "Victor Lindelöf",
+"pos": "DEF",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Wout Faes",
+"pos": "DEF",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Bilal El Khannouss",
+"pos": "MID",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 78
+},
+{
+"name": "Che Adams",
+"pos": "ATT",
+"league": "PL",
+"fc26": 76,
+"rating": 76,
+"potential": 76,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Ben Mee",
+"pos": "DEF",
+"league": "PL",
+"fc26": 76,
+"rating": 76,
+"potential": 77,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Taylor Harwood-Bellis",
+"pos": "DEF",
+"league": "PL",
+"fc26": 76,
+"rating": 76,
+"potential": 76,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Idrissa Gueye",
+"pos": "MID",
+"league": "PL",
+"fc26": 76,
+"rating": 76,
+"potential": 76,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Lewis Cook",
+"pos": "MID",
+"league": "PL",
+"fc26": 76,
+"rating": 76,
+"potential": 76,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Mathias Jensen",
+"pos": "MID",
+"league": "PL",
+"fc26": 76,
+"rating": 76,
+"potential": 77,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Ryan Christie",
+"pos": "MID",
+"league": "PL",
+"fc26": 76,
+"rating": 76,
+"potential": 76,
+"age": "prime",
+"pot": 78
+},
+{
+"name": "Beto",
+"pos": "ATT",
+"league": "PL",
+"fc26": 75,
+"rating": 71,
+"potential": 72,
+"age": "prime",
+"pot": 73
+},
+{
+"name": "Conor Coady",
+"pos": "DEF",
+"league": "PL",
+"fc26": 75,
+"rating": 75,
+"potential": 75,
+"age": "prime",
+"pot": 78
+},
+{
+"name": "Issa Diop",
+"pos": "DEF",
+"league": "PL",
+"fc26": 75,
+"rating": 75,
+"potential": 76,
+"age": "prime",
+"pot": 77
+},
+{
+"name": "Sepp van den Berg",
+"pos": "DEF",
+"league": "PL",
+"fc26": 75,
+"rating": 75,
+"potential": 76,
+"age": "prime",
+"pot": 76
+},
+{
+"name": "Tyrell Malacia",
+"pos": "DEF",
+"league": "PL",
+"fc26": 75,
+"rating": 75,
+"potential": 76,
+"age": "prime",
+"pot": 76
+},
+{
+"name": "Tom Cairney",
+"pos": "MID",
+"league": "PL",
+"fc26": 75,
+"rating": 75,
+"potential": 75,
+"age": "prime",
+"pot": 78
+},
+{
+"name": "Armando Broja",
+"pos": "ATT",
+"league": "PL",
+"fc26": 74,
+"rating": 74,
+"potential": 74,
+"age": "prime",
+"pot": 75
+},
+{
+"name": "Michail Antonio",
+"pos": "ATT",
+"league": "PL",
+"fc26": 74,
+"rating": 76,
+"potential": 77,
+"age": "prime",
+"pot": 77
+},
+{
+"name": "Wilson Isidor",
+"pos": "ATT",
+"league": "PL",
+"fc26": 74,
+"rating": 77,
+"potential": 78,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Aaron Cresswell",
+"pos": "DEF",
+"league": "PL",
+"fc26": 74,
+"rating": 74,
+"potential": 75,
+"age": "prime",
+"pot": 76
+},
+{
+"name": "Mads Roerslev",
+"pos": "DEF",
+"league": "PL",
+"fc26": 74,
+"rating": 74,
+"potential": 74,
+"age": "prime",
+"pot": 75
+},
+{
+"name": "Sergio Reguilón",
+"pos": "DEF",
+"league": "PL",
+"fc26": 74,
+"rating": 74,
+"potential": 74,
+"age": "prime",
+"pot": 75
+},
+{
+"name": "Hannibal Mejbri",
+"pos": "MID",
+"league": "PL",
+"fc26": 74,
+"rating": 74,
+"potential": 74,
+"age": "prime",
+"pot": 76
+},
+{
+"name": "Harrison Reed",
+"pos": "MID",
+"league": "PL",
+"fc26": 74,
+"rating": 74,
+"potential": 75,
+"age": "prime",
+"pot": 75
+},
+{
+"name": "Will Hughes",
+"pos": "MID",
+"league": "PL",
+"fc26": 74,
+"rating": 74,
+"potential": 74,
+"age": "prime",
+"pot": 75
+},
+{
+"name": "Jeffrey Schlupp",
+"pos": "MID",
+"league": "PL",
+"fc26": 73,
+"rating": 73,
+"potential": 73,
+"age": "prime",
+"pot": 75
+},
+{
+"name": "Brandon Williams",
+"pos": "DEF",
+"league": "PL",
+"fc26": 71,
+"rating": 75,
+"potential": 75,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Calum Chambers",
+"pos": "DEF",
+"league": "PL",
+"fc26": 72,
+"rating": 72,
+"potential": 72,
+"age": "prime",
+"pot": 73
+},
+{
+"name": "Jonny Evans",
+"pos": "DEF",
+"league": "PL",
+"fc26": 74,
+"rating": 74,
+"potential": 74,
+"age": "prime",
+"pot": 76
+},
+{
+"name": "Scott McKenna",
+"pos": "DEF",
+"league": "PL",
+"fc26": 73,
+"rating": 73,
+"potential": 74,
+"age": "prime",
+"pot": 74
+},
+{
+"name": "Ashley Young",
+"pos": "DEF",
+"league": "PL",
+"fc26": 74,
+"rating": 74,
+"potential": 74,
+"age": "prime",
+"pot": 75
+},
+{
+"name": "Kyle Walker-Peters",
+"pos": "DEF",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Tino Livramento",
+"pos": "DEF",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 79,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Ryan Fraser",
+"pos": "ATT",
+"league": "PL",
+"fc26": 73,
+"rating": 73,
+"potential": 74,
+"age": "prime",
+"pot": 76
+},
+{
+"name": "Solly March",
+"pos": "ATT",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 79
+},
+{
+"name": "Joe Willock",
+"pos": "MID",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 78,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "James Ward-Prowse",
+"pos": "MID",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Lewis O'Brien",
+"pos": "MID",
+"league": "PL",
+"fc26": 72,
+"rating": 72,
+"potential": 72,
+"age": "prime",
+"pot": 75
+},
+{
+"name": "Adam Lallana",
+"pos": "MID",
+"league": "PL",
+"fc26": 73,
+"rating": 73,
+"potential": 74,
+"age": "prime",
+"pot": 77
+},
+{
+"name": "Stuart Armstrong",
+"pos": "MID",
+"league": "PL",
+"fc26": 74,
+"rating": 74,
+"potential": 74,
+"age": "prime",
+"pot": 76
+},
+{
+"name": "Ryan Yates",
+"pos": "MID",
+"league": "PL",
+"fc26": 75,
+"rating": 75,
+"potential": 75,
+"age": "prime",
+"pot": 78
+},
+{
+"name": "Jefferson Lerma",
+"pos": "MID",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 79,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Pablo Fornals",
+"pos": "MID",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Said Benrahma",
+"pos": "ATT",
+"league": "PL",
+"fc26": 77,
+"rating": 77,
+"potential": 77,
+"age": "prime",
+"pot": 78
+},
+{
+"name": "Demarai Gray",
+"pos": "ATT",
+"league": "PL",
+"fc26": 76,
+"rating": 76,
+"potential": 77,
+"age": "prime",
+"pot": 77
+},
+{
+"name": "Emil Krafth",
+"pos": "DEF",
+"league": "PL",
+"fc26": 72,
+"rating": 72,
+"potential": 73,
+"age": "prime",
+"pot": 76
+},
+{
+"name": "Tariq Lamptey",
+"pos": "DEF",
+"league": "PL",
+"fc26": 76,
+"rating": 76,
+"potential": 76,
+"age": "prime",
+"pot": 77
+},
+{
+"name": "Bobby Reid",
+"pos": "ATT",
+"league": "PL",
+"fc26": 73,
+"rating": 73,
+"potential": 74,
+"age": "prime",
+"pot": 74
+},
+{
+"name": "Yankuba Minteh",
+"pos": "ATT",
+"league": "PL",
+"fc26": 78,
+"rating": 78,
+"potential": 79,
+"age": "prime",
+"pot": 80
+},
+{
+"name": "Antoine Semenyo",
+"pos": "ATT",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 80,
+"age": "prime",
+"pot": 82
+},
+{
+"name": "Justin Kluivert",
+"pos": "ATT",
+"league": "PL",
+"fc26": 79,
+"rating": 79,
+"potential": 79,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Lloyd Kelly",
+"pos": "DEF",
+"league": "PL",
+"fc26": 75,
+"rating": 75,
+"potential": 76,
+"age": "prime",
+"pot": 78
+},
+{
+"name": "Endrick",
+"pos": "ATT",
+"league": "EU",
+"fc26": 79,
+"rating": 82,
+"wonderkid": true,
+"potential": 91,
+"age": "young",
+"pot": 87
+},
+{
+"name": "Alejandro Garnacho",
+"pos": "ATT",
+"league": "EU",
+"fc26": 82,
+"rating": 83,
+"wonderkid": true,
+"potential": 89,
+"age": "young",
+"pot": 89
+},
+{
+"name": "Leny Yoro",
+"pos": "DEF",
+"league": "EU",
+"fc26": 80,
+"rating": 83,
+"wonderkid": true,
+"potential": 91,
+"age": "young",
+"pot": 90
+},
+{
+"name": "Estêvão",
+"pos": "ATT",
+"league": "EU",
+"fc26": 81,
+"rating": 82,
+"wonderkid": true,
+"potential": 88,
+"age": "young",
+"pot": 89
+},
+{
+"name": "Dean Huijsen",
+"pos": "DEF",
+"league": "EU",
+"fc26": 81,
+"rating": 83,
+"wonderkid": true,
+"potential": 91,
+"age": "young",
+"pot": 89
+},
+{
+"name": "Franco Mastantuono",
+"pos": "MID",
+"league": "EU",
+"fc26": 79,
+"rating": 81,
+"wonderkid": true,
+"potential": 86,
+"age": "young",
+"pot": 89
+},
+{
+"name": "Nico Paz",
+"pos": "MID",
+"league": "EU",
+"fc26": 82,
+"rating": 84,
+"wonderkid": true,
+"potential": 92,
+"age": "young",
+"pot": 95
+},
+{
+"name": "Geovany Quenda",
+"pos": "ATT",
+"league": "EU",
+"fc26": 78,
+"rating": 78,
+"wonderkid": true,
+"potential": 86,
+"age": "young",
+"pot": 87
+},
+{
+"name": "Myles Lewis-Skelly",
+"pos": "DEF",
+"league": "EU",
+"fc26": 79,
+"rating": 80,
+"wonderkid": true,
+"potential": 87,
+"age": "young",
+"pot": 90
+},
+{
+"name": "Lucas Chevalier",
+"pos": "GK",
+"league": "EU",
+"fc26": 84,
+"rating": 85,
+"potential": 87,
+"age": "young",
+"pot": 85
+},
+{
+"name": "Giorgi Mamardashvili",
+"pos": "GK",
+"league": "EU",
+"fc26": 85,
+"rating": 82,
+"potential": 86,
+"age": "young",
+"pot": 83
+},
+{
+"name": "Bart Verbruggen",
+"pos": "GK",
+"league": "EU",
+"fc26": 83,
+"rating": 86,
+"potential": 88,
+"age": "young",
+"pot": 88
+},
+{
+"name": "Unai Simón",
+"pos": "GK",
+"league": "EU",
+"fc26": 85,
+"rating": 87,
+"potential": 88,
+"age": "prime",
+"pot": 88
+},
+{
+"name": "Jorrel Hato",
+"pos": "DEF",
+"league": "EU",
+"fc26": 81,
+"rating": 83,
+"wonderkid": true,
+"potential": 88,
+"age": "young",
+"pot": 88
+},
+{
+"name": "Castello Lukeba",
+"pos": "DEF",
+"league": "EU",
+"fc26": 83,
+"rating": 82,
+"potential": 84,
+"age": "young",
+"pot": 84
+},
+{
+"name": "Piero Hincapié",
+"pos": "DEF",
+"league": "EU",
+"fc26": 84,
+"rating": 87,
+"potential": 91,
+"age": "young",
+"pot": 88
+},
+{
+"name": "Murillo",
+"pos": "DEF",
+"league": "EU",
+"fc26": 84,
+"rating": 84,
+"potential": 87,
+"age": "young",
+"pot": 84
+},
+{
+"name": "Benjamin Pavard",
+"pos": "DEF",
+"league": "EU",
+"fc26": 84,
+"rating": 83,
+"potential": 83,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Nico Schlotterbeck",
+"pos": "DEF",
+"league": "EU",
+"fc26": 86,
+"rating": 86,
+"potential": 86,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Riccardo Calafiori",
+"pos": "DEF",
+"league": "EU",
+"fc26": 84,
+"rating": 83,
+"potential": 87,
+"age": "young",
+"pot": 83
+},
+{
+"name": "Angelo Stiller",
+"pos": "MID",
+"league": "EU",
+"fc26": 84,
+"rating": 81,
+"potential": 82,
+"age": "prime",
+"pot": 81
+},
+{
+"name": "Aleksandar Pavlović",
+"pos": "MID",
+"league": "EU",
+"fc26": 83,
+"rating": 86,
+"wonderkid": true,
+"potential": 92,
+"age": "young",
+"pot": 91
+},
+{
+"name": "Eduardo Camavinga",
+"pos": "MID",
+"league": "EU",
+"fc26": 86,
+"rating": 85,
+"potential": 88,
+"age": "young",
+"pot": 84
+},
+{
+"name": "Exequiel Palacios",
+"pos": "MID",
+"league": "EU",
+"fc26": 85,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Benjamin Šeško",
+"pos": "ATT",
+"league": "EU",
+"fc26": 84,
+"rating": 85,
+"wonderkid": true,
+"potential": 93,
+"age": "young",
+"pot": 94
+},
+{
+"name": "Hugo Ekitiké",
+"pos": "ATT",
+"league": "EU",
+"fc26": 84,
+"rating": 83,
+"potential": 85,
+"age": "young",
+"pot": 83
+},
+{
+"name": "Michael Olise",
+"pos": "ATT",
+"league": "EU",
+"fc26": 87,
+"rating": 89,
+"potential": 89,
+"age": "prime",
+"pot": 89
+},
+{
+"name": "Loïs Openda",
+"pos": "ATT",
+"league": "EU",
+"fc26": 84,
+"rating": 85,
+"potential": 88,
+"age": "young",
+"pot": 85
+},
+{
+"name": "Jonathan David",
+"pos": "ATT",
+"league": "EU",
+"fc26": 85,
+"rating": 85,
+"potential": 86,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Christopher Nkunku",
+"pos": "ATT",
+"league": "EU",
+"fc26": 85,
+"rating": 85,
+"potential": 85,
+"age": "prime",
+"pot": 85
+},
+{
+"name": "Omar Marmoush",
+"pos": "ATT",
+"league": "EU",
+"fc26": 85,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"pot": 86
+},
+{
+"name": "Lionel Messi",
+"pos": "ATT",
+"league": "EU",
+"fc26": 86,
+"rating": 86,
+"old": true,
+"pot": 84
+},
+{
+"name": "Luka Modrić",
+"pos": "MID",
+"league": "EU",
+"fc26": 84,
+"rating": 84,
+"old": true,
+"pot": 83
+},
+{
+"name": "Neymar Jr",
+"pos": "ATT",
+"league": "EU",
+"fc26": 83,
+"rating": 82,
+"old": true,
+"pot": 79
+},
+{
+"name": "Ángel Di María",
+"pos": "ATT",
+"league": "EU",
+"fc26": 82,
+"rating": 81,
+"old": true,
+"pot": 78
+},
+{
+"name": "Thomas Müller",
+"pos": "ATT",
+"league": "EU",
+"fc26": 81,
+"rating": 80,
+"old": true,
+"pot": 78
+},
+{
+"name": "Antoine Griezmann",
+"pos": "ATT",
+"league": "EU",
+"fc26": 85,
+"rating": 84,
+"old": true,
+"pot": 81
+},
+{
+"name": "Sergio Ramos",
+"pos": "DEF",
+"league": "EU",
+"fc26": 81,
+"rating": 81,
+"old": true,
+"pot": 79
+},
+{
+"name": "Jordi Alba",
+"pos": "DEF",
+"league": "EU",
+"fc26": 80,
+"rating": 80,
+"old": true,
+"pot": 78
+},
+{
+"name": "Luis Suárez",
+"pos": "ATT",
+"league": "EU",
+"fc26": 81,
+"rating": 79,
+"old": true,
+"pot": 78
+},
+{
+"name": "Marco Reus",
+"pos": "MID",
+"league": "EU",
+"fc26": 80,
+"rating": 80,
+"old": true,
+"pot": 79
+},
+{
+"name": "Olivier Giroud",
+"pos": "ATT",
+"league": "EU",
+"fc26": 80,
+"rating": 80,
+"old": true,
+"pot": 77
+}
 ]

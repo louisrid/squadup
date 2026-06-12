@@ -1,6 +1,6 @@
 // host disconnects mid-auction -> host migrates, game continues to completion
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3125';
+const URL = 'http://localhost:3136';
 const connected = (s) => s.connected ? Promise.resolve() : new Promise((r) => s.once('connect', r));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fail = [];
@@ -17,7 +17,9 @@ const assert = (c, m) => { if (!c) { fail.push(m); console.log('FAIL:', m); } };
       const f = 'FREE';
       const avail = mine.squad.filter((p) => !p.injured);
       const gk = avail.find((x) => x.pos === 'GK');
-      const chosen = [gk, ...avail.filter((x) => x.pos !== 'GK').slice(0, 4)].filter(Boolean);
+      const chosen = gk ? [gk] : [];
+      for (const pos of ['DEF','MID','ATT']) { const p = avail.find((x) => x.pos === pos && !chosen.includes(x)); if (p) chosen.push(p); }
+      for (const p of avail) { if (chosen.length >= 5) break; if (p.pos !== 'GK' && !chosen.includes(p)) chosen.push(p); }
       s.emit('submitStarters', { formation: f, starters: chosen.map((x) => x.name) }, () => {});
     });
     s.on('winter', (w) => setTimeout(() => {
@@ -26,7 +28,9 @@ const assert = (c, m) => { if (!c) { fail.push(m); console.log('FAIL:', m); } };
       const f = 'FREE';
       const avail = mine.players.filter((p) => !p.injured);
       const gk = avail.find((x) => x.pos === 'GK');
-      const chosen = [gk, ...avail.filter((x) => x.pos !== 'GK').slice(0, 4)].filter(Boolean);
+      const chosen = gk ? [gk] : [];
+      for (const pos of ['DEF','MID','ATT']) { const p = avail.find((x) => x.pos === pos && !chosen.includes(x)); if (p) chosen.push(p); }
+      for (const p of avail) { if (chosen.length >= 5) break; if (p.pos !== 'GK' && !chosen.includes(p)) chosen.push(p); }
       s.emit('submitStarters', { formation: f, starters: chosen.map((x) => x.name) }, () => {});
     }, 30));
     s.on('finished', (f) => { bot.seen.finished = f; });

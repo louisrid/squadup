@@ -3,7 +3,7 @@
 
 const PARAMS = {
   BASE_LAMBDA: 1.35,
-  K: 0.085,
+  K: 0.075,
   EVENT_RATE: 1 / 12,
   EVENT_SIZE: 5,
   FORM_MOD: 2.0,
@@ -51,13 +51,16 @@ function rollSeasonEvent() {
 // ---------- team strength ----------
 // starters: array of player objs {name,pos,rating,seasonMod}. formation: 'DEF'|'BAL'|'ATT'
 function teamStrength(starters, formation) {
-  const eff = (p) => p.rating + (p.seasonMod || 0);
+  const eff = (p) => {
+    const r = p.rating + (p.seasonMod || 0);
+    return r <= 88 ? r : 88 + (r - 88) * 0.45; // diminishing returns: a 96 plays like a 91.6
+  };
   const atkPlayers = starters.filter((p) => p.pos === 'ATT' || p.pos === 'MID');
   const defPlayers = starters.filter((p) => p.pos === 'GK' || p.pos === 'DEF');
   const allOut = starters.filter((p) => p.pos !== 'GK');
   const meanOf = (ps) => ps.reduce((s, p) => s + eff(p), 0) / ps.length;
   // free XIs can have no MID/ATT (park the bus) or no DEF: fall back to outfield mean with a penalty
-  let attack = atkPlayers.length ? meanOf(atkPlayers) : meanOf(allOut) - 3;
+  let attack = atkPlayers.length ? meanOf(atkPlayers) : (allOut.length ? meanOf(allOut) - 3 : meanOf(starters) - 6);
   let defence = defPlayers.length ? meanOf(defPlayers) : meanOf(starters) - 3;
   // balance matters: missing a whole unit costs you
   const nDef = starters.filter((p) => p.pos === 'DEF').length;
@@ -92,7 +95,8 @@ function playMatch(tA, tB) {
 // ---------- goalscorer attribution ----------
 // weights: ATT 6, MID 3, DEF 1 (GK never scores). effective rating tilts within position.
 function attributeGoals(goals, starters) {
-  const outfield = starters.filter((p) => p.pos !== 'GK');
+  let outfield = starters.filter((p) => p.pos !== 'GK');
+  if (!outfield.length) outfield = starters; // keeper-only freak lineup: he scores them all
   const w = (p) => {
     const base = p.pos === 'ATT' ? 6 : p.pos === 'MID' ? 3 : 1;
     return base * (1 + ((p.rating + (p.seasonMod || 0)) - 75) / 50);
@@ -162,8 +166,28 @@ function buildCommentary(result, startersA, startersB) {
   const events = [];
   const sA = attributeAssists(attributeGoals(result.goalsA, startersA), startersA);
   const sB = attributeAssists(attributeGoals(result.goalsB, startersB), startersB);
-  for (const s of sA) events.push({ minute: s.minute, side: 'A', scorer: s.name, assist: s.assist, text: fill(pick(TPL.goal), s.name, s.minute) });
-  for (const s of sB) events.push({ minute: s.minute, side: 'B', scorer: s.name, assist: s.assist, text: fill(pick(TPL.goal), s.name, s.minute) });
+  // own goals: ~5% of goals are turned in by the OTHER side's defence
+  const ogify = (list, oppStarters) => {
+    for (const s of list) {
+      if (Math.random() < 0.05) {
+        const culprit = pick(oppStarters.filter((p) => p.pos === 'DEF')) || pick(oppStarters.filter((p) => p.pos !== 'GK')) || oppStarters[0];
+        s.og = true; s.assist = null; s.ogBy = culprit.name;
+      }
+    }
+  };
+  ogify(sA, startersB); ogify(sB, startersA);
+  for (const s of sA) events.push({ minute: s.minute, side: 'A', scorer: s.og ? null : s.name, assist: s.assist, text: s.og ? `🥅 Own goal! ${s.ogBy} turns it into his own net (${s.minute}')` : fill(pick(TPL.goal), s.name, s.minute) });
+  for (const s of sB) events.push({ minute: s.minute, side: 'B', scorer: s.og ? null : s.name, assist: s.assist, text: s.og ? `🥅 Own goal! ${s.ogBy} turns it into his own net (${s.minute}')` : fill(pick(TPL.goal), s.name, s.minute) });
+  // red cards: ~4% per side per match (outfielders only)
+  const reds = [];
+  for (const [side, st] of [['A', startersA], ['B', startersB]]) {
+    if (Math.random() < 0.04) {
+      const p = pick(st.filter((x) => x.pos !== 'GK')); if (!p) continue;
+      const minute = 20 + Math.floor(Math.random() * 70);
+      events.push({ minute, side, text: `🟥 ${p.name} is SENT OFF! (${minute}') — suspended next game` });
+      reds.push({ side, name: p.name });
+    }
+  }
   // one flavour/miss line for spice if low-scoring
   if (events.length <= 1) {
     const side = Math.random() < 0.5 ? startersA : startersB;
@@ -171,7 +195,36 @@ function buildCommentary(result, startersA, startersB) {
     events.push({ minute: 1 + Math.floor(Math.random() * 90), side: 'X', text: fill(pick(TPL.miss), p.name, 0) });
   }
   events.sort((a, b) => a.minute - b.minute);
-  return { ...result, scorersA: sA, scorersB: sB, events };
+  return { ...result, scorersA: sA, scorersB: sB, events, reds };
+}
+
+// winter development: everyone drifts; wonderkids explode
+function winterGrowth(p, form) {
+  const pot = p.pot != null ? p.pot : p.rating;
+  const gap = pot - p.rating;
+  let d;
+  if (p.wonderkid) {
+    // wonderkids: usually +1..2, sometimes the leap (+5..6) — never decline
+    d = Math.random() < 0.4 ? 5 + Math.floor(Math.random() * 2) : 1 + Math.floor(Math.random() * 2);
+    if (gap <= 0) d = 0;            // already at potential
+    else d = Math.min(d, gap);      // potential is the hard ceiling
+  } else if (p.old || gap <= -1) {
+    // old: usually fade 1-2, but proven class can still tick up 1-2
+    const r = Math.random();
+    d = r < 0.5 ? -(1 + Math.floor(Math.random() * 2)) : r < 0.8 ? (1 + Math.floor(Math.random() * 2)) : 0;
+  } else if (gap >= 2) {
+    // young & rising: up 2-3 usually, down 1-2 sometimes
+    const r = Math.random();
+    d = r < 0.6 ? (2 + Math.floor(Math.random() * 2)) : r < 0.85 ? -(1 + Math.floor(Math.random() * 2)) : 0;
+    if (d > 0) d = Math.min(d, gap + 1);
+  } else {
+    // prime: mostly stable
+    const r = Math.random();
+    d = r < 0.4 ? 0 : r < 0.75 ? pick([1, 1, 2]) : pick([-1, -1, -2]);
+  }
+  // a great half protects you: in-form players never decline
+  if (form != null && form >= 7.0 && d < 0) d = form >= 7.8 ? 1 : 0;
+  return Math.max(60, Math.min(96, p.rating + d)) - p.rating;
 }
 
 // ---------- fixtures: double round robin, 12 teams, circle method ----------
@@ -208,7 +261,7 @@ function aiStrengths(nHumans, avgHumanStrength, count) {
 
 module.exports = {
   PARAMS, gauss, poisson, clamp, pick, shuffle,
-  rollSeasonEvent, teamStrength, playMatch,
+  rollSeasonEvent, teamStrength, playMatch, winterGrowth,
   attributeGoals, attributeAssists, buildCommentary,
   buildFixtures, aiStrengths,
 };

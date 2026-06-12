@@ -6,7 +6,7 @@ const ALL_PLAYERS = require('./data/players.json');
 
 const FILLER = ALL_PLAYERS.filter((p) => p.fc26 < 84);
 
-// Legends: respin-only pool. FC26 95, white/gold cards. Engine ratings are defaults (editable).
+// Legends: winter-market exclusives. FC26 95, white/gold cards. Max 2 per window.
 const LEGENDS = [
   { name: 'Lev Yashin', pos: 'GK', fc26: 95, rating: 93, legend: true },
   { name: 'Gianluigi Buffon', pos: 'GK', fc26: 95, rating: 92, legend: true },
@@ -73,8 +73,8 @@ class Game {
   hintFor(p) {
     if (!this.showHints) return undefined;
     if (!this.hints[p.name]) {
-      const lo = p.fc26 - (1 + Math.floor(Math.random() * 2));
-      const hi = p.fc26 + (1 + Math.floor(Math.random() * 2));
+      const lo = p.rating - (2 + Math.floor(Math.random() * 2));
+      const hi = p.rating + (2 + Math.floor(Math.random() * 2));
       this.hints[p.name] = lo + '–' + hi;
     }
     return this.hints[p.name];
@@ -188,8 +188,7 @@ class Game {
   }
 
   purchaseLegal(m, pos) {
-    const after = [...m.squad.map((p) => p.pos), pos];
-    return Game.formationFeasible(after, 6 - after.length);
+    return !(pos === 'GK' && m.squad.some((p) => p.pos === 'GK')); // only the keeper cap remains
   }
 
   activeManagers() {
@@ -205,14 +204,14 @@ class Game {
         m.budget -= a.highBid;
         m.squad.push({ ...a.current, seasonMod: 0 });
         m.signings.push({ player: a.current.name, price: a.highBid, window: a.window });
-        this.io.emit('lotSold', { player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name });
+        this.io.emit('lotSold', { player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name, rtg: a.current.rating, wonderkid: !!a.current.wonderkid });
       } else {
         a.unsold.push(a.current);
         this.io.emit('lotUnsold', { player: a.current.name });
       }
       this.broadcastBudgets();
     }
-    const buyers = this.activeManagers().filter((m) => m.squad.length < 6);
+    const buyers = this.activeManagers().filter((m) => m.budget >= 1);
     a.index++;
     while (a.index < a.queue.length && !this.activeManagers().some((m) => this.canBuyPlayer(m, a.queue[a.index]))) {
       const sk = a.queue[a.index];
@@ -231,9 +230,9 @@ class Game {
   }
 
   canBuyPlayer(m, p) {
-    if (m.sacked || m.squad.length >= 6 || m.budget < 1) return false;
+    if (m.sacked || m.budget < 1) return false;
     if (p.pos === 'GK' && m.squad.some((x) => x.pos === 'GK')) return false;
-    return Game.formationFeasible([...m.squad.map((x) => x.pos), p.pos], 6 - m.squad.length - 1);
+    return true;
   }
 
   hostNextLot(managerId) {
@@ -253,7 +252,7 @@ class Game {
     a.outs = new Set();
     this.io.emit('lotReveal', {
       index: a.index, total: a.queue.length,
-      player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current) }, // exact ratings NEVER sent
+      player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
       revealMs: this.sp(TIMINGS.LOT_REVEAL_MS),
     });
     setTimeout(() => {
@@ -261,7 +260,7 @@ class Game {
       a.deadline = Date.now() + this.sp(TIMINGS.AUCTION_START_MS);
       this.io.emit('lot', {
         index: a.index, total: a.queue.length,
-        player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current) },
+        player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
         deadline: a.deadline,
       });
       this.armLotTimer();
@@ -333,32 +332,37 @@ class Game {
   }
 
   endAuction() {
-    this.autoFill(this.auction.unsold);
+    if (this.auction.window === 'winter') {
+      this.phase = 'setup';
+      this.io.emit('phase', { phase: 'setup' });
+      this.requestStarters('second');
+      return;
+    }
+    this.ensureKeepers(this.auction.unsold);
     this.phase = 'setup';
     this.io.emit('phase', { phase: 'setup' });
     this.requestStarters('first');
   }
 
-  autoFill(unsold) {
+  ensureKeepers(unsold) {
+    // every manager must leave the window able to field a five: 1 GK + at least 1 DEF/MID/ATT + 5 total
     for (const m of this.activeManagers()) {
-      while (m.squad.length < 6) {
-        const have = m.squad.map((p) => p.pos);
-        const missing = ['GK', 'DEF', 'MID', 'ATT'].filter((x) => !have.includes(x));
-        const wantPos = missing.length ? missing[0] : null;
-        const slotsAfter = 6 - (m.squad.length + 1);
-        const hasGK = have.includes('GK');
-        const posOk = (pos) => (!wantPos || pos === wantPos) && !(pos === 'GK' && hasGK) && Game.formationFeasible([...have, pos], slotsAfter);
-        let cand = unsold.filter((p) => posOk(p.pos) && !this.owned(p.name));
-        if (!cand.length) cand = FILLER.filter((p) => posOk(p.pos) && !this.owned(p.name));
-        if (!cand.length) cand = FILLER.filter((p) => !(p.pos === 'GK' && hasGK) && Game.formationFeasible([...have, p.pos], slotsAfter) && !this.owned(p.name));
-        if (!cand.length) cand = FILLER.filter((p) => !(p.pos === 'GK' && hasGK) && !this.owned(p.name));
-        const pickP = E.pick(cand);
-        m.squad.push({ ...pickP, seasonMod: 0 });
-        m.signings.push({ player: pickP.name, price: 0, window: 'autofill' });
-        this.io.emit('autoFill', { manager: m.name, player: pickP.name, pos: pickP.pos });
-      }
+      const grant = (pos) => {
+        let p = (unsold || []).find((x) => (!pos || x.pos === pos) && x.pos !== 'GK' === (pos !== 'GK') && !this.owned(x.name));
+        if (!p) p = FILLER.find((x) => (!pos || x.pos === pos) && !this.owned(x.name));
+        if (!p && pos === 'GK') p = { name: 'Youth Keeper', pos: 'GK', fc26: 72, rating: 72 };
+        if (!p) p = FILLER.find((x) => x.pos !== 'GK' && !this.owned(x.name)) || { name: 'Youth Prospect', pos: 'MID', fc26: 70, rating: 70 };
+        m.squad.push({ ...p, seasonMod: 0 });
+        m.signings.push({ player: p.name, price: 0, window: 'freebie' });
+        this.io.emit('autoFill', { manager: m.name, player: p.name, pos: p.pos });
+      };
+      if (!m.squad.some((p) => p.pos === 'GK')) grant('GK');
+      for (const pos of ['DEF', 'MID', 'ATT']) if (!m.squad.some((p) => p.pos === pos)) grant(pos);
+      let guard = 0;
+      while (m.squad.length < 5 && guard++ < 10) grant(null);
     }
   }
+
   owned(name) {
     return this.managers.some((m) => m.squad.some((p) => p.name === name));
   }
@@ -381,8 +385,7 @@ class Game {
       deadlineMs: TIMINGS.PICK_STARTERS_MS,
       perManager: this.activeManagers().map((m) => ({
         id: m.id,
-        squad: m.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === m.injured, fc26: p.fc26 })),
-        validFormations: this.validFormations(m),
+        squad: m.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === m.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
       })),
     });
     clearTimeout(this.timers.starters);
@@ -401,6 +404,12 @@ class Game {
     if (new Set(names).size !== 5) return { error: 'Duplicate player picked' };
     if (players.some((p) => p.name === m.injured)) return { error: 'Injured player selected' };
     if (players.filter((p) => p.pos === 'GK').length !== 1) return { error: 'Exactly one keeper' };
+    const fit = m.squad.filter((p) => p.name !== m.injured);
+    for (const pos of ['DEF', 'MID', 'ATT']) {
+      if (fit.some((p) => p.pos === pos) && !players.some((p) => p.pos === pos)) {
+        return { error: 'You must field at least one ' + pos };
+      }
+    }
     m.formation = Game.deriveStyle(players);
     m.starters = players;
     this.pendingStarters.delete(managerId);
@@ -414,15 +423,26 @@ class Game {
     return { ok: true };
   }
 
+  static legalFive(avail, ranker) {
+    const gk = avail.find((p) => p.pos === 'GK');
+    if (!gk) return null;
+    const chosen = [gk];
+    for (const pos of ['DEF', 'MID', 'ATT']) {
+      const c = ranker(avail.filter((p) => p.pos === pos))[0];
+      if (c) chosen.push(c);
+    }
+    const flex = ranker(avail.filter((p) => p.pos !== 'GK' && !chosen.includes(p)));
+    while (chosen.length < 5 && flex.length) chosen.push(flex.shift());
+    return chosen.length === 5 ? chosen : null;
+  }
+
   suggestXI(managerId) {
     const m = this.managers.find((x) => x.id === managerId);
     if (!m || m.sacked) return { error: 'Not in game' };
     const avail = m.squad.filter((p) => p.name !== m.injured);
-    const gk = avail.filter((p) => p.pos === 'GK')[0];
-    if (!gk) return { error: 'No fit keeper' };
-    const outfield = avail.filter((p) => p.pos !== 'GK').sort((a, b) => a.fc26 - b.fc26); // WORST XI by design
-    if (outfield.length < 4) return { error: 'Not enough players' };
-    return { ok: true, formation: 'FREE', starters: [gk.name, ...outfield.slice(0, 4).map((p) => p.name)] };
+    const five = Game.legalFive(avail, (l) => [...l].sort((a, b) => a.rating - b.rating)); // worst legal XI by design
+    if (!five) return { error: 'Not enough players' };
+    return { ok: true, formation: 'FREE', starters: five.map((p) => p.name) };
   }
 
   autoPickIfOnlyGhosts() {
@@ -438,9 +458,7 @@ class Game {
     for (const id of [...(this.pendingStarters || [])]) {
       const m = this.managers.find((x) => x.id === id);
       const avail = m.squad.filter((p) => p.name !== m.injured);
-      const gk = avail.find((p) => p.pos === 'GK');
-      const outfield = E.shuffle(avail.filter((p) => p.pos !== 'GK'));
-      const starters = [gk, ...outfield.slice(0, 4)].filter(Boolean);
+      const starters = Game.legalFive(avail, (l) => E.shuffle([...l])) || avail.slice(0, 5);
       m.formation = Game.deriveStyle(starters);
       m.starters = starters;
       this.pendingStarters.delete(id);
@@ -462,7 +480,7 @@ class Game {
     const humanTeams = this.managers.map((m, i) => ({ type: 'human', mIdx: i, name: m.club }));
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
-    const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => ({ type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.25, defence: s.defence - 1.25 }));
+    const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => ({ type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 2.2, defence: s.defence - 2.2 }));
     this.season = {
       teams: [...humanTeams, ...ais],
       fixtures: E.buildFixtures(12),
@@ -476,32 +494,51 @@ class Game {
     this.revealHalf(0, 11, () => this.startWinter());
   }
 
-  teamStrengthNow(t) {
+  teamStrengthNow(t, md) {
     if (t.type === 'ai') return { attack: t.attack + (t.comeback || 0), defence: t.defence + (t.comeback || 0) };
     const m = this.managers[t.mIdx];
-    const s = E.teamStrength(m.starters, m.formation);
+    this.suspensions = this.suspensions || {};
+    const eligible = m.starters.filter((p) => this.suspensions[p.name] !== md);
+    const s = E.teamStrength(eligible.length ? eligible : m.starters, m.formation);
     return { attack: s.attack + (t.comeback || 0), defence: s.defence + (t.comeback || 0) };
+  }
+
+  suspendedFor(md, ...teams) {
+    this.suspensions = this.suspensions || {};
+    const out = [];
+    for (const t of teams) {
+      if (t.type !== 'ai') {
+        const m = this.managers[t.mIdx];
+        for (const p of m.starters) if (this.suspensions[p.name] === md) out.push(p.name);
+      }
+    }
+    return out;
   }
 
   simMatchday(md) {
     const out = [];
     for (const [a, b] of this.season.fixtures[md]) {
       const TA = this.season.teams[a], TB = this.season.teams[b];
-      const r = E.playMatch(this.teamStrengthNow(TA), this.teamStrengthNow(TB));
+      const suspended = this.suspendedFor(md, TA, TB);
+      const r = E.playMatch(this.teamStrengthNow(TA, md), this.teamStrengthNow(TB, md));
       let detail = null;
       const sA = TA.type === 'human' ? this.managers[TA.mIdx].starters : null;
       const sB = TB.type === 'human' ? this.managers[TB.mIdx].starters : null;
       if (sA || sB) {
         detail = E.buildCommentary(r, sA || [{ name: TA.name, pos: 'ATT', rating: 80 }], sB || [{ name: TB.name, pos: 'ATT', rating: 80 }]);
-        for (const s of detail.scorersA) if (sA) this.bumpStat(s.name, s.assist);
-        for (const s of detail.scorersB) if (sB) this.bumpStat(s.name, s.assist);
+        this.suspensions = this.suspensions || {};
+        for (const red of detail.reds || []) {
+          if ((red.side === 'A' && sA) || (red.side === 'B' && sB)) this.suspensions[red.name] = md + 1;
+        }
+        for (const s of detail.scorersA) if (sA && !s.og) this.bumpStat(s.name, s.assist);
+        for (const s of detail.scorersB) if (sB && !s.og) this.bumpStat(s.name, s.assist);
       }
       this.season.gf[a] += r.goalsA; this.season.ga[a] += r.goalsB;
       this.season.gf[b] += r.goalsB; this.season.ga[b] += r.goalsA;
       if (r.goalsA > r.goalsB) { this.season.pts[a] += 3; this.season.w[a]++; this.season.l[b]++; }
       else if (r.goalsA < r.goalsB) { this.season.pts[b] += 3; this.season.w[b]++; this.season.l[a]++; }
       else { this.season.pts[a]++; this.season.pts[b]++; this.season.d[a]++; this.season.d[b]++; }
-      out.push({ md, a, b, ...r, detail, humans: (sA ? 1 : 0) + (sB ? 1 : 0) });
+      out.push({ md, a, b, ...r, detail, suspended, humans: (sA ? 1 : 0) + (sB ? 1 : 0) });
     }
     return out;
   }
@@ -560,6 +597,7 @@ class Game {
       away: this.season.teams[item.b].name,
       score: [item.goalsA, item.goalsB],
       events: item.detail ? item.detail.events : [],
+      suspended: item.suspended || [],
       featured: item.humans === 2,
       hostName: host ? host.name : 'Host',
     };
@@ -578,7 +616,7 @@ class Game {
     return { ok: true };
   }
 
-  // ---------- winter: review + respins (no second auction) ----------
+  // ---------- winter: report + winter market auction + second-half pick ----------
   playerForm(p) {
     const st = this.season.playerStats[p.name] || { goals: 0, assists: 0 };
     const eff = p.rating + p.seasonMod;
@@ -607,25 +645,52 @@ class Game {
     };
   }
 
+  assistantTips(m) {
+    const tips = [];
+    const fit = m.squad.filter((p) => p.name !== m.injured);
+    const unitAvg = (poss) => {
+      const ps = fit.filter((p) => poss.includes(p.pos));
+      return ps.length ? ps.reduce((s, p) => s + p.rating, 0) / ps.length : 0;
+    };
+    const units = [['defence', unitAvg(['GK', 'DEF'])], ['midfield', unitAvg(['MID'])], ['attack', unitAvg(['ATT'])]];
+    const sorted = [...units].sort((a, b) => a[1] - b[1]);
+    const weakest = sorted[0], strongest = sorted[2];
+    if (weakest[1] > 0 && (weakest[1] < 84 || strongest[1] - weakest[1] >= 4)) {
+      tips.push(`Boss, we need to strengthen our ${weakest[0]} — it's our weakest line at ${Math.round(weakest[1])}.`);
+    } else if (weakest[1] >= 86) {
+      if (Math.random() < 0.6) tips.push(`Squad's looking sharp across the board, boss. Trust it — or get greedy in the market.`);
+    }
+    const flop = [...fit].filter((p) => p.winterForm != null).sort((a, b) => a.winterForm - b.winterForm)[0];
+    if (flop && flop.winterForm < 5.6) tips.push(`${flop.name} had a shocker of a half (${flop.winterForm.toFixed(1)} form). The market is open, boss…`);
+    const star = [...fit].filter((p) => p.winterForm != null).sort((a, b) => b.winterForm - a.winterForm)[0];
+    if (star && star.winterForm >= 7.2) tips.push(`${star.name} is carrying us (${star.winterForm.toFixed(1)} form). Build around him.`);
+    const wk = fit.find((p) => p.wonderkid && (p.grew || 0) >= 4);
+    if (wk) tips.push(`${wk.name} just exploded in training (+${wk.grew}). The boy is special, boss.`);
+    if (m.budget >= 90) tips.push(`£${m.budget}m in the bank — that buys anyone in this market. Splash it.`);
+    if (m.injured) tips.push(`${m.injured} is out for the season — we play the second half a man lighter unless we buy cover.`);
+    return tips.slice(0, 3);
+  }
+
   winterPayload() {
     return {
       table: this.table(),
       stats: this.seasonStats(),
-      spins: this.spinLog || [],
+      budgets: this.activeManagers().map((m) => ({ manager: m.name, budget: m.budget })),
       injuries: this.winterInjuries,
       sackings: this.winterSackings,
       review: this.activeManagers().map((m) => ({
         id: m.id,
         manager: m.name,
         club: m.club,
-        spinsLeft: m.spinsLeft,
-        locked: this.pendingStarters ? !this.pendingStarters.has(m.id) : false,
+        locked: this.pendingStarters && this.startersHalf === 'second' ? !this.pendingStarters.has(m.id) : false,
         units: this.unitScores(m),
         starters: (m.starters || []).map((p) => p.name),
+        tips: this.assistantTips(m),
         validFormations: this.validFormations(m),
         players: m.squad.map((p) => ({
-          name: p.name, pos: p.pos, legend: !!p.legend, fc26: p.fc26,
-          form: p.winterForm != null ? p.winterForm : null, // null = arrived after the half (respin)
+          name: p.name, pos: p.pos, legend: !!p.legend, wonderkid: !!p.wonderkid, rtg: p.rating,
+          form: p.winterForm != null ? p.winterForm : null,
+          grew: p.grew || 0,
           goals: (this.season.playerStats[p.name] || {}).goals || 0,
           assists: (this.season.playerStats[p.name] || {}).assists || 0,
           injured: p.name === m.injured,
@@ -638,15 +703,19 @@ class Game {
     this.phase = 'winter';
     const table = this.table();
     for (const m of this.activeManagers()) {
-      m.spinsLeft = 5;
-      for (const p of m.squad) p.winterForm = this.playerForm(p);
+      m.budget += 50; // winter war chest
+      for (const p of m.squad) {
+        p.winterForm = this.playerForm(p);
+        const grew = E.winterGrowth(p, p.winterForm);
+        p.rating += grew;
+        p.grew = grew; // surfaced in the winter report and second-half pick
+      }
     }
     this.winterInjuries = [];
     for (const m of this.activeManagers()) {
       if (Math.random() < 0.25) {
         const ranked = [...m.squad].sort((a, b) => (b.rating + b.seasonMod) - (a.rating + a.seasonMod));
-        const fieldableWithout = (name) => Game.formationFeasible(m.squad.filter((p) => p.name !== name).map((p) => p.pos), 0);
-        const victim = ranked.find((p) => fieldableWithout(p.name));
+        const victim = ranked.find((p) => p.pos !== 'GK');
         if (victim) {
           m.injured = victim.name;
           this.winterInjuries.push({ manager: m.name, player: victim.name });
@@ -675,62 +744,56 @@ class Game {
         this.season.teams[ti].comeback = E.PARAMS.COMEBACK;
       }
     });
-    // lock-in flow: winter hub doubles as second-half team selection
-    this.startersHalf = 'second';
-    this.pendingStarters = new Set(this.activeManagers().map((m) => m.id));
-    this.spinLog = [];
+    // winter report first; host then opens the winter market (auction), then everyone picks
     this.io.emit('winter', this.winterPayload());
-    clearTimeout(this.timers.starters);
-    this.timers.starters = setTimeout(() => this.autoPickRemaining('second'), TIMINGS.WINTER_FALLBACK_MS);
+    this.broadcastBudgets();
+    if (FAST) setTimeout(() => this.startWinterAuction(), 30);
   }
 
-  // ---------- respins ----------
-  respin(managerId, playerName) {
-    if (this.phase !== 'winter') return { error: 'No respins right now' };
-    const m = this.managers.find((x) => x.id === managerId);
-    if (!m || m.sacked) return { error: 'Not in game' };
-    if (!this.pendingStarters.has(m.id)) return { error: 'Already locked in' };
-    if ((m.spinsLeft || 0) <= 0) return { error: 'No respins left' };
-    const old = m.squad.find((p) => p.name === playerName);
-    if (!old) return { error: 'Not your player' };
-    const pos = old.pos;
-    const roll = Math.random();
-    let tier, repl;
-    const candidates = (lo, hi, set) =>
-      E.shuffle((set || ALL_PLAYERS).filter((p) => p.pos === pos && p.fc26 >= lo && p.fc26 <= hi && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name)));
-    const bandPick = (lo, hi) => {
-      // widen the band step by step if no unowned player exists in it
-      for (let w = 0; w < 8 && !repl; w++) repl = candidates(Math.max(60, lo - w), Math.min(94, hi + w))[0];
-    };
-    if (roll < 0.93) {
-      // pure lottery: any unowned player in your position, completely independent of who you spun away
-      repl = candidates(83, 94)[0];
-      const diff = repl ? repl.fc26 - old.fc26 : 0;
-      tier = diff < 0 ? 'worse' : diff <= 2 ? 'better' : 'great';
-    } else {
-      tier = 'legend';
-      repl = E.shuffle(LEGENDS.filter((l) => l.pos === pos && !this.owned(l.name)))[0];
-      if (!repl) { repl = candidates(88, 94)[0] || candidates(83, 94)[0]; tier = 'great'; }
-    }
-    if (!repl) repl = candidates(60, 94)[0];
-    if (!repl) return { error: 'No replacement available' };
-    // swap: new player has no first-half history; seasonMod rolled at second-half start
-    const idx = m.squad.indexOf(old);
-    m.squad[idx] = { ...repl, winterForm: null };
-    if (m.injured === old.name) m.injured = null;
-    m.spinsLeft--;
-    this.spinLog.push({ manager: m.name, oldPlayer: old.name, newPlayer: repl.name, tier });
-    this.io.emit('respinResult', {
-      manager: m.name,
-      oldPlayer: { name: old.name, pos },
-      newPlayer: { name: repl.name, pos: repl.pos, legend: !!repl.legend, hint: repl.legend ? undefined : this.hintFor(repl) },
-      tier,
-      spinsLeft: m.spinsLeft,
-      review: this.winterPayload().review,
-      spins: this.spinLog,
-    });
+  hostStartWinterAuction(managerId) {
+    if (managerId !== this.hostId) return { error: 'Host only' };
+    if (this.phase !== 'winter' || this.auction && this.auction.window === 'winter' && this.auction.current !== undefined && this.phase === 'auction') return { error: 'Not now' };
+    this.startWinterAuction();
     return { ok: true };
   }
+
+  startWinterAuction() {
+    if (this.phase !== 'winter') return;
+    this.phase = 'auction';
+    const pool = this.buildWinterPool();
+    this.auction = {
+      window: 'winter', queue: pool, index: -1,
+      current: null, highBid: 0, highBidder: null, deadline: 0, unsold: [], outs: new Set(),
+    };
+    this.io.emit('phase', { phase: 'auction', window: 'winter', poolSize: pool.length, managerCount: this.activeManagers().length });
+    this.nextLot();
+  }
+
+  buildWinterPool() {
+    const n = this.activeManagers().length;
+    const total = 3 * n;
+    // 60% of windows feature 1 legend, 40% feature 2 — regardless of player count. NEVER keepers.
+    const legendCount = Math.random() < 0.6 ? 1 : 2;
+    const legends = E.shuffle(LEGENDS.filter((l) => !this.owned(l.name) && l.pos !== 'GK')).slice(0, legendCount);
+    const restCount = total - legends.length;
+    const fresh = (lo) => ({
+      DEF: E.shuffle(ALL_PLAYERS.filter((p) => p.pos === 'DEF' && p.fc26 >= lo && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name))),
+      MID: E.shuffle(ALL_PLAYERS.filter((p) => p.pos === 'MID' && p.fc26 >= lo && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name))),
+      ATT: E.shuffle(ALL_PLAYERS.filter((p) => p.pos === 'ATT' && p.fc26 >= lo && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name))),
+    });
+    const byPos = fresh(86);
+    const backup = fresh(85);
+    const rest = [];
+    const order = ['DEF', 'MID', 'ATT'];
+    let i = 0, guard = 0;
+    while (rest.length < restCount && guard++ < restCount * 6) {
+      const pos = order[i++ % 3];
+      const p = byPos[pos].shift() || backup[pos].find((x) => !rest.includes(x));
+      if (p && !rest.includes(p)) rest.push(p);
+    }
+    return E.shuffle([...rest, ...legends]);
+  }
+
 
 
   startSecondHalf() {
@@ -762,8 +825,8 @@ class Game {
     const bestSigning = [...paid].sort((a, b) => b.value - a.value)[0];
     const bestBargain = [...paid].filter((s) => s.eff >= 84).sort((a, b) => a.price - b.price)[0];
     const biggestFlop = [...paid].sort((a, b) => (b.price - b.value) - (a.price - a.value))[0];
-    const spinRank = { legend: 3, great: 2, better: 1, worse: 0 };
-    const bestSpin = [...(this.spinLog || [])].sort((a, b) => spinRank[b.tier] - spinRank[a.tier])[0];
+    const winterBuys = allSignings.filter((s) => s.window === 'winter' && s.price > 0);
+    const winterSplash = [...winterBuys].sort((a, b) => b.price - a.price)[0];
     this.io.emit('finished', {
       table,
       stats: this.seasonStats(),
@@ -774,7 +837,7 @@ class Game {
         bestSigning: bestSigning ? { player: bestSigning.player, price: bestSigning.price, manager: bestSigning.manager } : null,
         bestBargain: bestBargain ? { player: bestBargain.player, price: bestBargain.price, manager: bestBargain.manager } : null,
         biggestFlop: biggestFlop ? { player: biggestFlop.player, price: biggestFlop.price, manager: biggestFlop.manager } : null,
-        spinOfSeason: bestSpin && spinRank[bestSpin.tier] >= 2 ? bestSpin : null,
+        winterSplash: winterSplash ? { player: winterSplash.player, price: winterSplash.price, manager: winterSplash.manager } : null,
       },
     });
   }

@@ -149,9 +149,9 @@ io.on('connection', (socket) => {
     const g = current();
     cb && cb(g ? g.suggestXI(joined.managerId) : { error: 'No game' });
   });
-  socket.on('respin', ({ player }, cb) => {
+  socket.on('startWinterAuction', (cb) => {
     const g = current();
-    cb && cb(g ? g.respin(joined.managerId, player) : { error: 'No game' });
+    cb && cb(g ? g.hostStartWinterAuction(joined.managerId) : { error: 'No game' });
   });
 
   socket.on('getSnapshot', (cb) => {
