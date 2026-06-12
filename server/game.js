@@ -1105,7 +1105,7 @@ class Game {
     const pausedFor = Date.now() - this.pausedAt;
     this.paused = false;
     if (this.auction && this.auction.current) {
-      this.auction.deadline += pausedFor;
+      this.auction.deadline = Math.max(this.auction.deadline + pausedFor, Date.now() + 3000); // resume grace
       this.io.emit('resumed', { deadline: this.auction.deadline });
       this.armLotTimer();
     } else {
@@ -1146,7 +1146,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v2.9',
+      serverV: 'v3.0',
       paused: this.paused,
     };
   }
