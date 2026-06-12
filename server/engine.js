@@ -54,8 +54,11 @@ function teamStrength(starters, formation) {
   const eff = (p) => p.rating + (p.seasonMod || 0);
   const atkPlayers = starters.filter((p) => p.pos === 'ATT' || p.pos === 'MID');
   const defPlayers = starters.filter((p) => p.pos === 'GK' || p.pos === 'DEF');
-  let attack = atkPlayers.reduce((s, p) => s + eff(p), 0) / atkPlayers.length;
-  let defence = defPlayers.reduce((s, p) => s + eff(p), 0) / defPlayers.length;
+  const allOut = starters.filter((p) => p.pos !== 'GK');
+  const meanOf = (ps) => ps.reduce((s, p) => s + eff(p), 0) / ps.length;
+  // free XIs can have no MID/ATT (park the bus) or no DEF: fall back to outfield mean with a penalty
+  let attack = atkPlayers.length ? meanOf(atkPlayers) : meanOf(allOut) - 3;
+  let defence = defPlayers.length ? meanOf(defPlayers) : meanOf(starters) - 3;
   if (formation === 'ATT') { attack += PARAMS.FORM_MOD; defence -= PARAMS.FORM_MOD; }
   if (formation === 'DEF') { attack -= PARAMS.FORM_MOD; defence += PARAMS.FORM_MOD; }
   return { attack, defence };
@@ -70,7 +73,7 @@ function playMatch(tA, tB) {
   la = clamp(la, 0.15, 6);
   lb = clamp(lb, 0.15, 6);
   // ~6% of matches are demolitions: one side (usually the stronger) goes ballistic
-  if (Math.random() < 0.06) {
+  if (Math.random() < 0.045) {
     const aStronger = (tA.attack + tA.defence) >= (tB.attack + tB.defence);
     const boostA = Math.random() < (aStronger ? 0.65 : 0.35);
     if (boostA) { la = clamp(la * 2.6 + 1.2, 3.5, 9); lb = clamp(lb * 0.5, 0.1, 1.2); }

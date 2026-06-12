@@ -1,6 +1,6 @@
 // E2E: 4 bot managers play a complete game over real websockets.
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3107';
+const URL = 'http://localhost:3111';
 
 const NAMES = ['Louis', 'Tom', 'Ben', 'Jack'];
 const log = (...a) => console.log(...a);
@@ -33,14 +33,10 @@ function makeBot(name, i) {
     const mine = perManager.find((p) => p.id === bot.managerId);
     if (!mine) return;
     assert(mine.validFormations.length > 0, `${name} has no valid formation (${half})`);
-    const f = mine.validFormations[0];
-    const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], MID: ['GK','DEF','MID','MID','MID'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
+    const f = 'FREE';
     const avail = mine.squad.filter((p) => !p.injured);
-    const chosen = [];
-    for (const pos of slots) {
-      const p = avail.find((x) => x.pos === pos && !chosen.includes(x));
-      if (p) chosen.push(p);
-    }
+    const gk = avail.find((x) => x.pos === 'GK');
+    const chosen = [gk, ...avail.filter((x) => x.pos !== 'GK').slice(0, 4)].filter(Boolean);
     assert(chosen.length === 5, `${name} could not fill ${f}: got ${chosen.length} (squad: ${mine.squad.map(p=>p.pos).join(',')})`);
     s.emit('submitStarters', { formation: f, starters: chosen.map((p) => p.name) }, (r) => {
       assert(r.ok, `${name} starters rejected: ${r.error}`);
@@ -65,14 +61,10 @@ function makeBot(name, i) {
     const lock = () => {
       // re-derive squad from latest respinResult review
       const rv = (bot.latestReview || w.review).find((r) => r.id === bot.managerId);
-      const f = rv.validFormations[0];
-      const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], MID: ['GK','DEF','MID','MID','MID'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
+      const f = 'FREE';
       const avail = rv.players.filter((p) => !p.injured);
-      const chosen = [];
-      for (const pos of slots) {
-        const p = avail.find((x) => x.pos === pos && !chosen.includes(x));
-        if (p) chosen.push(p);
-      }
+      const gk = avail.find((x) => x.pos === 'GK');
+      const chosen = [gk, ...avail.filter((x) => x.pos !== 'GK').slice(0, 4)].filter(Boolean);
       assert(chosen.length === 5, `${name} winter lock could not fill ${f}`);
       s.emit('submitStarters', { formation: f, starters: chosen.map((p) => p.name) }, (r) => {
         assert(r.ok, `${name} winter lock rejected: ${r.error}`);

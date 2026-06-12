@@ -1,6 +1,6 @@
 // give-up: B bids, A passes -> lot settles instantly to B
 const { io } = require('socket.io-client');
-const URL='http://localhost:3107';
+const URL='http://localhost:3111';
 const connected=(s)=>s.connected?Promise.resolve():new Promise(r=>s.once('connect',r));
 const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
 let fail=[]; const assert=(c,m)=>{if(!c){fail.push(m);console.log('FAIL:',m);}};

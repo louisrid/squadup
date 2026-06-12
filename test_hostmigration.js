@@ -1,6 +1,6 @@
 // host disconnects mid-auction -> host migrates, game continues to completion
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3107';
+const URL = 'http://localhost:3111';
 const connected = (s) => s.connected ? Promise.resolve() : new Promise((r) => s.once('connect', r));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fail = [];
@@ -14,19 +14,19 @@ const assert = (c, m) => { if (!c) { fail.push(m); console.log('FAIL:', m); } };
     s.on('hostChanged', (x) => { bot.seen.hostChanged = x; });
     s.on('pickStarters', (p) => {
       const mine = p.perManager.find((x) => x.id === bot.managerId); if (!mine) return;
-      const f = mine.validFormations[0];
-      const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], MID: ['GK','DEF','MID','MID','MID'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
-      const avail = mine.squad.filter((x) => !x.injured); const chosen = [];
-      for (const pos of slots) { const p2 = avail.find((x) => x.pos === pos && !chosen.includes(x)); if (p2) chosen.push(p2); }
+      const f = 'FREE';
+      const avail = mine.squad.filter((p) => !p.injured);
+      const gk = avail.find((x) => x.pos === 'GK');
+      const chosen = [gk, ...avail.filter((x) => x.pos !== 'GK').slice(0, 4)].filter(Boolean);
       s.emit('submitStarters', { formation: f, starters: chosen.map((x) => x.name) }, () => {});
     });
     s.on('winter', (w) => setTimeout(() => {
       const mine = w.review.find((r) => r.id === bot.managerId);
       if (!mine) return;
-      const f = mine.validFormations[0];
-      const slots = { DEF: ['GK','DEF','DEF','MID','ATT'], BAL: ['GK','DEF','MID','MID','ATT'], MID: ['GK','DEF','MID','MID','MID'], ATT: ['GK','DEF','MID','ATT','ATT'] }[f];
-      const avail = mine.players.filter((x) => !x.injured); const chosen = [];
-      for (const pos of slots) { const p = avail.find((x) => x.pos === pos && !chosen.includes(x)); if (p) chosen.push(p); }
+      const f = 'FREE';
+      const avail = mine.players.filter((p) => !p.injured);
+      const gk = avail.find((x) => x.pos === 'GK');
+      const chosen = [gk, ...avail.filter((x) => x.pos !== 'GK').slice(0, 4)].filter(Boolean);
       s.emit('submitStarters', { formation: f, starters: chosen.map((x) => x.name) }, () => {});
     }, 30));
     s.on('finished', (f) => { bot.seen.finished = f; });

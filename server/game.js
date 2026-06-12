@@ -73,8 +73,8 @@ class Game {
   hintFor(p) {
     if (!this.showHints) return undefined;
     if (!this.hints[p.name]) {
-      const lo = p.fc26 - (2 + Math.floor(Math.random() * 4));
-      const hi = p.fc26 + (2 + Math.floor(Math.random() * 4));
+      const lo = p.fc26 - (1 + Math.floor(Math.random() * 2));
+      const hi = p.fc26 + (1 + Math.floor(Math.random() * 2));
       this.hints[p.name] = lo + '–' + hi;
     }
     return this.hints[p.name];
@@ -182,16 +182,9 @@ class Game {
   }
 
   static formationFeasible(positions, slotsLeft) {
-    const have = { GK: 0, DEF: 0, MID: 0, ATT: 0 };
-    for (const p of positions) have[p]++;
-    return Object.values(FORMATIONS).some((f) => {
-      let deficit = 0;
-      for (const pos of ['GK', 'DEF', 'MID', 'ATT']) {
-        const need = f.slots.filter((s) => s === pos).length;
-        deficit += Math.max(need - have[pos], 0);
-      }
-      return deficit <= slotsLeft;
-    });
+    const gks = positions.filter((p) => p === 'GK').length;
+    if (gks > 1) return false;               // never more than one keeper
+    return gks === 1 || slotsLeft >= 1;      // must still be able to land a keeper
   }
 
   purchaseLegal(m, pos) {
@@ -371,14 +364,14 @@ class Game {
   }
 
   // ---------- starters & formation ----------
-  validFormations(m) {
-    const avail = m.squad.filter((p) => p.name !== m.injured);
-    const count = (pos) => avail.filter((p) => p.pos === pos).length;
-    return Object.entries(FORMATIONS)
-      .filter(([, f]) => ['GK', 'DEF', 'MID', 'ATT'].every(
-        (pos) => count(pos) >= f.slots.filter((s) => s === pos).length
-      ))
-      .map(([k]) => k);
+  validFormations() { return ['FREE']; } // XI is free-form: 1 GK + any 4 outfield
+
+  static deriveStyle(starters) {
+    const c = { DEF: 0, MID: 0, ATT: 0 };
+    for (const p of starters) if (c[p.pos] !== undefined) c[p.pos]++;
+    if (c.DEF >= 3) return 'DEF';
+    if (c.ATT >= 3) return 'ATT';
+    return 'BAL';
   }
 
   requestStarters(half) {
@@ -388,7 +381,7 @@ class Game {
       deadlineMs: TIMINGS.PICK_STARTERS_MS,
       perManager: this.activeManagers().map((m) => ({
         id: m.id,
-        squad: m.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === m.injured })),
+        squad: m.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === m.injured, fc26: this.showHints ? p.fc26 : undefined })),
         validFormations: this.validFormations(m),
       })),
     });
@@ -400,17 +393,15 @@ class Game {
   submitStarters(managerId, formation, starterNames) {
     const m = this.managers.find((x) => x.id === managerId);
     if (!m || !this.pendingStarters || !this.pendingStarters.has(managerId)) return { error: 'Not expected' };
-    if (!FORMATIONS[formation]) return { error: 'Bad formation' };
-    const players = (starterNames || []).map((nm) => m.squad.find((p) => p.name === nm)).filter(Boolean);
-    if (players.length !== 5) return { error: 'Pick exactly 5' };
+    const names = (starterNames || []).filter(Boolean);
+    const missing = names.filter((nm) => !m.squad.some((p) => p.name === nm));
+    if (missing.length) return { error: 'Not in your squad: ' + missing[0] };
+    const players = names.map((nm) => m.squad.find((p) => p.name === nm));
+    if (players.length !== 5) return { error: 'Pick exactly 5 (you have ' + players.length + ')' };
+    if (new Set(names).size !== 5) return { error: 'Duplicate player picked' };
     if (players.some((p) => p.name === m.injured)) return { error: 'Injured player selected' };
-    const need = [...FORMATIONS[formation].slots];
-    for (const p of players) {
-      const i = need.indexOf(p.pos);
-      if (i === -1) return { error: `Doesn't fit ${formation}` };
-      need.splice(i, 1);
-    }
-    m.formation = formation;
+    if (players.filter((p) => p.pos === 'GK').length !== 1) return { error: 'Exactly one keeper' };
+    m.formation = Game.deriveStyle(players);
     m.starters = players;
     this.pendingStarters.delete(managerId);
     this.io.emit('startersLocked', { manager: m.name });
@@ -426,26 +417,12 @@ class Game {
   suggestXI(managerId) {
     const m = this.managers.find((x) => x.id === managerId);
     if (!m || m.sacked) return { error: 'Not in game' };
-    const forms = this.validFormations(m);
-    if (!forms.length) return { error: 'No legal formation' };
-    let best = null;
-    for (const f of forms) {
-      const avail = m.squad.filter((p) => p.name !== m.injured);
-      const starters = [];
-      let ok = true;
-      for (const pos of ['GK', 'DEF', 'MID', 'ATT']) {
-        const needed = FORMATIONS[f].slots.filter((s) => s === pos).length;
-        const ranked = avail.filter((p) => p.pos === pos && !starters.includes(p))
-          .sort((x, y) => x.fc26 - y.fc26); // WORST visible XI by design — never leaks engine order
-        if (ranked.length < needed) { ok = false; break; }
-        starters.push(...ranked.slice(0, needed));
-      }
-      if (!ok) continue;
-      const score = starters.reduce((s, p) => s + p.fc26, 0);
-      if (!best || score < best.score) best = { score, formation: f, starters: starters.map((p) => p.name) };
-    }
-    if (!best) return { error: 'No legal formation' };
-    return { ok: true, formation: best.formation, starters: best.starters };
+    const avail = m.squad.filter((p) => p.name !== m.injured);
+    const gk = avail.filter((p) => p.pos === 'GK')[0];
+    if (!gk) return { error: 'No fit keeper' };
+    const outfield = avail.filter((p) => p.pos !== 'GK').sort((a, b) => a.fc26 - b.fc26); // WORST XI by design
+    if (outfield.length < 4) return { error: 'Not enough players' };
+    return { ok: true, formation: 'FREE', starters: [gk.name, ...outfield.slice(0, 4).map((p) => p.name)] };
   }
 
   autoPickIfOnlyGhosts() {
@@ -460,16 +437,11 @@ class Game {
   autoPickRemaining(half) {
     for (const id of [...(this.pendingStarters || [])]) {
       const m = this.managers.find((x) => x.id === id);
-      const forms = this.validFormations(m);
-      const f = forms.includes('BAL') ? 'BAL' : forms[0];
       const avail = m.squad.filter((p) => p.name !== m.injured);
-      const starters = [];
-      for (const pos of ['GK', 'DEF', 'MID', 'ATT']) {
-        const needed = FORMATIONS[f].slots.filter((s) => s === pos).length;
-        const cand = E.shuffle(avail.filter((p) => p.pos === pos && !starters.includes(p)));
-        starters.push(...cand.slice(0, needed));
-      }
-      m.formation = f;
+      const gk = avail.find((p) => p.pos === 'GK');
+      const outfield = E.shuffle(avail.filter((p) => p.pos !== 'GK'));
+      const starters = [gk, ...outfield.slice(0, 4)].filter(Boolean);
+      m.formation = Game.deriveStyle(starters);
       m.starters = starters;
       this.pendingStarters.delete(id);
       this.io.emit('startersLocked', { manager: m.name, auto: true });
@@ -490,7 +462,7 @@ class Game {
     const humanTeams = this.managers.map((m, i) => ({ type: 'human', mIdx: i, name: m.club }));
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
-    const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => ({ type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.0, defence: s.defence - 1.0 }));
+    const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => ({ type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 0.45, defence: s.defence - 0.45 }));
     this.season = {
       teams: [...humanTeams, ...ais],
       fixtures: E.buildFixtures(12),
@@ -651,7 +623,7 @@ class Game {
         units: this.unitScores(m),
         validFormations: this.validFormations(m),
         players: m.squad.map((p) => ({
-          name: p.name, pos: p.pos, legend: !!p.legend,
+          name: p.name, pos: p.pos, legend: !!p.legend, fc26: this.showHints ? p.fc26 : undefined,
           form: p.winterForm != null ? p.winterForm : null, // null = arrived after the half (respin)
           goals: (this.season.playerStats[p.name] || {}).goals || 0,
           assists: (this.season.playerStats[p.name] || {}).assists || 0,
@@ -729,9 +701,9 @@ class Game {
       // widen the band step by step if no unowned player exists in it
       for (let w = 0; w < 8 && !repl; w++) repl = candidates(Math.max(60, lo - w), Math.min(94, hi + w))[0];
     };
-    if (roll < 0.40) { tier = 'worse'; bandPick(old.fc26 - 5, old.fc26 - 2); }
-    else if (roll < 0.70) { tier = 'better'; bandPick(old.fc26 + 1, old.fc26 + 2); }
-    else if (roll < 0.95) { tier = 'great'; bandPick(Math.min(old.fc26 + 3, 90), Math.min(old.fc26 + 5, 90)); }
+    if (roll < 0.28) { tier = 'worse'; bandPick(old.fc26 - 5, old.fc26 - 2); }
+    else if (roll < 0.63) { tier = 'better'; bandPick(old.fc26 + 1, old.fc26 + 2); }
+    else if (roll < 0.93) { tier = 'great'; bandPick(Math.min(old.fc26 + 3, 90), Math.min(old.fc26 + 5, 90)); }
     else {
       tier = 'legend';
       repl = E.shuffle(LEGENDS.filter((l) => l.pos === pos && !this.owned(l.name)))[0];
