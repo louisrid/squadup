@@ -207,7 +207,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v1.3';
+const VERSION = 'v1.4';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -604,11 +604,11 @@ s.on('matchReveal',(m)=>{
 });
 s.on('halfDone',(h)=>{ lastTable=h.table; });
 function tableHTML(table, title){
-  return `<h2>${title}</h2><div class="panel" style="padding:6px 10px"><table>
-  <tr><th>#</th><th>Club</th><th>Pts</th><th>GD</th></tr>
+  return `<h2>${title}</h2><div class="panel" style="padding:6px 8px"><table>
+  <tr><th>#</th><th>Club</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr>
   ${table.map((r,i)=>`<tr class="${r.manager? (r.manager===ME.name?'me':'hu') :''}">
     <td>${i+1}</td><td>${esc(r.name)}${r.manager?`<br><span class="muted">${esc(r.manager)}${r.sacked?' · SACKED':''}</span>`:''}</td>
-    <td><b>${r.pts}</b></td><td>${r.gd}</td></tr>`).join('')}</table></div>`;
+    <td>${r.w??'–'}</td><td>${r.d??'–'}</td><td>${r.l??'–'}</td><td>${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`;
 }
 
 /* ---------------- WINTER ---------------- */

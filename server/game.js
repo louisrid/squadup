@@ -482,6 +482,7 @@ class Game {
       teams: [...humanTeams, ...ais],
       fixtures: E.buildFixtures(12),
       pts: Array(12).fill(0), gf: Array(12).fill(0), ga: Array(12).fill(0),
+      w: Array(12).fill(0), d: Array(12).fill(0), l: Array(12).fill(0),
       playerStats: {},
       results: [],
     };
@@ -512,9 +513,9 @@ class Game {
       }
       this.season.gf[a] += r.goalsA; this.season.ga[a] += r.goalsB;
       this.season.gf[b] += r.goalsB; this.season.ga[b] += r.goalsA;
-      if (r.goalsA > r.goalsB) this.season.pts[a] += 3;
-      else if (r.goalsA < r.goalsB) this.season.pts[b] += 3;
-      else { this.season.pts[a]++; this.season.pts[b]++; }
+      if (r.goalsA > r.goalsB) { this.season.pts[a] += 3; this.season.w[a]++; this.season.l[b]++; }
+      else if (r.goalsA < r.goalsB) { this.season.pts[b] += 3; this.season.w[b]++; this.season.l[a]++; }
+      else { this.season.pts[a]++; this.season.pts[b]++; this.season.d[a]++; this.season.d[b]++; }
       out.push({ md, a, b, ...r, detail, humans: (sA ? 1 : 0) + (sB ? 1 : 0) });
     }
     return out;
@@ -535,6 +536,7 @@ class Game {
         manager: t.type === 'human' ? this.managers[t.mIdx].name : null,
         sacked: t.type === 'human' ? this.managers[t.mIdx].sacked : false,
         pts: this.season.pts[i], gf: this.season.gf[i], ga: this.season.ga[i], gd: this.season.gf[i] - this.season.ga[i],
+        w: this.season.w[i], d: this.season.d[i], l: this.season.l[i],
       }))
       .sort((x, y) => y.pts - x.pts || y.gd - x.gd || y.gf - x.gf);
   }
