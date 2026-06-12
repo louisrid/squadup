@@ -18,6 +18,11 @@
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:500;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 .muted{color:var(--muted)!important;font-weight:600}
 button{font-weight:700}
+.wheelWrap{position:relative;width:min(320px,84vw);aspect-ratio:1;margin:14px auto}
+.wheelWrap svg{width:100%;height:100%;transition:transform 4.2s cubic-bezier(.12,.7,.1,1)}
+.wheelPtr{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:30px;z-index:2;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7))}
+.segLegend{fill:#C9A227}.segWonder{fill:url(#wgrad)}
+.segDEF{fill:#16306b}.segMID{fill:#0e4d2a}.segATT{fill:#62211c}.segGK{fill:#5a4710}
 th{font-weight:800}
 input,td{font-weight:600}
 body{max-width:500px;margin:0 auto;padding:16px 16px 150px;min-height:100vh;font-size:16px;font-weight:600}
@@ -217,7 +222,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v2.6';
+const VERSION = 'v2.7';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -282,8 +287,9 @@ function renderWhatsNew(){
     ${li(`<b>⚔️ ATTACK / 🛡️ DEFENCE</b> live team ratings while you build your five`)}
     ${li(`<b>Assistant's notes</b> — honest squad tips at the winter break`)}
     ${li(`<b>Ageing icons</b> — Messi, Ronaldo, Modrić, Neymar & co join the pool, rated for their age`)}
-    ${li(`<b>Donkey United</b> 🫏 — loses nearly every week, but sometimes puts SEVEN past you. And Eastvale Rovers are now the AI team to fear`)}
-    ${li(`<b>AI league positions</b> on matchdays, manager names next to clubs, a How to play guide, and 2x auction speed by default`)}
+    ${li(`<b>THE HALFTIME SPIN</b> 🎡 — every manager spins a one-of-a-kind wheel at the break. Struggling? The wheel loves you back`)}
+    ${li(`<b>Eastvale Rovers</b> — the AI club you do NOT want on a bad day`)}
+    ${li(`<b>2x speed by default</b>, AI league positions on matchdays, manager names next to clubs, and a full How to play guide`)}
   </div>
   <div class="panel" style="border-color:#FF5470"><h2 style="margin-top:0;color:#FF5470">REMOVED</h2>
     ${li(`<b>Respins</b> — the winter slot machine is gone. The winter market replaced it`)}
@@ -302,9 +308,9 @@ function renderHowTo(){
   <div class="panel"><h2 style="margin-top:0">2 · Pick your five</h2>
   <div style="font-size:16px;line-height:1.5">Field <b>1 GK + 4 outfielders</b> in a real shape: <b>2-1-1, 1-2-1 or 1-1-2</b> — at least one defender, one midfielder and one attacker. The live <b>⚔️ ATTACK / 🛡️ DEFENCE</b> box shows your team's true strength as you build. Auto-fill places your best players into your selected shape. There's <b>no time limit</b> — the game waits for everyone. Some players secretly over- or under-perform each half.</div></div>
   <div class="panel"><h2 style="margin-top:0">3 · The season</h2>
-  <div style="font-size:16px;line-height:1.5">22 matchdays vs your mates and AI clubs — watch out for <b>Eastvale Rovers</b>, and pray <b>Donkey United</b> don't have one of their days. Full commentary: goals, assists, <b>own goals</b>, and <b>red cards — a sending-off suspends that player for exactly one match</b> and your team plays it weakened. Better attacks score more, better defences concede less, but upsets and demolitions are always live. The bottom human far adrift at the break gets <b>sacked</b>.</div></div>
-  <div class="panel"><h2 style="margin-top:0">4 · The winter market</h2>
-  <div style="font-size:16px;line-height:1.5">At the break everyone banks <b>+£50m</b> and every player develops — young players rise, ageing stars fade, in-form players never decline, and <b>wonderkids jump +6 to +11</b> (capped at 94). Then the market opens: <b>3 players per manager, all 87+ rated with exact ratings shown</b>, plus <b>1-2 LEGENDS 👑</b> rated 96. Re-pick your five and chase the title.</div></div>
+  <div style="font-size:16px;line-height:1.5">22 matchdays vs your mates and AI clubs — watch out for <b>Eastvale Rovers</b> — and one or two AI clubs hide a surprise…. Full commentary: goals, assists, <b>own goals</b>, and <b>red cards — a sending-off suspends that player for exactly one match</b> and your team plays it weakened. Better attacks score more, better defences concede less, but upsets and demolitions are always live. The bottom human far adrift at the break gets <b>sacked</b>.</div></div>
+  <div class="panel"><h2 style="margin-top:0">4 · Halftime & the winter market</h2>
+  <div style="font-size:16px;line-height:1.5">First, the <b>🎡 halftime spin</b>: every manager spins a unique wheel for one free player — the lower you sit in the table, the juicier your odds. Then everyone banks <b>+£50m</b> and every player develops — young players rise, ageing stars fade, in-form players never decline, and <b>wonderkids jump +6 to +11</b> (capped at 94). Then the market opens: <b>3 players per manager, all 87+ rated with exact ratings shown</b>, plus <b>1-2 LEGENDS 👑</b> rated 96. Re-pick your five and chase the title.</div></div>
   <div class="panel"><h2 style="margin-top:0">5 · Glory</h2>
   <div style="font-size:16px;line-height:1.5">Most points wins the league. Golden Boot, assists king, best bargain, biggest flop and the winter splash all get their moment at the ceremony — and the stats stay up as long as you want them.</div></div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
@@ -360,6 +366,7 @@ function restoreFromSnapshot(snap){
   if(snap.serverV && snap.serverV!==VERSION) toast('⚠️ Server '+snap.serverV+' / client '+VERSION+' — redeploy ALL files');
   if(snap.reveal){ renderMatch(snap.reveal); return; }
   if(snap.winter && !snap.auction){ applyWinter(snap.winter); return; }
+  if(snap.spin){ SPIN={segments:snap.spin.segments,spun:snap.spin.spun}; if(snap.spin.spun) renderSpinWait(); else renderSpinReady(); return; }
   if(snap.pick){
     if(snap.pick.locked){
       $(`<div class="screen center"><div class="blackbox" style="width:100%"><div class="score">Locked in</div>
@@ -806,6 +813,79 @@ function tableHTML(table, title){
   ${table.map((r,i)=>`<tr class="${r.manager? (r.manager===ME.name?'me':'hu') :''}">
     <td>${i+1}</td><td>${esc(r.name)}${r.manager?`<br><span class="muted">${esc(r.manager)}${r.sacked?' · SACKED':''}</span>`:''}</td>
     <td>${r.w??'–'}</td><td>${r.d??'–'}</td><td>${r.l??'–'}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`;
+}
+
+/* ---------------- HALFTIME SPIN ---------------- */
+let SPIN=null;
+s.on('spinWheel',(p)=>{
+  const mine=p.perManager.find(x=>x.id===ME.id);
+  if(!mine){ renderSpinWait(); return; }
+  SPIN={segments:mine.segments, spun:false};
+  renderSpinReady();
+});
+s.on('spinResult',(x)=>{
+  SPINNED=SPINNED||[]; if(!SPINNED.includes(x.manager)) SPINNED.push(x.manager);
+  if(x.manager!==ME.name){ toast(`${x.manager} spun ${x.player} (${x.rating})`); const el=document.getElementById('spunlist'); if(el) el.innerHTML=SPINNED.map(n=>`<div>🎡 ${esc(n)} has spun</div>`).join(''); }
+});
+let SPINNED=[];
+function renderSpinReady(){
+  $(`<div class="screen center" style="min-height:100dvh;justify-content:center">
+    <div class="eyebrow" style="margin-bottom:10px">Halftime</div>
+    <h1 style="font-size:clamp(46px,9vw,72px);font-style:italic;font-weight:900;color:#F4FF00;text-shadow:0 0 18px rgba(244,255,0,.6)">READY TO SPIN?</h1>
+    <div class="muted" style="margin:14px 0 26px;font-size:16px">One free player. Your wheel is unique —<br>and the league table decides your odds…</div>
+    <button class="primary bigbtn" style="max-width:340px" onclick="renderSpinWheel()">Take me to my wheel ▸</button>
+  </div>`);
+}
+function renderSpinWheel(){
+  if(!SPIN) return;
+  const segs=SPIN.segments, n=segs.length, C=160, R=150;
+  const slice=(i)=>{
+    const a0=(i/n)*2*Math.PI-Math.PI/2, a1=((i+1)/n)*2*Math.PI-Math.PI/2;
+    const x0=C+R*Math.cos(a0), y0=C+R*Math.sin(a0), x1=C+R*Math.cos(a1), y1=C+R*Math.sin(a1);
+    const cls=segs[i].kind==='legend'?'segLegend':segs[i].kind==='wonder'?'segWonder':('seg'+segs[i].pos);
+    const mid=(a0+a1)/2, tx=C+R*0.62*Math.cos(mid), ty=C+R*0.62*Math.sin(mid);
+    const last=segs[i].name.split(' ').slice(-1)[0].toUpperCase();
+    return `<path d="M${C},${C} L${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 0,1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" class="${cls}" stroke="#06060B" stroke-width="2"/>
+      <text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" fill="#fff" font-size="13" font-weight="800" text-anchor="middle" transform="rotate(${(mid*180/Math.PI+90).toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)})">${esc(last)} ${segs[i].rating}</text>`;
+  };
+  $(`<div class="screen center" style="min-height:100dvh;justify-content:center">
+    <div class="eyebrow">Halftime spin</div>
+    <div class="wheelWrap"><div class="wheelPtr">🔻</div>
+      <svg id="wheelSvg" viewBox="0 0 320 320">
+        <defs><linearGradient id="wgrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#FF3D8A"/><stop offset="35%" stop-color="#FFE34D"/><stop offset="70%" stop-color="#3DDC84"/><stop offset="100%" stop-color="#9B5CFF"/>
+        </linearGradient></defs>
+        <g id="wheelG" style="transform-origin:160px 160px">${segs.map((_,i)=>slice(i)).join('')}</g>
+        <circle cx="160" cy="160" r="28" fill="#06060B" stroke="rgba(255,255,255,.3)" stroke-width="2"/>
+      </svg>
+    </div>
+    <button id="spinBtn" class="primary bigbtn" style="max-width:300px" onclick="doSpin()">SPIN 🎡</button>
+  </div>`);
+}
+function doSpin(){
+  const b=document.getElementById('spinBtn'); if(b){ b.disabled=true; b.style.opacity='.5'; }
+  s.emit('doSpin',(r)=>{
+    if(r&&r.error){ toast(r.error); if(b){b.disabled=false;b.style.opacity='1';} return; }
+    const n=SPIN.segments.length;
+    const segAngle=360/n, target=360*5 - (r.index*segAngle + segAngle/2);
+    const gEl=document.querySelector('#wheelSvg g#wheelG'); if(gEl) gEl.style.transform=`rotate(${target}deg)`;
+    const won=SPIN.segments[r.index];
+    setTimeout(()=>{
+      confetti();
+      $(`<div class="screen center" style="min-height:100dvh;justify-content:center">
+        <div class="eyebrow" style="margin-bottom:12px;font-size:20px;color:${won.kind==='legend'?'#FFD75E':won.kind==='wonder'?'#F4FF00':'var(--pink)'};text-shadow:0 0 14px ${won.kind==='legend'?'rgba(255,215,94,.6)':won.kind==='wonder'?'rgba(244,255,0,.5)':'rgba(255,46,126,.5)'}">${won.kind==='legend'?'👑 A LEGEND':won.kind==='wonder'?'⭐ A WONDERKID':'YOUR PRIZE'}</div>
+        <div class="revealCard" style="--fade:520ms;width:200px">${cardHTML({name:won.name,pos:won.pos,hint:String(won.rating),legend:won.kind==='legend',wonderkid:won.kind==='wonder'})}</div>
+        <div class="score" style="font-size:30px;margin-top:16px;opacity:0;animation:cerIn .5s .7s forwards">${esc(won.name)} joins your squad!</div>
+        <button class="primary bigbtn" style="max-width:320px;margin-top:22px" onclick="renderSpinWait()">Continue ▸</button>
+      </div>`);
+    },4400);
+  });
+}
+function renderSpinWait(){
+  $(`<div class="screen center" style="min-height:100dvh;justify-content:center">
+    <div class="score" style="font-size:28px">Waiting for the other managers…</div>
+    <div class="panel" id="spunlist" style="margin-top:16px;text-align:left;font-size:17px">${SPINNED.map(n=>`<div>🎡 ${esc(n)} has spun</div>`).join('')}</div>
+  </div>`);
 }
 
 /* ---------------- WINTER ---------------- */

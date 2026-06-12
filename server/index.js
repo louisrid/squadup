@@ -149,6 +149,10 @@ io.on('connection', (socket) => {
     const g = current();
     cb && cb(g ? g.suggestXI(joined.managerId) : { error: 'No game' });
   });
+  socket.on('doSpin', (cb) => {
+    const g = current();
+    cb && cb(g ? g.doSpin(joined.managerId) : { error: 'No game' });
+  });
   socket.on('startWinterAuction', (cb) => {
     const g = current();
     cb && cb(g ? g.hostStartWinterAuction(joined.managerId) : { error: 'No game' });

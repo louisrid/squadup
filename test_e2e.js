@@ -1,6 +1,6 @@
 // E2E: 4 bot managers play a complete game over real websockets.
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3152';
+const URL = 'http://localhost:3154';
 
 const NAMES = ['Louis', 'Tom', 'Ben', 'Jack'];
 const log = (...a) => console.log(...a);
@@ -46,6 +46,7 @@ function makeBot(name, i) {
       });
     } // thin squads fall to the server's auto-pick timeout — also a valid path
   });
+  s.on('spinWheel',()=>{ setTimeout(()=>s.emit('doSpin',()=>{}),60); });
   s.on('winter', (w) => {
     bot.seen.winter = w;
     const me = (w.budgets || []).find((b) => b.manager === name);

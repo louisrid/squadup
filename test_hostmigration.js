@@ -1,6 +1,6 @@
 // host disconnects mid-auction -> host migrates, game continues to completion
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3152';
+const URL = 'http://localhost:3154';
 const connected = (s) => s.connected ? Promise.resolve() : new Promise((r) => s.once('connect', r));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let fail = [];
@@ -22,7 +22,8 @@ const assert = (c, m) => { if (!c) { fail.push(m); console.log('FAIL:', m); } };
       for (const p of avail) { if (chosen.length >= 5) break; if (p.pos !== 'GK' && !chosen.includes(p)) chosen.push(p); }
       s.emit('submitStarters', { formation: f, starters: chosen.map((x) => x.name) }, () => {});
     });
-    s.on('winter', (w) => { setTimeout(() => s.emit('startWinterAuction', () => {}), 150); return setTimeout(() => {
+    s.on('spinWheel',()=>{ setTimeout(()=>s.emit('doSpin',()=>{}),60); });
+  s.on('winter', (w) => { setTimeout(() => s.emit('startWinterAuction', () => {}), 150); return setTimeout(() => {
       const mine = w.review.find((r) => r.id === bot.managerId);
       if (!mine) return;
       const f = 'FREE';

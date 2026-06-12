@@ -536,7 +536,7 @@ class Game {
     };
     this.phase = 'firstHalf';
     this.io.emit('phase', { phase: 'firstHalf' });
-    this.revealHalf(0, 11, () => this.startWinter());
+    this.revealHalf(0, 11, () => this.startSpin());
   }
 
   teamStrengthNow(t, md) {
@@ -675,6 +675,79 @@ class Game {
     R.i++;
     this.revealStep();
     return { ok: true };
+  }
+
+  // ---------- halftime spin: every manager spins a unique wheel ----------
+  startSpin() {
+    this.phase = 'spin';
+    const table = this.table();
+    const reserved = new Set();
+    this.wheels = {};
+    this.pendingSpins = new Set(this.activeManagers().map((m) => m.id));
+    for (const m of this.activeManagers()) {
+      const pos = table.findIndex((r) => r.manager === m.name) + 1;
+      this.wheels[m.id] = this.buildWheel(m, pos, reserved);
+    }
+    this.io.emit('spinWheel', {
+      perManager: this.activeManagers().map((m) => ({ id: m.id, segments: this.wheels[m.id].segments })),
+    });
+  }
+
+  buildWheel(m, pos, reserved) {
+    // odds + fallback tier by league position: bottom half / mid table / top two
+    const cfg = pos > 6 ? { pSpecial: 0.4, lo: 88, hi: 94 }
+            : pos > 2 ? { pSpecial: 0.2, lo: 86, hi: 90 }
+                      : { pSpecial: 0.05, lo: 85, hi: 88 };
+    const free = (p) => !this.owned(p.name) && !reserved.has(p.name);
+    const legends = E.shuffle(LEGENDS.filter((l) => l.pos !== 'GK' && free(l))).slice(0, 1)
+      .map((l) => ({ name: l.name, pos: l.pos, rating: 96, kind: 'legend', base: { ...l, rating: 96 } }));
+    const wks = E.shuffle(ALL_PLAYERS.filter((p) => p.wonderkid && free(p))).slice(0, 1)
+      .map((p) => { const boosted = Math.min(94, p.rating + 6 + Math.floor(Math.random() * 6));
+        return { name: p.name, pos: p.pos, rating: boosted, kind: 'wonder', base: { ...p, rating: boosted } }; });
+    const specials = [...legends, ...wks];
+    const normals = E.shuffle(ALL_PLAYERS.filter((p) => !p.wonderkid && p.pos !== 'GK' && p.rating >= cfg.lo && p.rating <= cfg.hi && free(p)))
+      .slice(0, 8 - specials.length)
+      .map((p) => ({ name: p.name, pos: p.pos, rating: p.rating, kind: 'normal', base: { ...p } }));
+    for (const s of [...specials, ...normals]) reserved.add(s.name);
+    return { segments: E.shuffle([...specials, ...normals]), pSpecial: cfg.pSpecial };
+  }
+
+  doSpin(managerId) {
+    if (this.phase !== 'spin') return { error: 'No spin right now' };
+    if (!this.pendingSpins || !this.pendingSpins.has(managerId)) return { error: 'Already spun' };
+    const m = this.managers.find((x) => x.id === managerId);
+    const wheel = this.wheels[managerId];
+    if (!m || !wheel) return { error: 'No wheel' };
+    const segs = wheel.segments;
+    const specialIdx = segs.map((s, i) => (s.kind !== 'normal' ? i : -1)).filter((i) => i >= 0);
+    const normalIdx = segs.map((s, i) => (s.kind === 'normal' ? i : -1)).filter((i) => i >= 0);
+    let idx;
+    if (specialIdx.length && Math.random() < wheel.pSpecial) idx = E.pick(specialIdx);
+    else idx = normalIdx.length ? E.pick(normalIdx) : E.pick(specialIdx);
+    const won = segs[idx];
+    m.squad.push({ ...won.base, seasonMod: 0 });
+    m.signings.push({ player: won.name, price: 0, window: 'wheel' });
+    this.pendingSpins.delete(managerId);
+    this.io.emit('spinResult', { manager: m.name, player: won.name, pos: won.pos, rating: won.rating, kind: won.kind, index: idx });
+    if (this.pendingSpins.size === 0) setTimeout(() => this.startWinter(), FAST ? 50 : 3500);
+    else this.autoSpinIfOnlyGhosts();
+    return { ok: true, index: idx };
+  }
+
+  autoSpinIfOnlyGhosts() {
+    if (this.phase !== 'spin' || !this.pendingSpins || this.pendingSpins.size === 0) return;
+    const anyConnected = [...this.pendingSpins].some((id) => {
+      const m = this.managers.find((x) => x.id === id);
+      return m && m.connected;
+    });
+    if (!anyConnected) {
+      clearTimeout(this.timers.ghostSpin);
+      this.timers.ghostSpin = setTimeout(() => {
+        if (this.phase !== 'spin' || !this.pendingSpins) return;
+        const still = ![...this.pendingSpins].some((id) => { const m = this.managers.find((x) => x.id === id); return m && m.connected; });
+        if (still) for (const id of [...this.pendingSpins]) this.doSpin(id);
+      }, FAST ? 250 : 60000);
+    }
   }
 
   // ---------- winter: report + winter market auction + second-half pick ----------
@@ -972,6 +1045,7 @@ class Game {
       }
     }
     if (!connected && (this.phase === 'setup' || this.phase === 'winter')) this.autoPickIfOnlyGhosts();
+    if (!connected && this.phase === 'spin') this.autoSpinIfOnlyGhosts();
     const inAuction = this.phase === 'auction';
     if (!connected && inAuction && !m.sacked && !this.hostPaused) {
       if (!this.paused) { this.paused = true; this.pausedAt = Date.now(); }
@@ -1038,6 +1112,10 @@ class Game {
       table: this.season ? this.table() : null,
       winter: this.phase === 'winter' ? this.winterPayload() : null,
       reveal: this.reveal && this.reveal.waiting ? this.reveal.last : null,
+      spin: (this.phase === 'spin' && this.wheels && this.wheels[forId]) ? {
+        segments: this.wheels[forId].segments.map((s) => ({ name: s.name, pos: s.pos, rating: s.rating, kind: s.kind })),
+        spun: this.pendingSpins ? !this.pendingSpins.has(forId) : true,
+      } : null,
       pick: (this.phase === 'setup' && this.pendingStarters) ? (() => {
         const me = this.managers.find((x) => x.id === forId);
         if (!me || me.sacked) return null;
@@ -1047,7 +1125,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v2.6',
+      serverV: 'v2.7',
       paused: this.paused,
     };
   }
