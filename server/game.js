@@ -24,7 +24,7 @@ const LEGENDS = [
 
 const AI_CLUB_NAMES = [
   'Redbridge United', 'Harton Town', 'Mill Lane FC', 'Eastvale Rovers',
-  'Kings Heath FC', 'Brockwell City', 'Norfield Athletic', 'Saltway Wanderers',
+  'Kings Heath FC', 'Donkey United', 'Norfield Athletic', 'Saltway Wanderers',
   'Dunmore FC', 'Westcliff Albion',
 ];
 
@@ -131,18 +131,18 @@ class Game {
   // ---------- auction pool (FC26 ONLY) ----------
   buildAuctionPool() {
     const n = this.managers.length;
-    // 7 lots per manager, ALL FC26 83+. Tier mix: n stars (88+), n good (86-87), 5n mid (83-85).
+    // 7 lots per manager. Tier mix BY TRUE RATING: n stars (88+), n good (86-87), 5n mid (82-85).
     // EXACT position quotas so every squad need is structurally covered:
     const posQuota = { GK: n + 1, DEF: 2 * n, MID: 2 * n, ATT: 2 * n - 1 }; // sums to 7n
     const tiers = [
       { lo: 88, hi: 99, count: n },
       { lo: 86, hi: 87, count: n },
-      { lo: 83, hi: 85, count: 5 * n },
+      { lo: 82, hi: 85, count: 5 * n },
     ];
     const pool = [];
     const inPool = new Set();
     for (const t of tiers) {
-      const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.fc26 >= t.lo && p.fc26 <= t.hi && !inPool.has(p.name)));
+      const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.rating >= t.lo && p.rating <= t.hi && !inPool.has(p.name)));
       for (const p of cand.slice(0, t.count)) { pool.push(p); inPool.add(p.name); }
     }
     // enforce exact position quotas via same-tier swaps (total quota == pool size,
@@ -154,17 +154,24 @@ class Game {
         const victims = pool.filter((v) => v.pos !== pos && count(v.pos) > posQuota[v.pos]);
         if (!victims.length) break;
         const victim = E.pick(victims);
-        const tier = tiers.find((t) => victim.fc26 >= t.lo && victim.fc26 <= t.hi);
-        let repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.fc26 >= tier.lo && p.fc26 <= tier.hi && !inPool.has(p.name)))[0];
-        if (!repl) repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.fc26 >= 83 && !inPool.has(p.name)))[0];
+        const tier = tiers.find((t) => victim.rating >= t.lo && victim.rating <= t.hi);
+        let repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= tier.lo && p.rating <= tier.hi && !inPool.has(p.name)))[0];
+        if (!repl) repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= 82 && !inPool.has(p.name)))[0];
         if (!repl) break;
         inPool.delete(victim.name); inPool.add(repl.name);
         pool[pool.indexOf(victim)] = repl;
       }
     }
-    // guarantee 1-2 wonderkids in the window
-    const wantWk = 1 + (Math.random() < 0.5 ? 1 : 0);
+    // exactly 1 wonderkid 60% of the time, 2 otherwise — never more
+    const wantWk = Math.random() < 0.6 ? 1 : 2;
     let haveWk = pool.filter((p) => p.wonderkid).length;
+    while (haveWk > wantWk) {
+      const wk = pool.find((p) => p.wonderkid);
+      const swap = E.shuffle(ALL_PLAYERS.filter((p) => !p.wonderkid && p.pos === wk.pos && p.rating >= 82 && p.rating <= 85 && !inPool.has(p.name) && !this.owned(p.name)))[0];
+      if (!swap) break;
+      inPool.delete(wk.name); inPool.add(swap.name);
+      pool[pool.indexOf(wk)] = swap; haveWk--;
+    }
     if (haveWk < wantWk) {
       const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.wonderkid && !inPool.has(p.name) && !this.owned(p.name)));
       for (const wk of cand) {
@@ -176,10 +183,17 @@ class Game {
         haveWk++;
       }
     }
-    // first lot always FC26 <= 85; first two lots are the cheapest names
-    pool.sort((a, b) => a.fc26 - b.fc26);
-    const openers = pool.slice(0, 2);
-    return [...openers, ...E.shuffle(pool.slice(2))];
+    // first two lots: never wonderkids, rating ≤ 85
+    pool.sort((a, b) => a.rating - b.rating);
+    const openers = pool.filter((p) => !p.wonderkid && p.rating <= 85).slice(0, 2);
+    let rest = E.shuffle(pool.filter((p) => !openers.includes(p)));
+    for (let i = 1; i < rest.length; i++) {
+      if (rest[i].wonderkid && rest[i - 1].wonderkid) {
+        const j = rest.findIndex((p, k) => k > i && !p.wonderkid);
+        if (j > 0) { const t = rest[i]; rest[i] = rest[j]; rest[j] = t; }
+      }
+    }
+    return [...openers, ...rest];
   }
 
   // ---------- auction flow ----------
@@ -264,17 +278,19 @@ class Game {
     a.highBid = 0;
     a.highBidder = null;
     a.outs = new Set();
+    a.revealUntil = Date.now() + this.sp(TIMINGS.LOT_REVEAL_MS);
     this.io.emit('lotReveal', {
       index: a.index, total: a.queue.length,
-      player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
+      player: { name: a.current.name, pos: a.current.pos, hint: a.window === 'winter' ? String(a.current.rating) : this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
       revealMs: this.sp(TIMINGS.LOT_REVEAL_MS),
     });
     setTimeout(() => {
       if (!a.current) return;
       a.deadline = Date.now() + this.sp(TIMINGS.AUCTION_START_MS);
+      a.revealUntil = 0;
       this.io.emit('lot', {
         index: a.index, total: a.queue.length,
-        player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
+        player: { name: a.current.name, pos: a.current.pos, hint: a.window === 'winter' ? String(a.current.rating) : this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
         deadline: a.deadline,
       });
       this.armLotTimer();
@@ -503,7 +519,11 @@ class Game {
     const humanTeams = this.managers.map((m, i) => ({ type: 'human', mIdx: i, name: m.club }));
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
-    const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => ({ type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 2.2, defence: s.defence - 2.2 }));
+    const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => {
+      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 2.2, defence: s.defence - 2.2 };
+      if (t.name === 'Eastvale Rovers') { t.attack += 2.6; t.defence += 2.6; t.elite = true; }
+      return t;
+    });
     this.season = {
       teams: [...humanTeams, ...ais],
       fixtures: E.buildFixtures(12),
@@ -543,7 +563,19 @@ class Game {
     for (const [a, b] of this.season.fixtures[md]) {
       const TA = this.season.teams[a], TB = this.season.teams[b];
       const suspended = this.suspendedFor(md, TA, TB);
-      const r = E.playMatch(this.teamStrengthNow(TA, md), this.teamStrengthNow(TB, md));
+      let r = E.playMatch(this.teamStrengthNow(TA, md), this.teamStrengthNow(TB, md));
+      // Donkey United: loses 85%, but 15% of the time they DEMOLISH whoever they play
+      const donkey = TA.name === 'Donkey United' ? 'A' : TB.name === 'Donkey United' ? 'B' : null;
+      if (donkey) {
+        if (Math.random() < 0.15) {
+          const big = 7 + Math.floor(Math.random() * 3), small = Math.floor(Math.random() * 2);
+          r = donkey === 'A' ? { ...r, goalsA: big, goalsB: small } : { ...r, goalsA: small, goalsB: big };
+        } else {
+          const win = 1 + Math.floor(Math.random() * 3), lose = Math.floor(Math.random() * 2);
+          r = donkey === 'A' ? { ...r, goalsA: Math.min(r.goalsA, lose), goalsB: Math.max(r.goalsB, win) }
+                             : { ...r, goalsB: Math.min(r.goalsB, lose), goalsA: Math.max(r.goalsA, win) };
+        }
+      }
       let detail = null;
       const sA = TA.type === 'human' ? this.managers[TA.mIdx].starters : null;
       const sB = TB.type === 'human' ? this.managers[TB.mIdx].starters : null;
@@ -808,8 +840,8 @@ class Game {
       MID: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'MID', lo))),
       ATT: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'ATT', lo))),
     });
-    const byPos = fresh(86);
-    const backup = fresh(85);
+    const byPos = fresh(87);
+    const backup = fresh(86);
     const rest = [];
     const order = ['DEF', 'MID', 'ATT'];
     let i = 0, guard = 0;
@@ -818,7 +850,17 @@ class Game {
       const p = byPos[pos].shift() || backup[pos].find((x) => !rest.includes(x));
       if (p && !rest.includes(p)) rest.push(p);
     }
-    return E.shuffle([...rest, ...legends]);
+    // legends: never lots 1-3, never back-to-back
+    const seq = E.shuffle(rest);
+    const used = [];
+    for (const l of legends) {
+      let i, tries = 0;
+      do { i = 3 + Math.floor(Math.random() * Math.max(1, seq.length - 2)); tries++; }
+      while (tries < 100 && used.some((u) => Math.abs(u - i) <= 1));
+      used.push(i);
+      seq.splice(Math.min(i, seq.length), 0, l);
+    }
+    return seq;
   }
 
 
@@ -833,8 +875,8 @@ class Game {
       for (const t of this.season.teams) {
         if (t.type === 'ai' && !t.wasHuman) {
           const base = avg + E.gauss() * 1.1 - 2.2;
-          t.attack = base + E.gauss() * 0.6;
-          t.defence = base + E.gauss() * 0.6;
+          t.attack = base + E.gauss() * 0.6 + (t.elite ? 2.6 : 0);
+          t.defence = base + E.gauss() * 0.6 + (t.elite ? 2.6 : 0);
         }
       }
     }
@@ -929,9 +971,8 @@ class Game {
     }
     if (!connected && (this.phase === 'setup' || this.phase === 'winter')) this.autoPickIfOnlyGhosts();
     const inAuction = this.phase === 'auction';
-    if (!connected && inAuction && !m.sacked) {
-      this.paused = true;
-      this.pausedAt = Date.now();
+    if (!connected && inAuction && !m.sacked && !this.hostPaused) {
+      if (!this.paused) { this.paused = true; this.pausedAt = Date.now(); }
       this.io.emit('paused', { manager: m.name, maxMs: TIMINGS.DISCONNECT_PAUSE_MS });
       clearTimeout(this.timers.lot);
       clearTimeout(this.timers.pause);
@@ -961,7 +1002,7 @@ class Game {
   }
 
   resume() {
-    if (!this.paused) return;
+    if (!this.paused || this.hostPaused) return; // only hostResume can undo a host pause
     clearTimeout(this.timers.pause);
     const pausedFor = Date.now() - this.pausedAt;
     this.paused = false;
@@ -989,6 +1030,7 @@ class Game {
         highBidder: this.auction.highBidder ? (this.managers.find((x) => x.id === this.auction.highBidder) || {}).name : null,
         deadline: this.auction.deadline,
         index: this.auction.index, total: this.auction.queue.length,
+        revealLeft: Math.max(0, (this.auction.revealUntil || 0) - Date.now()),
       } : null,
       table: this.season ? this.table() : null,
       winter: this.phase === 'winter' ? this.winterPayload() : null,
@@ -1002,7 +1044,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v2.3',
+      serverV: 'v2.4',
       paused: this.paused,
     };
   }

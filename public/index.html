@@ -214,7 +214,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v2.3';
+const VERSION = 'v2.4';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -341,10 +341,12 @@ function restoreFromSnapshot(snap){
     A={ index:snap.auction.index, total:snap.auction.total, player:snap.auction.player,
         highBid:snap.auction.highBid, highBidder:snap.auction.highBidder,
         deadline:snap.auction.deadline, start:16000 };
-    renderLot();
+    if(snap.auction.revealLeft>500){ s_lotReveal({index:A.index,total:A.total,player:A.player,revealMs:snap.auction.revealLeft}); }
+    else renderLot();
   } else if(snap.phase!=='lobby'){
     $(`<div class="screen center"><div class="score" style="font-size:30px">You're back in</div>
-    <div class="muted" style="margin-top:8px">Hang tight for the next event…</div></div>`);
+    <div class="muted" style="margin-top:8px">Hang tight for the next event…</div>
+    <button class="bigbtn" style="margin-top:22px;max-width:300px" onclick="location.reload()">‹ Back to home</button></div>`);
   }
 }
 function copyCode(c){
@@ -397,9 +399,9 @@ s.on('phase',(p)=>{
   if(p.phase==='auction') MYSQUAD.length=0;
   if(p.phase==='auction'){
     const winter = p.window==='winter';
-    $(`<div class="screen center" style="min-height:92vh;position:relative;overflow:hidden">
+    $(`<div class="screen center" style="min-height:100dvh;position:relative;overflow:hidden;justify-content:center;padding:0 18px">
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;width:100%">
-    <h1 style="font-size:clamp(52px,9vw,84px);font-style:italic;font-weight:900;color:${winter?'#C9A227':'var(--pink)'};line-height:1.05;text-shadow:0 6px 36px ${winter?'rgba(201,162,39,.45)':'rgba(255,46,126,.4)'}">${winter?'WINTER<br>MARKET!':'BID TO BUILD<br>YOUR SQUAD!'}</h1>
+    <h1 style="font-size:clamp(52px,9vw,84px);font-style:italic;font-weight:900;color:${winter?'#F4FF00':'var(--pink)'};line-height:1.02;text-shadow:0 0 18px ${winter?'rgba(244,255,0,.65)':'rgba(255,46,126,.7)'},0 0 60px ${winter?'rgba(244,255,0,.35)':'rgba(255,46,126,.4)'}">${winter?'WINTER<br>MARKET!':'BID TO BUILD<br>YOUR SQUAD!'}</h1>
     ${winter
       ?`<div class="muted" style="margin-top:12px;font-size:17px">All 86+ rated · 1-2 LEGENDS in the pool<br>£50m fresh in every pocket</div>`
       :`<div class="muted" style="margin-top:12px;font-size:17px">£100m each · sign as many as you can afford<br>Only rule: one keeper</div>`}
@@ -466,7 +468,8 @@ s.on('awaitNext',(x)=>{
   if(el) el.innerHTML=inner;
   else $(`<div class="screen center">${inner}<div id="budgets" class="budgets" style="margin-top:18px"></div></div>`);
 });
-s.on('lotReveal',(l)=>{ BIDAMT=null;
+s.on('lotReveal',(l)=>s_lotReveal(l));
+function s_lotReveal(l){ BIDAMT=null;
   clearInterval(timerInt);
   const base = l.revealMs||2800;
   const fadeMs = Math.round(base*0.42);            // see the player first (~1.85s)
@@ -482,7 +485,7 @@ s.on('lotReveal',(l)=>{ BIDAMT=null;
       if(w) w.innerHTML=`<div class="cd" style="animation-duration:${Math.max(280,Math.round(unit*0.9))}ms">${n}</div>`;
     }, fadeMs + i*unit);
   });
-});
+}
 let hostPausedLocal=false;
 let SPEED=2;
 function renderLot(){
@@ -494,7 +497,7 @@ function renderLot(){
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
-  <div class="auctionWrap" style="justify-content:center;min-height:calc(100dvh - 310px)">
+  <div class="auctionWrap" style="justify-content:center;min-height:calc(100dvh - 360px);padding-top:0;gap:18px">
   <div class="lotRow" style="align-items:center;justify-content:center;gap:20px">
     <div style="width:194px">${cardHTML(A.player)}</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
@@ -679,18 +682,26 @@ function renderPick(){
     onclick="submitPick()">Ready up (${filled}/5)</button>`);
 }
 function autoXI(){
-  s.emit('suggestXI',(r)=>{
-    if(r&&r.error) return toast(r.error);
-    const build=(lookup)=>{
-      const ps=r.starters.map(lookup).filter(Boolean);
-      const d=ps.filter(p=>p.pos==='DEF').length, m2=ps.filter(p=>p.pos==='MID').length, a=ps.filter(p=>p.pos==='ATT').length;
-      CURFORM=[d,m2,a];
-      const slots=slotsFor(d,m2,a);
-      for(const p2 of ps){ const sl=slots.find(x=>x.pos===p2.pos&&!x.player); if(sl){ sl.player=p2.name; sl.ppos=p2.pos; } }
-      return slots;
-    };
-    if(pickState){ pickState.slots=build(n=>pickState.squad.find(q=>q.name===n)); renderPick(); }
-  });
+  if(!pickState) return;
+  const avail=pickState.squad.filter(p=>!p.injured);
+  const byPos=(pos)=>avail.filter(p=>p.pos===pos).sort((a,b)=>(b.rtg||0)-(a.rtg||0));
+  const tryFill=(d,m2,a)=>{
+    const need={GK:1,DEF:d,MID:m2,ATT:a};
+    const chosen=[];
+    for(const pos of ['GK','DEF','MID','ATT']){
+      const list=byPos(pos);
+      if(list.length<need[pos]) return null;
+      chosen.push(...list.slice(0,need[pos]));
+    }
+    return chosen;
+  };
+  let shape=CURFORM, picks=tryFill(...CURFORM);
+  if(!picks){ for(const f of FORMSETS){ picks=tryFill(...f); if(picks){ shape=f; break; } } }
+  if(!picks) return toast('Not enough players for any shape');
+  CURFORM=shape;
+  const slots=slotsFor(...shape);
+  for(const p2 of picks){ const sl=slots.find(x=>x.pos===p2.pos&&!x.player); if(sl){ sl.player=p2.name; sl.ppos=p2.pos; } }
+  pickState.slots=slots; renderPick();
 }
 function pickForm(d,m2,a){
   CURFORM=[d,m2,a];
@@ -733,7 +744,7 @@ function renderMatch(m){
     ${pos?`<div class="muted" style="font-size:13px;letter-spacing:.12em">#${pos} IN THE LEAGUE</div>`:''}
     <div class="score" style="font-size:34px">${esc(name)}${mgr?` <span style="font-size:20px;color:var(--muted)">(${esc(mgr)})</span>`:''}</div>
   </div>`;
-  $(`<div class="screen" style="justify-content:center">
+  $(`<div class="screen" style="justify-content:flex-start;padding-top:30px">
     <div class="center">
       <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
@@ -804,8 +815,7 @@ function renderWinterReport(){
   };
   const mine0=W.review.find(r=>r.manager===ME.name);
   const tips=(mine0&&mine0.tips)||[];
-  $(`<div style="padding-top:14px"></div>
-  <div class="eyebrow">Winter break</div>
+  $(`<div class="eyebrow" style="padding-top:4px">Winter break</div>
   <h1 style="margin-bottom:6px">The window is open</h1>
   <div class="blackbox" style="padding:14px;margin-bottom:10px;text-align:center">
     <div class="muted" style="font-size:14px">War chest topped up</div>
@@ -826,7 +836,7 @@ function renderWinterReport(){
   ${tips.length?`<h2 style="margin:14px 0 4px">📋 Assistant's notes</h2>
   <div class="panel" style="border-color:#4FC3F7">${tips.map(t=>`<div style="font-size:16px;line-height:1.45;padding:6px 0">💬 ${esc(t)}</div>`).join('')}</div>`:''}
   <div class="blackbox" style="padding:14px;margin:14px 0;text-align:center">
-    <div style="font-family:var(--disp);font-weight:800;font-size:21px;color:var(--pink)">WINTER MARKET</div>
+    <div style="font-family:var(--disp);font-weight:800;font-size:24px;color:#F4FF00;text-shadow:0 0 14px rgba(244,255,0,.6)">WINTER MARKET</div>
     <div class="muted" style="font-size:15px;margin-top:4px">3 players per manager hit the auction block — bigger names, and 1–2 LEGENDS 👑</div>
   </div>
   ${ME.isHost && !ME.sacked
@@ -879,7 +889,8 @@ function showFinal(){
     ${a.winterSplash?`<div class="award"><b>💰 Winter splash</b><span>${esc(a.winterSplash.player)} — £${a.winterSplash.price}m (${esc(a.winterSplash.manager)})</span></div>`:''}
   </div>
   ${f.stats?statPanels(f.stats):''}
-  <button class="primary" style="width:100%;margin-top:14px" onclick="location.reload()">Run it back</button>`);
+  <button class="primary" style="width:100%;margin-top:14px" onclick="location.reload()">‹ Back to home</button>
+  <div class="muted center" style="margin-top:10px;font-size:14px">Take your time — the stats stay here until you leave.</div>`);
 }
 
 /* ---------------- CONNECTION ---------------- */

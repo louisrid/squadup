@@ -6,7 +6,7 @@ const { Game, mid } = require('./game');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' } });
+const io = new Server(server, { cors: { origin: '*' }, pingTimeout: 60000, pingInterval: 20000 });
 
 app.use(express.static(path.join(__dirname, '..', 'public'), {
   setHeaders: (res, p) => { if (p.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache, must-revalidate'); },

@@ -3,7 +3,7 @@
 
 const PARAMS = {
   BASE_LAMBDA: 1.35,
-  K: 0.075,
+  K: 0.085,
   EVENT_RATE: 1 / 12,
   EVENT_SIZE: 5,
   FORM_MOD: 2.0,
@@ -206,14 +206,9 @@ function winterGrowth(p, form) {
   const gap = pot - p.rating;
   let d;
   if (p.wonderkid) {
-    // 70%: the leap — lands at 86 minimum, can go way higher. 30%: a smaller step. Never declines.
-    if (gap <= 0) d = 0;
-    else if (Math.random() < 0.7) {
-      const target = Math.min(pot, Math.max(86, p.rating + 5 + Math.floor(Math.random() * 5)));
-      d = Math.max(1, target - p.rating);
-    } else {
-      d = Math.min(gap, 2 + Math.floor(Math.random() * 3));
-    }
+    // uniform +6..+11, hard ceiling 94 overall, never down
+    d = 6 + Math.floor(Math.random() * 6);
+    d = Math.max(0, Math.min(d, 94 - p.rating));
   } else if (p.old || gap <= -1) {
     // old: usually fade 1-2, but proven class can still tick up 1-2
     const r = Math.random();
