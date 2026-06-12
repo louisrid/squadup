@@ -224,6 +224,7 @@ class Game {
   }
 
   nextLot() {
+    if (this.paused) return; // nothing settles while paused — resume re-arms the clock
     clearTimeout(this.timers.lot);
     const a = this.auction;
     if (a.current) {
@@ -265,6 +266,7 @@ class Game {
 
   hostNextLot(managerId) {
     if (managerId !== this.hostId) return { error: 'Host only' };
+    if (this.paused) return { error: 'Auction is paused' };
     const a = this.auction;
     if (!a || a.current) return { error: 'Lot already live' };
     if (this.phase !== 'auction') return { error: 'No auction' };
@@ -989,6 +991,7 @@ class Game {
     this.pausedAt = Date.now();
     this.hostPaused = true;
     clearTimeout(this.timers.lot);
+    clearTimeout(this.timers.pause); // a pending auto-resume can never undo a host pause
     this.io.emit('paused', { manager: 'Host', byHost: true });
     return { ok: true };
   }
@@ -1044,7 +1047,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v2.4',
+      serverV: 'v2.6',
       paused: this.paused,
     };
   }

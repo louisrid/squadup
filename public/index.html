@@ -15,8 +15,11 @@
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:500;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 .muted{color:var(--muted)!important;font-weight:600}
+button{font-weight:700}
+th{font-weight:800}
+input,td{font-weight:600}
 body{max-width:500px;margin:0 auto;padding:16px 16px 150px;min-height:100vh;font-size:16px;font-weight:600}
 .screen{min-height:86vh;display:flex;flex-direction:column;justify-content:center}
 @media (min-width:700px){
@@ -214,7 +217,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v2.4';
+const VERSION = 'v2.6';
 const $ = (h) => { document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -248,6 +251,7 @@ function home(){
   <div style="margin:24px 0 30px;font-size:15px;font-weight:600;color:#A7A7B6">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
   <button class="primary bigbtn" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
+  <button class="bigbtn" style="margin-top:12px;border-color:#C9A227;color:#FFD75E;text-shadow:0 0 10px rgba(255,215,94,.4)" onclick="renderWhatsNew()">⭐ What's new!</button>
   <div id="rejoinSlot" style="width:100%"></div>
   <button style="margin-top:18px;font-size:16px;padding:11px 18px;font-weight:800;color:#fff" onclick="renderHowTo()">📖 How to play</button>
   <div class="muted" style="margin-top:18px;font-size:13px;opacity:.6">${VERSION}</div>
@@ -263,20 +267,46 @@ function home(){
     });
   }catch(e){}
 }
+function renderWhatsNew(){
+  const li=(t)=>`<div style="font-size:17px;line-height:1.5;padding:5px 0">• ${t}</div>`;
+  $(`<button class="backbtn" onclick="home()">‹</button>
+  <div class="eyebrow" style="padding-left:48px">What's new</div>
+  <h1 style="color:#FFD75E;text-shadow:0 0 16px rgba(255,215,94,.4)">⭐ The big update</h1>
+  <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">ADDED</h2>
+    ${li(`<b>The WINTER MARKET</b> — at the halfway break everyone banks <b>+£50m</b>, then a second auction fires: 3 players per manager, all <b>87+ rated</b>, plus <b>1-2 LEGENDS 👑</b> (Pelé, Maradona, Zidane… all 96 rated)`)}
+    ${li(`<b>Wonderkids</b> ⭐ — rainbow cards, young stars rated 85 or less who explode by <b>+6 to +11</b> at winter (capped 94). 1-2 guaranteed in every opening auction`)}
+    ${li(`<b>Player development</b> — everyone grows or fades at winter based on potential, age and form. Green/red boxes show every change`)}
+    ${li(`<b>Unlimited squads</b> — buy as many players as your budget allows. Only rule: one keeper`)}
+    ${li(`<b>Red cards & suspensions</b> — a sending-off means that player misses the next match. Plus <b>own goals</b> in commentary`)}
+    ${li(`<b>Real ratings revealed</b> — exact rating shown the moment a player is signed; winter market cards show exact ratings up front`)}
+    ${li(`<b>⚔️ ATTACK / 🛡️ DEFENCE</b> live team ratings while you build your five`)}
+    ${li(`<b>Assistant's notes</b> — honest squad tips at the winter break`)}
+    ${li(`<b>Ageing icons</b> — Messi, Ronaldo, Modrić, Neymar & co join the pool, rated for their age`)}
+    ${li(`<b>Donkey United</b> 🫏 — loses nearly every week, but sometimes puts SEVEN past you. And Eastvale Rovers are now the AI team to fear`)}
+    ${li(`<b>AI league positions</b> on matchdays, manager names next to clubs, a How to play guide, and 2x auction speed by default`)}
+  </div>
+  <div class="panel" style="border-color:#FF5470"><h2 style="margin-top:0;color:#FF5470">REMOVED</h2>
+    ${li(`<b>Respins</b> — the winter slot machine is gone. The winter market replaced it`)}
+    ${li(`<b>The 6-player squad cap</b> — gone. Budget is the only limit`)}
+    ${li(`<b>Time limits on picking your five</b> — take as long as you need, nobody gets auto-picked for being slow`)}
+    ${li(`<b>The wall of fake formations</b> — now 3 real shapes (2-1-1, 1-2-1, 1-1-2), every five fields at least one of each position`)}
+  </div>
+  <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
+}
 function renderHowTo(){
   $(`<button class="backbtn" onclick="home()">‹</button>
   <div class="eyebrow" style="padding-left:48px">How to play</div>
   <h1>SQUADUP in 60 seconds</h1>
   <div class="panel"><h2 style="margin-top:0">1 · The auction</h2>
-  <div style="font-size:16px;line-height:1.5">Everyone gets <b>£100m</b>. Players come up one at a time — the host paces the lots. Bid with the slider or −1/+1, each bid adds 2s to the clock. Cards show a <b>rating range</b> (if the host enabled hints) — the exact rating is only revealed once someone signs him. <b>⭐ Wonderkids</b> have gold cards: young stars with huge potential who develop fast at winter. Buy as many players as your budget allows — only rule: <b>max one keeper</b>.</div></div>
+  <div style="font-size:16px;line-height:1.5">Everyone gets <b>£100m</b>. Players come up one at a time — the host paces the lots and can pause at any moment. Bid with the slider; every bid adds 3s to the clock, but the clock can never climb past 12s. Cards show a <b>rating range</b> (if the host enabled hints) — the exact rating is revealed the moment someone signs him. <b>Wonderkids</b> have rainbow cards: young stars rated 85 or less with huge potential. Buy as many players as your budget allows — the only rule is <b>max one keeper</b>.</div></div>
   <div class="panel"><h2 style="margin-top:0">2 · Pick your five</h2>
-  <div style="font-size:16px;line-height:1.5">Field <b>1 GK + 4 outfielders</b> in a real shape: <b>2-1-1, 1-2-1 or 1-1-2</b>. You must field at least one defender, one midfielder and one attacker. The live <b>⚔️ ATTACK / 🛡️ DEFENCE</b> box shows your team's true strength as you build it — balance wins games. Some players secretly over- or under-perform their rating each half.</div></div>
+  <div style="font-size:16px;line-height:1.5">Field <b>1 GK + 4 outfielders</b> in a real shape: <b>2-1-1, 1-2-1 or 1-1-2</b> — at least one defender, one midfielder and one attacker. The live <b>⚔️ ATTACK / 🛡️ DEFENCE</b> box shows your team's true strength as you build. Auto-fill places your best players into your selected shape. There's <b>no time limit</b> — the game waits for everyone. Some players secretly over- or under-perform each half.</div></div>
   <div class="panel"><h2 style="margin-top:0">3 · The season</h2>
-  <div style="font-size:16px;line-height:1.5">22 matchdays vs your mates and AI clubs. Full commentary: goals, assists, <b>own goals</b>, and <b>red cards — a sending-off means that player is suspended for the next match</b> and your team plays it weakened. Upsets are real; demolitions happen. Bottom human far adrift at the break gets <b>sacked</b>.</div></div>
+  <div style="font-size:16px;line-height:1.5">22 matchdays vs your mates and AI clubs — watch out for <b>Eastvale Rovers</b>, and pray <b>Donkey United</b> don't have one of their days. Full commentary: goals, assists, <b>own goals</b>, and <b>red cards — a sending-off suspends that player for exactly one match</b> and your team plays it weakened. Better attacks score more, better defences concede less, but upsets and demolitions are always live. The bottom human far adrift at the break gets <b>sacked</b>.</div></div>
   <div class="panel"><h2 style="margin-top:0">4 · The winter market</h2>
-  <div style="font-size:16px;line-height:1.5">At the break everyone banks <b>+£50m</b> and every player develops toward his <b>potential</b> — young players rise, ageing stars fade, and wonderkids can make a <b>+5 or +6 leap</b>. A player in great form never declines. Then a second auction: <b>3 players per manager</b>, bigger names, plus <b>1-2 LEGENDS 👑</b> (Pelé, Maradona, Zidane…). Re-pick your five and chase the title.</div></div>
+  <div style="font-size:16px;line-height:1.5">At the break everyone banks <b>+£50m</b> and every player develops — young players rise, ageing stars fade, in-form players never decline, and <b>wonderkids jump +6 to +11</b> (capped at 94). Then the market opens: <b>3 players per manager, all 87+ rated with exact ratings shown</b>, plus <b>1-2 LEGENDS 👑</b> rated 96. Re-pick your five and chase the title.</div></div>
   <div class="panel"><h2 style="margin-top:0">5 · Glory</h2>
-  <div style="font-size:16px;line-height:1.5">Most points wins the league. Golden Boot, assists king, best bargain, biggest flop and the winter splash all get their moment at the ceremony.</div></div>
+  <div style="font-size:16px;line-height:1.5">Most points wins the league. Golden Boot, assists king, best bargain, biggest flop and the winter splash all get their moment at the ceremony — and the stats stay up as long as you want them.</div></div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
 }
 function rejoinAs(code){
@@ -321,6 +351,9 @@ function onJoined(r,name){ ME.id=r.managerId; ME.code=r.code; ME.name=name;
   try{ localStorage.setItem('squp', JSON.stringify({name, code:r.code})); }catch(e){}
   if(lastLobby && lastLobby.code===ME.code) renderLobby(lastLobby);
   if(r.snapshot) restoreFromSnapshot(r.snapshot); }
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible' && s && !s.connected) s.connect();
+});
 function restoreFromSnapshot(snap){
   if(!snap) return;
   ME.isHost = snap.hostId===ME.id;
