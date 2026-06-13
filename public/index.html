@@ -126,9 +126,10 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:6px;background:var(--surface2);outline:none;border:1px solid var(--line);padding:0;margin:0}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;border-radius:50%;background:var(--pink);border:3px solid #fff;box-shadow:0 2px 10px rgba(255,61,138,.5);cursor:pointer}
 input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--pink);border:3px solid #fff;cursor:pointer}
-.budgets{display:flex;gap:6px;overflow-x:auto;padding:2px 0;margin:4px 0}
-.bchip{flex:0 0 auto;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:15px}
-.bchip b{font-family:var(--disp);font-size:15px}
+.budgets{display:flex;gap:5px;overflow-x:auto;padding:3px 6px;margin:4px auto;justify-content:center;max-width:100%;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.budgets::-webkit-scrollbar{display:none}
+.bchip{flex:0 0 auto;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:6px 9px;font-size:12.5px;line-height:1.2;text-align:center;white-space:nowrap}
+.bchip b{font-family:var(--disp);font-size:14px}
 .bchip.me{border-color:var(--pink)}
 .bchip.done{opacity:.45}
 /* ---------- reveals ---------- */
@@ -216,7 +217,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 .award{display:flex;justify-content:space-between;gap:8px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
 .award b{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em}
 .auctionWrap{align-items:center!important;width:100%;max-width:620px;margin-left:auto!important;margin-right:auto!important}
-.budgets{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+/* budgets row handled by the .budgets rule above */
 .paused{position:fixed;top:0;left:0;right:0;background:var(--pink-deep);color:#fff;text-align:center;
   font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:7px;z-index:50}
 @media (prefers-reduced-motion: reduce){.evt{animation:none;opacity:1}}
@@ -228,7 +229,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v4.2';
+const VERSION = 'v4.6';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -396,6 +397,7 @@ function restoreFromSnapshot(snap){
   if(snap.serverV && snap.serverV!==VERSION) toast('⚠️ Server '+snap.serverV+' / client '+VERSION+' — redeploy ALL files');
   if(snap.reveal){ renderMatch(snap.reveal); return; }
   if(snap.winter && !snap.auction){ applyWinter(snap.winter); return; }
+  if(typeof paintBudgets==='function') setTimeout(paintBudgets,0);
   if(snap.awaitingNext){
     flashResult(`Lot ${snap.awaitingNext.index}/${snap.awaitingNext.total} done`,'Ready for the next player');
     const el=document.getElementById('nextslot');
@@ -478,7 +480,7 @@ s.on('phase',(p)=>{
     MYSQUAD.length=0;
     if(p.window==='winter' && W){
       const mine=(W.review||[]).find(r=>r.manager===ME.name);
-      if(mine) for(const q of mine.players) MYSQUAD.push({name:q.name,pos:q.pos});
+      if(mine) for(const q of mine.players) MYSQUAD.push({name:q.name,pos:q.pos,rtg:q.rtg,wonderkid:q.wonderkid});
     }
   }
   if(p.phase==='auction'){
@@ -607,7 +609,6 @@ function renderLot(){
     <div class="bidline" id="bidlineEl">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</div>
     <div class="bidder" id="bidderEl">${A.highBidder?esc(A.highBidder):'No bids yet'}</div>
   </div>
-  <div id="budgets" class="budgets" style="margin:2px auto 0;width:min(360px,100%)"></div>
   </div>
   <div id="budgets" class="budgets"></div>
   <div class="bidbar">
@@ -968,7 +969,7 @@ function renderSpinWait(){
 let W=null;
 function applyWinter(w){
   MATCHLIVE=false;
-  RESPINS=2;
+  RESPINS=3;
   if(w.sackings.some(x=>x.manager===ME.name)) ME.sacked=true;
   W=w;
   renderWinterReport();
@@ -993,7 +994,7 @@ function renderStats(){
   ${statPanels(W.stats)}
   <button class="primary bigbtn" style="margin-top:14px" onclick="renderWinterReport()">‹ Back</button>`);
 }
-let RESPINS=2;
+let RESPINS=3;
 s.on('respun',(x)=>{
   if(x.manager===ME.name){
     RESPINS=x.left;
@@ -1010,6 +1011,7 @@ function doRespin(name){
 function renderWinterReport(){
   if(!W) return;
   const mine = W.review.find(r=>r.manager===ME.name);
+  if(mine && typeof mine.respins==='number') RESPINS=mine.respins;
   const myBudget = (W.budgets||[]).find(b=>b.manager===ME.name);
   const grewBox=(p)=>{
     const v=p.grew||0;

@@ -3,14 +3,14 @@
 
 const PARAMS = {
   BASE_LAMBDA: 1.35,
-  K: 0.085,
+  K: 0.10,
   EVENT_RATE: 1 / 12,
   EVENT_SIZE: 5,
   FORM_MOD: 2.0,
   AI_MEAN_OFF: { 2: -6.2, 3: -5.4, 4: -4.5, 5: -4.0, 6: -3.5 },
   AI_SD: 3.4,
   COMEBACK: 0.8,
-  MATCH_NOISE: 1.7,
+  MATCH_NOISE: 1.5,
 };
 
 // ---------- randomness ----------

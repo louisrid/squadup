@@ -861,6 +861,7 @@ class Game {
         id: m.id,
         manager: m.name,
         club: m.club,
+        respins: m.respins != null ? m.respins : 3,
         locked: this.pendingStarters && this.startersHalf === 'second' ? !this.pendingStarters.has(m.id) : false,
         units: this.unitScores(m),
         starters: (m.starters || []).map((p) => p.name),
@@ -1079,7 +1080,7 @@ class Game {
     this.io.emit('budgets', this.activeManagers().map((m) => ({
       name: m.name, budget: m.budget,
       squadCount: m.squad.length,
-      done: m.squad.length >= 6,
+      done: !!m.sacked,
     })));
   }
 
@@ -1204,7 +1205,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v4.2',
+      serverV: 'v4.6',
       paused: this.paused,
     };
   }
