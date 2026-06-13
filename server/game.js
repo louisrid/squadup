@@ -543,7 +543,7 @@ class Game {
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
     const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => {
-      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 0.3, defence: s.defence - 0.3 };
+      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.2, defence: s.defence - 1.2 };
       if (t.name === 'Eastvale Rovers') { t.attack += 4.0; t.defence += 4.0; t.elite = true; }
       return t;
     });
@@ -557,14 +557,23 @@ class Game {
     };
     this.phase = 'firstHalf';
     this.io.emit('phase', { phase: 'firstHalf' });
-    this.revealHalf(0, 11, () => this.startSpin());
+    this.revealHalf(0, 11, () => this.startWinter()); // spin parked — respins are back
   }
 
   teamStrengthNow(t, md) {
     if (t.type === 'ai') return { attack: t.attack + (t.comeback || 0), defence: t.defence + (t.comeback || 0) };
     const m = this.managers[t.mIdx];
     this.suspensions = this.suspensions || {};
-    const eligible = m.starters.filter((p) => this.suspensions[p.name] !== md);
+    const eligible = [];
+    for (const p of m.starters) {
+      if (this.suspensions[p.name] !== md) { eligible.push(p); continue; }
+      const sub = m.squad
+        .filter((q) => !m.starters.includes(q) && q.name !== m.injured && q.pos === p.pos)
+        .sort((a, b) => (b.rating + b.seasonMod) - (a.rating + a.seasonMod))[0]
+        || m.squad.filter((q) => !m.starters.includes(q) && q.name !== m.injured && q.pos !== 'GK' && p.pos !== 'GK')
+        .sort((a, b) => (b.rating + b.seasonMod) - (a.rating + a.seasonMod))[0];
+      if (sub) eligible.push(sub); // bench replacement steps in; only weakened if the bench is bare
+    }
     const s = E.teamStrength(eligible.length ? eligible : m.starters, m.formation);
     return { attack: s.attack + (t.comeback || 0), defence: s.defence + (t.comeback || 0) };
   }
@@ -590,7 +599,7 @@ class Game {
       // Donkey United: loses 85%, but 15% of the time they DEMOLISH whoever they play
       const donkey = TA.name === 'Donkey United' ? 'A' : TB.name === 'Donkey United' ? 'B' : null;
       if (donkey) {
-        if (Math.random() < 0.25) {
+        if (Math.random() < 0.12) {
           const big = 7 + Math.floor(Math.random() * 3), small = Math.floor(Math.random() * 2);
           r = donkey === 'A' ? { ...r, goalsA: big, goalsB: small } : { ...r, goalsA: small, goalsB: big };
         } else {
@@ -863,6 +872,7 @@ class Game {
 
   startWinter() {
     if (this.phase === 'winter') return; // idempotent — never double-fire
+    for (const m of this.activeManagers()) m.respins = 2;
     this.phase = 'winter';
     const table = this.table();
     for (const m of this.activeManagers()) {
@@ -878,7 +888,7 @@ class Game {
     for (const m of this.activeManagers()) {
       if (Math.random() < 0.25) {
         const ranked = [...m.squad].sort((a, b) => (b.rating + b.seasonMod) - (a.rating + a.seasonMod));
-        const victim = ranked.find((p) => p.pos !== 'GK');
+        const victim = ranked.find((p) => p.pos !== 'GK' && !p.wonderkid && !p.legend);
         if (victim) {
           m.injured = victim.name;
           this.winterInjuries.push({ manager: m.name, player: victim.name });
@@ -910,6 +920,25 @@ class Game {
     // winter report first; host then opens the winter market (auction), then everyone picks
     this.io.emit('winter', this.winterPayload());
     this.broadcastBudgets();
+  }
+
+  respin(managerId, playerName) {
+    if (this.phase !== 'winter') return { error: 'Respins only at the winter break' };
+    const m = this.managers.find((x) => x.id === managerId);
+    if (!m || m.sacked) return { error: 'Not in the game' };
+    if (!m.respins || m.respins <= 0) return { error: 'No respins left' };
+    const old = m.squad.find((p) => p.name === playerName);
+    if (!old) return { error: 'Not your player' };
+    const lo = Math.max(82, old.rating - 2), hi = Math.min(92, old.rating + 5);
+    const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === old.pos && !p.wonderkid && p.rating >= lo && p.rating <= hi && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name)))[0]
+      || E.shuffle(ALL_PLAYERS.filter((p) => p.pos === old.pos && !this.owned(p.name)))[0];
+    if (!cand) return { error: 'Nobody available' };
+    m.squad[m.squad.indexOf(old)] = { ...cand, seasonMod: 0 };
+    if (m.injured === old.name) m.injured = null;
+    m.respins -= 1;
+    m.signings.push({ player: cand.name, price: 0, window: 'respin' });
+    this.io.emit('respun', { manager: m.name, out: old.name, in: { name: cand.name, pos: cand.pos, rating: cand.rating }, left: m.respins });
+    return { ok: true, in: { name: cand.name, pos: cand.pos, rating: cand.rating }, out: old.name, left: m.respins };
   }
 
   hostStartWinterAuction(managerId) {
@@ -947,10 +976,18 @@ class Game {
     const byPos = fresh(88);
     const backup = fresh(88); // strictly 88+
     const rest = [];
-    const order = ['DEF', 'MID', 'ATT'];
-    let i = 0, guard = 0;
+    const order = E.shuffle(['DEF', 'MID', 'ATT']);
+    const want = { DEF: 0, MID: 0, ATT: 0 };
+    for (let k = 0; k < restCount; k++) want[order[k % 3]]++;
+    for (const pos of order) {
+      for (let k = 0; k < want[pos]; k++) {
+        const p = byPos[pos].shift() || backup[pos].find((x) => !rest.includes(x));
+        if (p && !rest.includes(p)) rest.push(p);
+      }
+    }
+    let guard = 0;
     while (rest.length < restCount && guard++ < restCount * 6) {
-      const pos = order[i++ % 3];
+      const pos = order[guard % 3];
       const p = byPos[pos].shift() || backup[pos].find((x) => !rest.includes(x));
       if (p && !rest.includes(p)) rest.push(p);
     }
@@ -978,7 +1015,7 @@ class Game {
       const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / live.length;
       for (const t of this.season.teams) {
         if (t.type === 'ai' && !t.wasHuman) {
-          const base = avg + E.gauss() * 1.1 - 0.3; // equal treatment both halves
+          const base = avg + E.gauss() * 1.1 - 1.2; // equal treatment both halves
           t.attack = base + E.gauss() * 0.6 + (t.elite ? 4.0 : 0);
           t.defence = base + E.gauss() * 0.6 + (t.elite ? 4.0 : 0);
         }
@@ -1158,7 +1195,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v4.0',
+      serverV: 'v4.1',
       paused: this.paused,
     };
   }

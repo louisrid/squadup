@@ -1436,10 +1436,10 @@
 "pos": "ATT",
 "league": "PL",
 "fc26": 82,
-"rating": 85,
+"rating": 81,
 "potential": 85,
 "age": "prime",
-"pot": 88
+"pot": 82
 },
 {
 "name": "Ferran Torres",
@@ -3281,11 +3281,11 @@
 "name": "Hugo Ekitiké",
 "pos": "ATT",
 "league": "EU",
-"fc26": 84,
-"rating": 83,
+"fc26": 88,
+"rating": 88,
 "potential": 85,
 "age": "young",
-"pot": 83
+"pot": 90
 },
 {
 "name": "Michael Olise",

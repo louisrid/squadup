@@ -228,7 +228,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v4.0';
+const VERSION = 'v4.1';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -285,7 +285,7 @@ function renderWhatsNew(){
   <div class="eyebrow" style="padding-left:48px">What's new</div>
   <h1 style="color:#FFD75E">⭐ The big update</h1>
   <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">ADDED</h2>
-    ${li(`🎡 <b>THE HALFTIME SPIN</b> — one free player. Your odds? The table decides`)}
+    ${li(`🎰 <b>WINTER RESPINS</b> — two chances to gamble a player away for a mystery replacement`)}
     ${li(`❄️ <b>THE WINTER MARKET</b> — +£50m, bigger names, and <b>LEGENDS 👑</b>`)}
     ${li(`⭐ <b>WONDERKIDS</b> — rainbow cards that explode at the break`)}
     ${li(`📈 <b>PLAYER DEVELOPMENT</b> — squads grow, fade and surprise you`)}
@@ -313,7 +313,7 @@ function renderHowTo(){
   <div class="panel"><h2 style="margin-top:0">3 · The season</h2>
   <div style="font-size:16px;line-height:1.5">22 matchdays vs your mates and AI clubs — and a couple of them are hiding surprises… Full commentary: goals, assists, <b>own goals</b>, and <b>red cards — a sending-off suspends that player for exactly one match</b> and your team plays it weakened. Better attacks score more, better defences concede less, but upsets and demolitions are always live. The bottom human far adrift at the break gets <b>sacked</b>.</div></div>
   <div class="panel"><h2 style="margin-top:0">4 · Halftime & the winter market</h2>
-  <div style="font-size:16px;line-height:1.5">First, the <b>🎡 halftime spin</b>: every manager spins a unique wheel for one free player — the lower you sit in the table, the juicier your odds. Then everyone banks <b>+£50m</b> and every player develops — young players rise, ageing stars fade, in-form players never decline, and <b>wonderkids jump +6 to +11</b> (capped at 94). Then the market opens: <b>3 players per manager, all 88+ rated</b>, plus <b>1-2 LEGENDS 👑</b> rated 96. Re-pick your five and chase the title.</div></div>
+  <div style="font-size:16px;line-height:1.5">First, everyone banks <b>+£50m</b> and gets <b>🎰 two respins</b> — gamble any squad player away for a random replacement in his position. Meanwhile and every player develops — young players rise, ageing stars fade, in-form players never decline, and <b>wonderkids jump +6 to +11</b> (capped at 94). Then the market opens: <b>3 players per manager, all 88+ rated</b>, plus <b>1-2 LEGENDS 👑</b> rated 96. Re-pick your five and chase the title.</div></div>
   <div class="panel"><h2 style="margin-top:0">5 · Glory</h2>
   <div style="font-size:16px;line-height:1.5">Most points wins the league. Golden Boot, assists king, best bargain, biggest flop and the winter splash all get their moment at the ceremony — and the stats stay up as long as you want them.</div></div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
@@ -371,7 +371,7 @@ function tone(f,dur,type,vol,when,f2){ if(!SND) return; sndInit(); if(!AC) retur
   const o=AC.createOscillator(), g=AC.createGain();
   o.type=type||'sine'; o.frequency.setValueAtTime(f,t);
   if(f2) o.frequency.linearRampToValueAtTime(f2,t+dur);
-  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((vol||0.12)*0.45,t+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((vol||0.12)*0.28,t+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
   o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+dur+0.05); }
 function sfx(k){ if(!SND||!AC) return;
   if(k==='bid'){ tone(620,0.07,'square',0.07); tone(880,0.06,'square',0.05,0.05); }
@@ -474,7 +474,13 @@ function renderLobby(l){
 
 /* ---------------- AUCTION ---------------- */
 s.on('phase',(p)=>{
-  if(p.phase==='auction') MYSQUAD.length=0;
+  if(p.phase==='auction'){
+    MYSQUAD.length=0;
+    if(p.window==='winter' && W){
+      const mine=(W.review||[]).find(r=>r.manager===ME.name);
+      if(mine) for(const q of mine.players) MYSQUAD.push({name:q.name,pos:q.pos});
+    }
+  }
   if(p.phase==='auction'){
     sfx('splash');
     const winter = p.window==='winter';
@@ -576,7 +582,7 @@ function renderLot(){
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
-  <div class="auctionWrap" data-lock style="justify-content:flex-end;min-height:calc(100dvh - 330px);padding-top:16px;padding-bottom:10px;gap:18px">
+  <div class="auctionWrap" data-lock style="justify-content:flex-end;min-height:calc(100dvh - 248px);padding-top:12px;padding-bottom:8px;gap:16px">
   <div class="lotRow" style="align-items:center;justify-content:center;gap:20px">
     <div style="width:194px">${cardHTML(A.player)}</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
@@ -596,6 +602,7 @@ function renderLot(){
     <div class="bidline" id="bidlineEl">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</div>
     <div class="bidder" id="bidderEl">${A.highBidder?esc(A.highBidder):'No bids yet'}</div>
   </div>
+  <div id="budgets" class="budgets" style="margin:2px auto 0;width:min(360px,100%)"></div>
   </div>
   <div id="budgets" class="budgets"></div>
   <div class="bidbar">
@@ -955,6 +962,7 @@ function renderSpinWait(){
 let W=null;
 function applyWinter(w){
   MATCHLIVE=false;
+  RESPINS=2;
   if(w.sackings.some(x=>x.manager===ME.name)) ME.sacked=true;
   W=w;
   renderWinterReport();
@@ -978,6 +986,20 @@ function renderStats(){
   ${tableHTML(W.table,'Halfway table')}
   ${statPanels(W.stats)}
   <button class="primary bigbtn" style="margin-top:14px" onclick="renderWinterReport()">‹ Back</button>`);
+}
+let RESPINS=2;
+s.on('respun',(x)=>{
+  if(x.manager===ME.name){
+    RESPINS=x.left;
+    if(W){ const mine=W.review.find(r=>r.manager===ME.name);
+      if(mine){ const old=mine.players.find(p=>p.name===x.out);
+        if(old){ old.name=x.in.name; old.pos=x.in.pos; old.rtg=x.in.rating; old.grew=0; old.form=null; old.wonderkid=false; old.legend=false; old.injured=false; } } }
+    renderWinterReport();
+  } else toast(`🎰 ${x.manager} respun ${x.out} → ${x.in.name}`);
+});
+function doRespin(name){
+  if(!confirm('Respin '+name+'? You get a random replacement in the same position — no going back.')) return;
+  s.emit('respin',{name},(r)=>{ if(r&&r.error) toast(r.error); });
 }
 function renderWinterReport(){
   if(!W) return;
@@ -1008,7 +1030,9 @@ function renderWinterReport(){
     <span class="pos ${p.pos}">${p.pos}</span>
     <span class="grow" style="font-size:17px;font-weight:700">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.injured?' 🤕':''}</span>
     <span class="formchip ${fcCls(p.form)}" style="margin-right:8px">${p.form==null?'NEW':p.form.toFixed(1)}</span>
-    <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:21px">${p.rtg}</span>${grewBox(p)}</div>`).join('')}</div>`:''}
+    <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:21px">${p.rtg}</span>${grewBox(p)}
+    ${(!ME.sacked&&RESPINS>0)?`<button class="spinbtn" style="margin-left:8px" onclick="doRespin('${esc(p.name).replace(/'/g,"\\'")}')">🎰</button>`:''}</div>`).join('')}
+    ${RESPINS>0?`<div class="muted" style="padding:8px 0 2px;font-size:14px">🎰 ${RESPINS} respin${RESPINS===1?'':'s'} left — swap a player for a random one in his position</div>`:''}</div>`:''}
   ${tips.length?`<h2 style="margin:14px 0 4px">📋 Assistant's notes</h2>
   <div class="panel" style="border-color:#4FC3F7">${tips.map(t=>`<div style="font-size:16px;line-height:1.45;padding:6px 0">💬 ${esc(t)}</div>`).join('')}</div>`:''}
   <div class="blackbox" style="padding:14px;margin:14px 0;text-align:center">

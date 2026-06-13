@@ -149,6 +149,10 @@ io.on('connection', (socket) => {
     const g = current();
     cb && cb(g ? g.suggestXI(joined.managerId) : { error: 'No game' });
   });
+  socket.on('respin', (d, cb) => {
+    const g = current();
+    cb && cb(g ? g.respin(joined.managerId, d && d.name) : { error: 'No game' });
+  });
   socket.on('forceSpins', (cb) => {
     const g = current();
     cb && cb(g ? g.hostForceSpins(joined.managerId) : { error: 'No game' });
