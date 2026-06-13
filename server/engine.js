@@ -169,7 +169,7 @@ function buildCommentary(result, startersA, startersB, opts) {
   // own goals: ~5% of goals are turned in by the OTHER side's defence
   const ogify = (list, oppStarters) => {
     for (const s of list) {
-      if (Math.random() < 0.025) {
+      if (Math.random() < 0.01) {
         const culprit = pick(oppStarters.filter((p) => p.pos === 'DEF')) || pick(oppStarters.filter((p) => p.pos !== 'GK')) || oppStarters[0];
         s.og = true; s.assist = null; s.ogBy = culprit.name;
       }

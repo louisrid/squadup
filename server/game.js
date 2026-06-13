@@ -133,7 +133,7 @@ class Game {
     const n = this.managers.length;
     // 7 lots per manager. Tier mix BY TRUE RATING: n stars (88+), n good (86-87), 5n mid (82-85).
     // EXACT position quotas so every squad need is structurally covered:
-    const posQuota = { GK: n + 1, DEF: 2 * n, MID: 2 * n, ATT: 2 * n - 1 }; // sums to 7n
+    const posQuota = { GK: n, DEF: 2 * n - 1, MID: 2 * n, ATT: 2 * n + 1 }; // sums to 7n
     const stars = Math.max(2, n - 1); // always at least two 90+ headliners, scales with lobby size
     const S = 7 * n;
     const cElite = Math.max(2, Math.round(0.12 * S)); // always at least two 90+
@@ -544,7 +544,7 @@ class Game {
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
     const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => {
       const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.2, defence: s.defence - 1.2 };
-      if (t.name === 'Eastvale Rovers') { t.attack += 4.0; t.defence += 4.0; t.elite = true; }
+      if (t.name === 'Eastvale Rovers') { t.attack += 2.0; t.defence += 2.0; t.elite = true; }
       return t;
     });
     this.season = {
@@ -560,20 +560,28 @@ class Game {
     this.revealHalf(0, 11, () => this.startWinter()); // spin parked — respins are back
   }
 
-  teamStrengthNow(t, md) {
-    if (t.type === 'ai') return { attack: t.attack + (t.comeback || 0), defence: t.defence + (t.comeback || 0) };
+  lineupFor(t, md) {
+    if (t.type === 'ai') return null;
     const m = this.managers[t.mIdx];
     this.suspensions = this.suspensions || {};
-    const eligible = [];
+    const out = [];
     for (const p of m.starters) {
-      if (this.suspensions[p.name] !== md) { eligible.push(p); continue; }
+      if (this.suspensions[p.name] !== md) { out.push(p); continue; }
       const sub = m.squad
         .filter((q) => !m.starters.includes(q) && q.name !== m.injured && q.pos === p.pos)
         .sort((a, b) => (b.rating + b.seasonMod) - (a.rating + a.seasonMod))[0]
         || m.squad.filter((q) => !m.starters.includes(q) && q.name !== m.injured && q.pos !== 'GK' && p.pos !== 'GK')
         .sort((a, b) => (b.rating + b.seasonMod) - (a.rating + a.seasonMod))[0];
-      if (sub) eligible.push(sub); // bench replacement steps in; only weakened if the bench is bare
+      if (sub) out.push(sub);
     }
+    return out;
+  }
+
+  teamStrengthNow(t, md) {
+    if (t.type === 'ai') return { attack: t.attack + (t.comeback || 0), defence: t.defence + (t.comeback || 0) };
+    const m = this.managers[t.mIdx];
+    this.suspensions = this.suspensions || {};
+    const eligible = this.lineupFor(t, md) || [];
     const s = E.teamStrength(eligible.length ? eligible : m.starters, m.formation);
     return { attack: s.attack + (t.comeback || 0), defence: s.defence + (t.comeback || 0) };
   }
@@ -609,8 +617,8 @@ class Game {
         }
       }
       let detail = null;
-      const sA = TA.type === 'human' ? this.managers[TA.mIdx].starters : null;
-      const sB = TB.type === 'human' ? this.managers[TB.mIdx].starters : null;
+      const sA = TA.type === 'human' ? this.lineupFor(TA, md) : null;
+      const sB = TB.type === 'human' ? this.lineupFor(TB, md) : null;
       if (sA || sB) {
         detail = E.buildCommentary(r, sA || [{ name: TA.name, pos: 'ATT', rating: 80 }], sB || [{ name: TB.name, pos: 'ATT', rating: 80 }], { redA: !!sA, redB: !!sB });
         this.suspensions = this.suspensions || {};
@@ -872,7 +880,7 @@ class Game {
 
   startWinter() {
     if (this.phase === 'winter') return; // idempotent — never double-fire
-    for (const m of this.activeManagers()) m.respins = 2;
+    for (const m of this.activeManagers()) m.respins = 3;
     this.phase = 'winter';
     const table = this.table();
     for (const m of this.activeManagers()) {
@@ -929,7 +937,7 @@ class Game {
     if (!m.respins || m.respins <= 0) return { error: 'No respins left' };
     const old = m.squad.find((p) => p.name === playerName);
     if (!old) return { error: 'Not your player' };
-    const lo = Math.max(82, old.rating - 2), hi = Math.min(92, old.rating + 5);
+    const lo = Math.max(84, old.rating), hi = Math.min(93, old.rating + 6); // never a downgrade
     const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === old.pos && !p.wonderkid && p.rating >= lo && p.rating <= hi && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name)))[0]
       || E.shuffle(ALL_PLAYERS.filter((p) => p.pos === old.pos && !this.owned(p.name)))[0];
     if (!cand) return { error: 'Nobody available' };
@@ -949,6 +957,7 @@ class Game {
   }
 
   startWinterAuction() {
+    this.broadcastBudgets();
     if (this.phase !== 'winter') return;
     this.phase = 'auction';
     const pool = this.buildWinterPool();
@@ -1016,8 +1025,8 @@ class Game {
       for (const t of this.season.teams) {
         if (t.type === 'ai' && !t.wasHuman) {
           const base = avg + E.gauss() * 1.1 - 1.2; // equal treatment both halves
-          t.attack = base + E.gauss() * 0.6 + (t.elite ? 4.0 : 0);
-          t.defence = base + E.gauss() * 0.6 + (t.elite ? 4.0 : 0);
+          t.attack = base + E.gauss() * 0.6 + (t.elite ? 2.0 : 0);
+          t.defence = base + E.gauss() * 0.6 + (t.elite ? 2.0 : 0);
         }
       }
     }
@@ -1195,7 +1204,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v4.1',
+      serverV: 'v4.2',
       paused: this.paused,
     };
   }

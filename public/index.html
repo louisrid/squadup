@@ -228,7 +228,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v4.1';
+const VERSION = 'v4.2';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -531,11 +531,16 @@ function confetti(){
     setTimeout(()=>d.remove(),3600);
   }
 }
-s.on('budgets',(rows)=>{
-  const me=rows.find(r=>r.name===ME.name); if(me) ME.budget=me.budget;
+let BUDG=null;
+function paintBudgets(){
   const el=document.getElementById('budgets');
-  if(el) el.innerHTML=rows.map(r=>`<div class="bchip ${r.name===ME.name?'me':''} ${r.done?'done':''}">
+  if(el&&BUDG) el.innerHTML=BUDG.map(r=>`<div class="bchip ${r.name===ME.name?'me':''} ${r.done?'done':''}">
     ${esc(r.name)}<br><b>£${r.budget}m</b> · ${r.squadCount||0} signed</div>`).join('');
+}
+s.on('budgets',(rows)=>{
+  BUDG=rows;
+  const me=rows.find(r=>r.name===ME.name); if(me) ME.budget=me.budget;
+  paintBudgets();
 });
 function flashResult(big, small){
   clearInterval(timerInt);
@@ -624,6 +629,7 @@ function renderLot(){
     <button class="giveup" onclick="giveUp()">Give up</button></div>`}
   </div>`);
   clearInterval(timerInt);
+  paintBudgets();
   timerInt=setInterval(()=>{
     const el=document.getElementById('ringFg'); if(!el) return clearInterval(timerInt);
     const sec=document.getElementById('ringSec');
