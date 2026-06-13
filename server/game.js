@@ -24,7 +24,7 @@ const LEGENDS = [
 
 const AI_CLUB_NAMES = [
   'Red Fellas', 'Bluebridge FC', 'Ninja FC', 'Eastvale Rovers',
-  'Westvale City', 'Donkey United', 'Poopy Town', 'Monika United',
+  'Westvale City', 'Donkey United', 'Northfield Athletic', 'Hanting Town',
   'Desperado FC', 'Andover FC',
 ];
 
@@ -38,7 +38,7 @@ const FORMATIONS = {
 const FAST = process.env.FAST === '1';
 const TIMINGS = {
   AUCTION_START_MS: FAST ? 150 : 16000,
-  AUCTION_BID_ADD_MS: FAST ? 60 : 3000,
+  AUCTION_BID_ADD_MS: FAST ? 60 : 4000,
   AUCTION_MAX_MS: FAST ? 600 : 12000,
   AUCTION_BETWEEN_MS: FAST ? 30 : 4000,
   LOT_REVEAL_MS: FAST ? 20 : 4400,
@@ -543,8 +543,8 @@ class Game {
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
     const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => {
-      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 0.5, defence: s.defence - 0.5 };
-      if (t.name === 'Eastvale Rovers') { t.attack += 2.6; t.defence += 2.6; t.elite = true; }
+      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 0.3, defence: s.defence - 0.3 };
+      if (t.name === 'Eastvale Rovers') { t.attack += 4.0; t.defence += 4.0; t.elite = true; }
       return t;
     });
     this.season = {
@@ -590,7 +590,7 @@ class Game {
       // Donkey United: loses 85%, but 15% of the time they DEMOLISH whoever they play
       const donkey = TA.name === 'Donkey United' ? 'A' : TB.name === 'Donkey United' ? 'B' : null;
       if (donkey) {
-        if (Math.random() < 0.15) {
+        if (Math.random() < 0.25) {
           const big = 7 + Math.floor(Math.random() * 3), small = Math.floor(Math.random() * 2);
           r = donkey === 'A' ? { ...r, goalsA: big, goalsB: small } : { ...r, goalsA: small, goalsB: big };
         } else {
@@ -938,14 +938,14 @@ class Game {
     const legendCount = Math.random() < 0.6 ? 1 : 2;
     const legends = E.shuffle(LEGENDS.filter((l) => !this.owned(l.name) && l.pos !== 'GK')).slice(0, legendCount).map((l) => ({ ...l, rating: 96, pot: 96 }));
     const restCount = total - legends.length;
-    const ok = (p, pos, lo) => p.pos === pos && p.fc26 >= lo && !p.wonderkid && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name);
+    const ok = (p, pos, lo) => p.pos === pos && p.rating >= lo && !p.wonderkid && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name);
     const fresh = (lo) => ({
       DEF: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'DEF', lo))),
       MID: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'MID', lo))),
       ATT: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'ATT', lo))),
     });
     const byPos = fresh(88);
-    const backup = fresh(87);
+    const backup = fresh(88); // strictly 88+
     const rest = [];
     const order = ['DEF', 'MID', 'ATT'];
     let i = 0, guard = 0;
@@ -978,9 +978,9 @@ class Game {
       const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / live.length;
       for (const t of this.season.teams) {
         if (t.type === 'ai' && !t.wasHuman) {
-          const base = avg + E.gauss() * 1.1 - 3.0;
-          t.attack = base + E.gauss() * 0.6 + (t.elite ? 2.6 : 0);
-          t.defence = base + E.gauss() * 0.6 + (t.elite ? 2.6 : 0);
+          const base = avg + E.gauss() * 1.1 - 0.3; // equal treatment both halves
+          t.attack = base + E.gauss() * 0.6 + (t.elite ? 4.0 : 0);
+          t.defence = base + E.gauss() * 0.6 + (t.elite ? 4.0 : 0);
         }
       }
     }
@@ -1158,7 +1158,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v3.9',
+      serverV: 'v4.0',
       paused: this.paused,
     };
   }

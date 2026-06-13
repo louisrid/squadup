@@ -10,7 +10,7 @@ const PARAMS = {
   AI_MEAN_OFF: { 2: -6.2, 3: -5.4, 4: -4.5, 5: -4.0, 6: -3.5 },
   AI_SD: 3.4,
   COMEBACK: 0.8,
-  MATCH_NOISE: 1.55,
+  MATCH_NOISE: 1.7,
 };
 
 // ---------- randomness ----------
@@ -169,7 +169,7 @@ function buildCommentary(result, startersA, startersB, opts) {
   // own goals: ~5% of goals are turned in by the OTHER side's defence
   const ogify = (list, oppStarters) => {
     for (const s of list) {
-      if (Math.random() < 0.05) {
+      if (Math.random() < 0.025) {
         const culprit = pick(oppStarters.filter((p) => p.pos === 'DEF')) || pick(oppStarters.filter((p) => p.pos !== 'GK')) || oppStarters[0];
         s.og = true; s.assist = null; s.ogBy = culprit.name;
       }
@@ -183,7 +183,7 @@ function buildCommentary(result, startersA, startersB, opts) {
   const redOk = { A: !opts || opts.redA !== false, B: !opts || opts.redB !== false };
   for (const [side, st] of [['A', startersA], ['B', startersB]]) {
     if (!redOk[side]) continue;
-    if (Math.random() < 0.04) {
+    if (Math.random() < 0.025) {
       const p = pick(st.filter((x) => x.pos !== 'GK')); if (!p) continue;
       const minute = 20 + Math.floor(Math.random() * 70);
       events.push({ minute, side, text: `🟥 ${p.name} is SENT OFF! (${minute}') — suspended next game` });
