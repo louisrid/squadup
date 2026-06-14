@@ -6,7 +6,9 @@ const PARAMS = {
   K: 0.10,
   EVENT_RATE: 1 / 6,
   EVENT_SIZE: 5,
-  FORM_MOD: 2.0,
+  FORM_MOD: 1.5,  // explicit formation tactical nudge
+  MID_INFLUENCE: 0.18, // how much winning midfield tilts the game
+  MID_CAP: 2.2,        // max swing from the midfield battle (keeps it from dominating)
   AI_MEAN_OFF: { 2: -6.2, 3: -5.4, 4: -4.5, 5: -4.0, 6: -3.5 },
   AI_SD: 3.4,
   COMEBACK: 0.8,
@@ -55,38 +57,43 @@ function rollSeasonEvent(rating) {
 function teamStrength(starters, formation) {
   const eff = (p) => {
     const r = p.rating + (p.seasonMod || 0);
-    return r <= 90 ? r : 90 + (r - 90) * 0.85; // gentle cap: a 96 plays like 95.1 // diminishing returns: a 96 plays like a 91.6
+    return r <= 90 ? r : 90 + (r - 90) * 0.92; // very gentle cap: a 96 plays like ~95.5
   };
-  const atkPlayers = starters.filter((p) => p.pos === 'ATT' || p.pos === 'MID');
-  const defPlayers = starters.filter((p) => p.pos === 'GK' || p.pos === 'DEF');
+  const att = starters.filter((p) => p.pos === 'ATT');
+  const mid = starters.filter((p) => p.pos === 'MID');
+  const def = starters.filter((p) => p.pos === 'DEF' || p.pos === 'GK');
   const allOut = starters.filter((p) => p.pos !== 'GK');
   const meanOf = (ps) => ps.reduce((s, p) => s + eff(p), 0) / ps.length;
-  // free XIs can have no MID/ATT (park the bus) or no DEF: fall back to outfield mean with a penalty
-  let attack = atkPlayers.length ? meanOf(atkPlayers) : (allOut.length ? meanOf(allOut) - 3 : meanOf(starters) - 6);
-  let defence = defPlayers.length ? meanOf(defPlayers) : meanOf(starters) - 3;
-  // balance matters: missing a whole unit costs you
-  const nDef = starters.filter((p) => p.pos === 'DEF').length;
-  const nMid = starters.filter((p) => p.pos === 'MID').length;
-  const nAtt = starters.filter((p) => p.pos === 'ATT').length;
-  if (nMid === 0) { attack -= 1.2; defence -= 0.8; } // no link-up play
-  if (nAtt === 0) { attack -= 1.5; }                 // nobody up top
-  if (nDef === 0) { defence -= 1.5; }                // keeper abandoned
+  // three independent units. an empty unit falls back to the outfield mean with a penalty.
+  let attack = att.length ? meanOf(att) : (allOut.length ? meanOf(allOut) - 4 : 78);
+  let midfield = mid.length ? meanOf(mid) : (allOut.length ? meanOf(allOut) - 4 : 78);
+  let defence = def.length ? meanOf(def) : (allOut.length ? meanOf(allOut) - 4 : 78);
+  // chosen formation applies a SMALL explicit tactical nudge (the player counts already
+  // shape the raw stats; this is the deliberate tactic on top). symmetric, never broken.
   if (formation === 'ATT') { attack += PARAMS.FORM_MOD; defence -= PARAMS.FORM_MOD; }
-  if (formation === 'DEF') { attack -= PARAMS.FORM_MOD; defence += PARAMS.FORM_MOD; }
-  return { attack, defence };
+  else if (formation === 'DEF') { defence += PARAMS.FORM_MOD; attack -= PARAMS.FORM_MOD; }
+  // BAL: no nudge (midfield-heavy shape already gives the midfield-control edge in playMatch)
+  return { attack, midfield, defence };
 }
 
 // ---------- match ----------
 function playMatch(tA, tB) {
   const na = gauss(0, PARAMS.MATCH_NOISE);
   const nb = gauss(0, PARAMS.MATCH_NOISE);
-  let la = PARAMS.BASE_LAMBDA * Math.exp(PARAMS.K * ((tA.attack + na) - (tB.defence + nb)));
-  let lb = PARAMS.BASE_LAMBDA * Math.exp(PARAMS.K * ((tB.attack + nb) - (tA.defence + na)));
+  // midfield battle: whoever controls the middle gets a small, capped boost to BOTH ends.
+  // edge is symmetric (A's gain = B's loss) so it can never run away.
+  const mA = tA.midfield != null ? tA.midfield : (tA.attack + tA.defence) / 2;
+  const mB = tB.midfield != null ? tB.midfield : (tB.attack + tB.defence) / 2;
+  const midEdge = clamp((mA - mB) * PARAMS.MID_INFLUENCE, -PARAMS.MID_CAP, PARAMS.MID_CAP);
+  const aAtk = tA.attack + midEdge, aDef = tA.defence + midEdge;
+  const bAtk = tB.attack - midEdge, bDef = tB.defence - midEdge;
+  let la = PARAMS.BASE_LAMBDA * Math.exp(PARAMS.K * ((aAtk + na) - (bDef + nb)));
+  let lb = PARAMS.BASE_LAMBDA * Math.exp(PARAMS.K * ((bAtk + nb) - (aDef + na)));
   la = clamp(la, 0.15, 6);
   lb = clamp(lb, 0.15, 6);
-  // ~6% of matches are demolitions: one side (usually the stronger) goes ballistic
+  // ~2% of matches are demolitions: one side (usually the stronger) goes ballistic
   if (Math.random() < 0.02) {
-    const aStronger = (tA.attack + tA.defence) >= (tB.attack + tB.defence);
+    const aStronger = (aAtk + aDef) >= (bAtk + bDef);
     const boostA = Math.random() < (aStronger ? 0.65 : 0.35);
     if (boostA) { la = clamp(la * 2.6 + 1.2, 3.5, 9); lb = clamp(lb * 0.5, 0.1, 1.2); }
     else { lb = clamp(lb * 2.6 + 1.2, 3.5, 9); la = clamp(la * 0.5, 0.1, 1.2); }
@@ -171,7 +178,7 @@ function buildCommentary(result, startersA, startersB, opts) {
   // own goals: ~5% of goals are turned in by the OTHER side's defence
   const ogify = (list, oppStarters) => {
     for (const s of list) {
-      if (Math.random() < 0.004) {
+      if (Math.random() < 0.037) {
         const culprit = pick(oppStarters.filter((p) => p.pos === 'DEF')) || pick(oppStarters.filter((p) => p.pos !== 'GK')) || oppStarters[0];
         s.og = true; s.assist = null; s.ogBy = culprit.name;
       }
@@ -180,13 +187,16 @@ function buildCommentary(result, startersA, startersB, opts) {
   ogify(sA, startersB); ogify(sB, startersA);
   for (const s of sA) events.push({ minute: s.minute, side: 'A', scorer: s.og ? null : s.name, assist: s.assist, text: s.og ? `🥅 Own goal! ${s.ogBy} turns it into his own net (${s.minute}')` : fill(pick(TPL.goal), s.name, s.minute) });
   for (const s of sB) events.push({ minute: s.minute, side: 'B', scorer: s.og ? null : s.name, assist: s.assist, text: s.og ? `🥅 Own goal! ${s.ogBy} turns it into his own net (${s.minute}')` : fill(pick(TPL.goal), s.name, s.minute) });
-  // red cards: ~4% per side per match (outfielders only)
+  // red cards: rare (~1.2% per side per match, outfielders only), and only for a player the
+  // manager can actually replace (caller passes eligible names per side via opts.redPool)
   const reds = [];
   const redOk = { A: !opts || opts.redA !== false, B: !opts || opts.redB !== false };
   for (const [side, st] of [['A', startersA], ['B', startersB]]) {
     if (!redOk[side]) continue;
-    if (Math.random() < 0.025) {
-      const p = pick(st.filter((x) => x.pos !== 'GK')); if (!p) continue;
+    if (Math.random() < 0.051) {
+      const pool = (opts && opts.redPool && opts.redPool[side]) || null;
+      const cands = st.filter((x) => x.pos !== 'GK' && (!pool || pool.includes(x.name)));
+      const p = pick(cands); if (!p) continue;
       const minute = 20 + Math.floor(Math.random() * 70);
       events.push({ minute, side, text: `🟥 ${p.name} is SENT OFF! (${minute}') — suspended next game` });
       reds.push({ side, name: p.name });
@@ -258,7 +268,7 @@ function aiStrengths(nHumans, avgHumanStrength, count) {
   const off = PARAMS.AI_MEAN_OFF[nHumans];
   return Array.from({ length: count }, () => {
     const v = gauss(avgHumanStrength + off, PARAMS.AI_SD);
-    return { attack: v, defence: v };
+    return { attack: v, midfield: v, defence: v };
   });
 }
 

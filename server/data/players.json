@@ -3922,5 +3922,505 @@
 "pot": 90,
 "age": "prime",
 "hero": true
+},
+{
+"name": "Ross Fox",
+"pos": "GK",
+"league": "FREE",
+"fc26": 74,
+"rating": 74,
+"pot": 77,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Reece Murphy",
+"pos": "GK",
+"league": "FREE",
+"fc26": 77,
+"rating": 77,
+"pot": 80,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Tom Dunn",
+"pos": "GK",
+"league": "FREE",
+"fc26": 76,
+"rating": 76,
+"pot": 79,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Owen Doyle",
+"pos": "GK",
+"league": "FREE",
+"fc26": 76,
+"rating": 76,
+"pot": 79,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Adam Hughes",
+"pos": "GK",
+"league": "FREE",
+"fc26": 72,
+"rating": 72,
+"pot": 75,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Theo Pike",
+"pos": "GK",
+"league": "FREE",
+"fc26": 71,
+"rating": 71,
+"pot": 74,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Marcus Bell",
+"pos": "GK",
+"league": "FREE",
+"fc26": 71,
+"rating": 71,
+"pot": 74,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Theo Cross",
+"pos": "GK",
+"league": "FREE",
+"fc26": 70,
+"rating": 70,
+"pot": 73,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Sam Hayes",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 72,
+"rating": 72,
+"pot": 75,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Adam Stone",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 71,
+"rating": 71,
+"pot": 74,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Luke Pratt",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 76,
+"rating": 76,
+"pot": 79,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Jack Hughes",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 77,
+"rating": 77,
+"pot": 80,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Shay Hayes",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 77,
+"rating": 77,
+"pot": 80,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Ryan Lane",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 73,
+"rating": 73,
+"pot": 76,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Cole Mills",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 75,
+"rating": 75,
+"pot": 78,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Lewis Boyd",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 74,
+"rating": 74,
+"pot": 77,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Scott Hayes",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 75,
+"rating": 75,
+"pot": 78,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Finn Hayes",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 75,
+"rating": 75,
+"pot": 78,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Jack Brooks",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 71,
+"rating": 71,
+"pot": 74,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Kyle Boyd",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 76,
+"rating": 76,
+"pot": 79,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Liam Hughes",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 73,
+"rating": 73,
+"pot": 76,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Reece Boyd",
+"pos": "DEF",
+"league": "FREE",
+"fc26": 76,
+"rating": 76,
+"pot": 79,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Josh Gates",
+"pos": "MID",
+"league": "FREE",
+"fc26": 70,
+"rating": 70,
+"pot": 73,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Joel Frost",
+"pos": "MID",
+"league": "FREE",
+"fc26": 70,
+"rating": 70,
+"pot": 73,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Connor Cross",
+"pos": "MID",
+"league": "FREE",
+"fc26": 70,
+"rating": 70,
+"pot": 73,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Scott Doyle",
+"pos": "MID",
+"league": "FREE",
+"fc26": 77,
+"rating": 77,
+"pot": 80,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Joel Reid",
+"pos": "MID",
+"league": "FREE",
+"fc26": 74,
+"rating": 74,
+"pot": 77,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Marcus Fox",
+"pos": "MID",
+"league": "FREE",
+"fc26": 76,
+"rating": 76,
+"pot": 79,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Reece Carr",
+"pos": "MID",
+"league": "FREE",
+"fc26": 73,
+"rating": 73,
+"pot": 76,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Jack Pratt",
+"pos": "MID",
+"league": "FREE",
+"fc26": 76,
+"rating": 76,
+"pot": 79,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Adam Day",
+"pos": "MID",
+"league": "FREE",
+"fc26": 74,
+"rating": 74,
+"pot": 77,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Scott Cross",
+"pos": "MID",
+"league": "FREE",
+"fc26": 72,
+"rating": 72,
+"pot": 75,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Dean Reid",
+"pos": "MID",
+"league": "FREE",
+"fc26": 73,
+"rating": 73,
+"pot": 76,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Owen Holt",
+"pos": "MID",
+"league": "FREE",
+"fc26": 70,
+"rating": 70,
+"pot": 73,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Mason Knight",
+"pos": "MID",
+"league": "FREE",
+"fc26": 77,
+"rating": 77,
+"pot": 80,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Nathan Doyle",
+"pos": "MID",
+"league": "FREE",
+"fc26": 76,
+"rating": 76,
+"pot": 79,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Charlie Clarke",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 75,
+"rating": 75,
+"pot": 78,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Connor Doyle",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 74,
+"rating": 74,
+"pot": 77,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Connor Day",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 72,
+"rating": 72,
+"pot": 75,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Craig Marsh",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 76,
+"rating": 76,
+"pot": 79,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Adam Nash",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 71,
+"rating": 71,
+"pot": 74,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Craig Lane",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 70,
+"rating": 70,
+"pot": 73,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Marcus Boyd",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 73,
+"rating": 73,
+"pot": 76,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Dean Stone",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 75,
+"rating": 75,
+"pot": 78,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Owen Day",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 75,
+"rating": 75,
+"pot": 78,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Shay Gates",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 71,
+"rating": 71,
+"pot": 74,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Brad Marsh",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 76,
+"rating": 76,
+"pot": 79,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Shay Dunn",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 77,
+"rating": 77,
+"pot": 80,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Josh Bell",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 75,
+"rating": 75,
+"pot": 78,
+"age": "prime",
+"autofillOnly": true
+},
+{
+"name": "Connor Ward",
+"pos": "ATT",
+"league": "FREE",
+"fc26": 77,
+"rating": 77,
+"pot": 80,
+"age": "prime",
+"autofillOnly": true
 }
 ]

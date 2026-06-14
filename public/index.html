@@ -19,7 +19,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body
 .muted{color:var(--muted)!important;font-weight:600}
 button{font-weight:700}
 @media (max-width:768px){ body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0} }
-@media (min-width:769px){ .backbtn{top:26px;left:26px} }
+@media (min-width:769px){ .backbtn{top:38px;left:38px;width:56px;height:56px;font-size:26px} }
 .wheelWrap{position:relative;width:min(380px,90vw);aspect-ratio:1;margin:12px auto}
 .wheelWrap svg{width:100%;height:100%;display:block;shape-rendering:geometricPrecision}
 #wheelRot{width:100%;height:100%;transform:rotate(0deg);transition:transform 3.4s cubic-bezier(.12,.8,.13,1);will-change:transform}
@@ -96,9 +96,9 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
   font-family:var(--disp);font-weight:800;font-size:42px;color:var(--text)}
 .giveup{border-color:var(--att);color:var(--att);background:transparent;font-size:16px}
 /* ---------- back button ---------- */
-.backbtn{position:fixed;top:16px;left:max(16px,env(safe-area-inset-left));z-index:40;
-  width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  background:var(--surface2);border:1px solid var(--line);font-size:20px;padding:0;color:var(--text)}
+.backbtn{position:fixed;top:max(24px,env(safe-area-inset-top));left:max(24px,env(safe-area-inset-left));z-index:40;
+  width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--surface2);border:1px solid var(--line);font-size:24px;padding:0;color:var(--text)}
 /* ---------- lot reveal ---------- */
 .revealCard .pcard{animation:cardBob var(--fade,450ms) ease-out both}
 @keyframes cardBob{0%{opacity:0;transform:scale(.96)}100%{opacity:1;transform:scale(1)}}
@@ -120,9 +120,10 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .bidder{color:var(--pink);font-weight:700;font-size:16px}
 .bidbar #budgets{margin:0 0 6px}.bidbar .bchip{font-size:11px;padding:5px 7px}
 .bidbar{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));
-  max-width:468px;margin:0 auto;display:flex;flex-direction:column;
+  max-width:468px;margin:0 auto;display:flex;flex-direction:column;max-height:62vh;
   background:rgba(20,20,28,.97);border:1px solid var(--line);border-radius:18px;
   padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.bidbar .bidline,.bidbar #bidderEl{flex:0 0 auto}
 @media (min-width:700px){.bidbar{max-width:568px}}
 input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:6px;background:var(--surface2);outline:none;border:1px solid var(--line);padding:0;margin:0}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;border-radius:50%;background:var(--pink);border:3px solid #fff;box-shadow:0 2px 10px rgba(255,61,138,.5);cursor:pointer}
@@ -234,7 +235,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v5.8';
+const VERSION = 'v6.7';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -710,7 +711,8 @@ function formChips(avail, onpick){
   const note=!okList.length?`<div class="muted" style="font-size:13px;margin:-3px 0 8px;color:#FFB347">🤕 Injuries leave no full shape — fielding a makeshift five. Buy cover in the next window.</div>`:'';
   return `<div class="row" style="flex-wrap:wrap;gap:7px;margin-bottom:8px">${FORMSETS.map(([d,m2,a])=>{
     const can=ok.includes(''+d+m2+a);
-    return `<button class="fbtn ${CURFORM[0]===d&&CURFORM[1]===m2&&CURFORM[2]===a?'sel':''}" style="padding:9px 13px;font-size:18px${can?'':';opacity:.35'}" ${can?`onclick="${onpick}(${d},${m2},${a})"`:'disabled'}>${d}-${m2}-${a}</button>`;
+    const nm = a>d?'Attacking' : d>a?'Defensive' : 'Balanced';
+    return `<button class="fbtn ${CURFORM[0]===d&&CURFORM[1]===m2&&CURFORM[2]===a?'sel':''}" style="padding:8px 12px;font-size:14px;line-height:1.25${can?'':';opacity:.35'}" ${can?`onclick="${onpick}(${d},${m2},${a})"`:'disabled'}><b style="font-size:15px">${nm}</b><br><span style="font-family:var(--disp);font-size:13px">${d}-${m2}-${a}</span></button>`;
   }).join('')}</div>${note}`;
 }
 function rebuildSlots(oldSlots, avail, d, m2, a){
@@ -723,17 +725,29 @@ function rebuildSlots(oldSlots, avail, d, m2, a){
   }
   return slots;
 }
+function formationInfo(slots){
+  const c={DEF:0,MID:0,ATT:0};
+  slots.filter(x=>x.player).forEach(x=>{ if(c[x.ppos]!=null)c[x.ppos]++; });
+  if(c.ATT>c.DEF) return {name:'Attacking',shape:'1-1-2',blurb:['Score more goals','Concede a little more'],col:'#FF8FB6',key:'ATT'};
+  if(c.DEF>c.ATT) return {name:'Defensive',shape:'2-1-1',blurb:['Concede fewer goals','Score a little less'],col:'#7FB8FF',key:'DEF'};
+  return {name:'Balanced',shape:'1-2-1',blurb:['Strong midfield control','Steady at both ends'],col:'#C9D2E0',key:'BAL'};
+}
 function unitBars(slots, avail){
-  const eff=(r)=> r<=88 ? r : 88+(r-88)*0.45; // mirrors the engine's diminishing returns
+  const eff=(r)=> r<=90 ? r : 90+(r-90)*0.92; // mirrors the engine
   const placed=slots.filter(x=>x.player).map(x=>({pos:x.ppos, rtg:(avail.find(p=>p.name===x.player)||{}).rtg}));
   const mean=(ps)=>ps.length?ps.reduce((s,p)=>s+eff(p.rtg||0),0)/ps.length:null;
-  let atk=mean(placed.filter(p=>p.pos==='MID'||p.pos==='ATT'));
+  let atk=mean(placed.filter(p=>p.pos==='ATT'));
+  let mid=mean(placed.filter(p=>p.pos==='MID'));
   let def=mean(placed.filter(p=>p.pos==='GK'||p.pos==='DEF'));
-  const c={DEF:placed.filter(p=>p.pos==='DEF').length, ATT:placed.filter(p=>p.pos==='ATT').length};
-  if(atk!=null&&def!=null){ if(c.DEF>=3){def+=2;atk-=2;} else if(c.ATT>=3){atk+=2;def-=2;} }
-  const cell=(lbl,v,col)=>`<div style="flex:1;text-align:center"><div class="muted" style="font-size:13px">${lbl}</div>
-    <div style="font-family:var(--disp);font-weight:800;font-size:28px;color:${v!=null?col:'#FF5470'}">${v!=null?v.toFixed(1):'—'}</div></div>`;
-  return `<div class="blackbox" style="display:flex;gap:6px;padding:11px 6px;margin-bottom:8px">${cell('⚔️ ATTACK',atk,'#FF8FB6')}${cell('🛡️ DEFENCE',def,'#7FB8FF')}</div>`;
+  const fi=formationInfo(slots);
+  if(fi.key==='ATT'&&atk!=null&&def!=null){ atk+=1.5; def-=1.5; }
+  else if(fi.key==='DEF'&&atk!=null&&def!=null){ def+=1.5; atk-=1.5; }
+  const cell=(lbl,v,col)=>`<div style="flex:1;text-align:center"><div class="muted" style="font-size:12px">${lbl}</div>
+    <div style="font-family:var(--disp);font-weight:800;font-size:25px;color:${v!=null?col:'#FF5470'}">${v!=null?v.toFixed(1):'—'}</div></div>`;
+  const fbox=`<div class="blackbox" style="padding:9px 12px;margin-bottom:8px;text-align:center">
+    <div style="font-family:var(--disp);font-weight:800;font-size:17px;color:${fi.col}">${fi.name} <span class="muted" style="font-size:13px">${fi.shape}</span></div>
+    <div class="muted" style="font-size:12.5px;margin-top:2px">${fi.blurb.map(b=>'• '+b).join('&nbsp;&nbsp;')}</div></div>`;
+  return fbox+`<div class="blackbox" style="display:flex;gap:4px;padding:11px 6px;margin-bottom:8px">${cell('⚔️ ATT',atk,'#FF8FB6')}${cell('🎯 MID',mid,'#F4FF8F')}${cell('🛡️ DEF',def,'#7FB8FF')}</div>`;
 }
 let lockedManagers=[];
 s.on('pickStarters',(p)=>{
@@ -1015,7 +1029,7 @@ function doRespin(name){
 }
 function openWinterBreakdown(){
   if(!W||!W.breakdowns) return;
-  window.__bd={ breakdowns:W.breakdowns, back:'winter' };
+  window.__bd={ breakdowns:W.breakdowns, race:W.race, back:'winter' };
   const idx=W.breakdowns.findIndex(b=>b.manager===ME.name);
   renderTeamBreakdown(idx<0?0:idx);
 }
@@ -1104,14 +1118,19 @@ function runLeagueRace(f){
       <span class="disp" style="width:30px;text-align:right;font-size:15px;font-weight:800">${r.p}</span></div>`).join('');
     const mdEl=document.getElementById('raceMd'); if(mdEl) mdEl.textContent='Matchday '+(md+1);
   };
-  draw(); sfx('tick');
+  let prevLeader=null;
+  const leaderNow=()=>{ const r=teams.map(t=>({n:t.manager||t.name,p:t.pts[Math.min(md,t.pts.length-1)]})).sort((a,b)=>b.p-a.p); return r[0]&&r[0].n; };
+  draw(); sfx('tick'); prevLeader=leaderNow();
   const stepAll=()=>{
     md++;
-    if(md>=MD){ draw(); CTIMERS.push(setTimeout(()=>ceremonyPodium(f),1400)); return; }
-    draw(); if(md%3===0) sfx('tick');
-    CTIMERS.push(setTimeout(stepAll, 520));
+    if(md>=MD){ draw(); sfx('prize'); CTIMERS.push(setTimeout(()=>{ sfx('sold'); ceremonyPodium(f); },1600)); return; }
+    draw();
+    const L=leaderNow();
+    if(L!==prevLeader){ sfx('goal'); prevLeader=L; }   // a lead change gets a louder cue
+    else sfx('tick');
+    CTIMERS.push(setTimeout(stepAll, 620));
   };
-  CTIMERS.push(setTimeout(stepAll, 900));
+  CTIMERS.push(setTimeout(stepAll, 1000));
 }
 function ceremonyPodium(f){
   CTIMERS.forEach(clearTimeout); CTIMERS=[];
@@ -1171,6 +1190,29 @@ function renderBreakdownList(){
     <span class="muted">view ›</span></div>`).join('')}</div>
   <button class="primary bigbtn" style="margin-top:12px" onclick="showFinal()">‹ Back</button>`);
 }
+function posChart(b,src){
+  // derive this team's league position at each matchday from everyone's points history
+  const all=(src&&src.race)?src.race:null;
+  let series=null;
+  if(all&&all.length&&all[0].pts&&all[0].pts.length){
+    const me=all.find(t=>t.manager===b.manager)||all.find(t=>t.name===b.club);
+    if(me){const MD=me.pts.length; series=[];
+      for(let i=0;i<MD;i++){ const mine=me.pts[i]; let pos=1; for(const t of all){ if(t!==me && (t.pts[i]||0)>mine) pos++; } series.push(pos); }
+    }
+  }
+  if(!series||!series.length) return '';
+  const W=320,H=120,pad=10,n=series.length,teams=(src.race||[]).length||series.length;
+  const step=n>1?(W-pad*2)/(n-1):0;
+  const y=(v)=>pad+((v-1)/(Math.max(1,teams-1)))*(H-pad*2); // pos 1 at top
+  const pts=series.map((v,i)=>`${(pad+i*step).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const end=series[n-1];
+  return `<div style="margin:8px 0"><div class="muted" style="font-size:13px;margin-bottom:4px">League position by matchday — ${window.__bd?'currently':'finished'} ${end}${end===1?'st':end===2?'nd':end===3?'rd':'th'}</div>
+  <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:var(--surface2);border-radius:10px">
+    <polyline fill="none" stroke="#4FC3F7" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>
+    ${series.map((v,i)=>`<circle cx="${(pad+i*step).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.5" fill="#4FC3F7"/>`).join('')}
+    <text x="${pad}" y="12" fill="#7c8" font-size="9">1st</text>
+  </svg></div>`;
+}
 function lineChart(series,label,color){
   const W=320,H=120,pad=8,n=series.length;
   if(!n) return '';
@@ -1190,19 +1232,19 @@ function renderTeamBreakdown(idx){
   <div class="eyebrow" style="padding-left:48px">${window.__bd?'Mid-season':(b.finalPos?`Finished ${b.finalPos}${b.finalPos===1?'st':b.finalPos===2?'nd':b.finalPos===3?'rd':'th'}`:'')}${b.sacked?' · sacked':''}</div>
   <h1 style="font-size:30px">${esc(b.club)}</h1>
   <div class="muted" style="margin-top:-6px">${esc(b.manager)}</div>
-  ${lineChart(b.ptsHist,'Points'+(window.__bd?' so far':' across the season'),'#FF2E7E')}
-  ${lineChart(b.gfHist,'Goals scored'+(window.__bd?' so far':' across the season'),'#3DDC84')}
+  ${posChart(b,src)}
+  ${lineChart(b.ptsHist,'Points'+(window.__bd?' so far':''),'#FF2E7E')}
   <h2 style="margin:14px 0 6px">Squad</h2>
   <div class="panel" style="padding:6px 10px">
     <div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);font-size:12px;font-weight:800;color:var(--muted)">
-      <span class="grow">PLAYER</span><span style="width:34px;text-align:center">£</span><span style="width:28px;text-align:center">⚽</span><span style="width:28px;text-align:center">🅰</span><span style="width:28px;text-align:center">🟥</span><span style="width:36px;text-align:center">AVG</span></div>
+      <span class="grow">PLAYER</span><span style="width:34px;text-align:center">£</span><span style="width:28px;text-align:center">⚽</span><span style="width:28px;text-align:center">🅰</span><span style="width:28px;text-align:center">🟥</span><span style="width:42px;text-align:center">FORM</span></div>
     ${b.squad.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);font-size:15px">
       <span class="grow"><span class="pos ${p.pos}" style="margin-right:6px">${p.pos}</span>${esc(p.name)}${tag(p)}</span>
       <span style="width:34px;text-align:center;font-weight:700">${p.price!=null?'£'+p.price:'—'}</span>
       <span style="width:28px;text-align:center;font-weight:700">${p.goals}</span>
       <span style="width:28px;text-align:center">${p.assists}</span>
       <span style="width:28px;text-align:center">${p.reds||'·'}</span>
-      <span style="width:36px;text-align:center;font-family:var(--disp);font-weight:800">${p.avgRtg}</span></div>`).join('')}
+      <span style="width:42px;text-align:center;font-family:var(--disp);font-weight:800;color:${p.form>=7.5?'#3DDC84':p.form<5.5?'#FF5470':'#fff'}">${p.form!=null?p.form.toFixed(1):'—'}</span></div>`).join('')}
   </div>
   ${window.__bd?'':'<button class="bigbtn" style="margin-top:12px" onclick="renderBreakdownList()">👀 Compare other teams</button>'}
   <button class="primary bigbtn" style="margin-top:10px" onclick="${backFn}">‹ Back</button>`);

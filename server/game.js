@@ -4,7 +4,6 @@
 const E = require('./engine');
 const ALL_PLAYERS = require('./data/players.json');
 
-const FILLER = ALL_PLAYERS.filter((p) => p.fc26 < 84);
 
 // Legends: winter-market exclusives. FC26 95, white/gold cards. Max 2 per window.
 const LEGENDS = [
@@ -139,7 +138,7 @@ class Game {
     const n = this.managers.length;
     // 7 lots per manager. Tier mix BY TRUE RATING: n stars (88+), n good (86-87), 5n mid (82-85).
     // EXACT position quotas so every squad need is structurally covered:
-    const posQuota = { GK: n, DEF: 2 * n - 1, MID: 2 * n, ATT: 2 * n + 1 }; // sums to 7n
+    const posQuota = { GK: n, DEF: 2 * n, MID: 2 * n, ATT: 2 * n }; // 1 GK + 2 of each outfield line, per manager
     const stars = Math.max(2, n - 1); // always at least two 90+ headliners, scales with lobby size
     const S = 7 * n;
     const cElite = Math.max(2, Math.round(0.12 * S)); // always at least two 90+
@@ -156,7 +155,7 @@ class Game {
     const pool = [];
     const inPool = new Set();
     for (const t of tiers) {
-      const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.rating >= t.lo && p.rating <= t.hi && !p.hero && !inPool.has(p.name)));
+      const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.rating >= t.lo && p.rating <= t.hi && !p.hero && !p.autofillOnly && !inPool.has(p.name)));
       for (const p of cand.slice(0, t.count)) { pool.push(p); inPool.add(p.name); }
     }
     // enforce exact position quotas via same-tier swaps (total quota == pool size,
@@ -169,8 +168,8 @@ class Game {
         if (!victims.length) break;
         const victim = E.pick(victims);
         const tier = tiers.find((t) => victim.rating >= t.lo && victim.rating <= t.hi);
-        let repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= tier.lo && p.rating <= tier.hi && !p.hero && !inPool.has(p.name)))[0];
-        if (!repl) repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= 80 && !p.hero && !inPool.has(p.name)))[0];
+        let repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= tier.lo && p.rating <= tier.hi && !p.hero && !p.autofillOnly && !inPool.has(p.name)))[0];
+        if (!repl) repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= 80 && !p.hero && !p.autofillOnly && !inPool.has(p.name)))[0];
         if (!repl) break;
         inPool.delete(victim.name); inPool.add(repl.name);
         pool[pool.indexOf(victim)] = repl;
@@ -218,9 +217,9 @@ class Game {
         if (victim) { inPool.delete(victim.name); inPool.add(hero.name); pool[pool.indexOf(victim)] = hero; }
       }
     }
-    // first two lots: never wonderkids, rating ≤ 85
+    // first lot only: never a wonderkid, rating ≤ 85 (a gentle opener)
     pool.sort((a, b) => a.rating - b.rating);
-    const openers = pool.filter((p) => !p.wonderkid && p.rating <= 85).slice(0, 2);
+    const openers = pool.filter((p) => !p.wonderkid && p.rating <= 85).slice(0, 1);
     let rest = E.shuffle(pool.filter((p) => !openers.includes(p)));
     for (let i = 1; i < rest.length; i++) {
       if (rest[i].wonderkid && rest[i - 1].wonderkid) {
@@ -266,7 +265,7 @@ class Game {
       if (a.highBidder) {
         const m = this.managers.find((x) => x.id === a.highBidder);
         m.budget -= a.highBid;
-        m.squad.push({ ...a.current, seasonMod: 0 });
+        m.squad.push({ ...a.current, seasonMod: 0, freshSigning: a.window === 'winter' });
         m.signings.push({ player: a.current.name, price: a.highBid, window: a.window });
         this.io.emit('lotSold', { player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name, rtg: a.current.rating, wonderkid: !!a.current.wonderkid });
       } else {
@@ -409,22 +408,41 @@ class Game {
     this.requestStarters('first');
   }
 
-  ensureKeepers(unsold) {
-    // every manager must leave the window able to field a five: 1 GK + at least 1 DEF/MID/ATT + 5 total
+  ensureKeepers() {
+    // managers who didn't buy enough get FREE low-rated players.
+    // goal: a valid keeper, at least one of each outfield line, ONE spare DEF/MID/ATT each,
+    // and enough bodies to field a five with bench cover. freebies are 70-81, mostly the
+    // dedicated 70-77 squad fillers, with a tiny chance of a wonderkid.
     for (const m of this.activeManagers()) {
+      const has = (pos) => m.squad.filter((p) => p.pos === pos).length;
       const grant = (pos) => {
-        let p = (unsold || []).find((x) => (!pos || x.pos === pos) && x.pos !== 'GK' === (pos !== 'GK') && !this.owned(x.name));
-        if (!p) p = FILLER.find((x) => (!pos || x.pos === pos) && !this.owned(x.name));
-        if (!p && pos === 'GK') p = { name: 'Youth Keeper', pos: 'GK', fc26: 72, rating: 72 };
-        if (!p) p = FILLER.find((x) => x.pos !== 'GK' && !this.owned(x.name)) || { name: 'Youth Prospect', pos: 'MID', fc26: 70, rating: 70 };
+        let p = null;
+        if (Math.random() < 0.05) {
+          p = E.shuffle(ALL_PLAYERS.filter((x) => x.wonderkid && (!pos || x.pos === pos) && !this.owned(x.name)))[0];
+        }
+        // prefer the dedicated low-rated filler pool first
+        if (!p) p = E.shuffle(ALL_PLAYERS.filter((x) => x.autofillOnly && (!pos || x.pos === pos) && !this.owned(x.name)))[0];
+        // then any sub-82 free agent
+        if (!p) p = E.shuffle(ALL_PLAYERS.filter((x) => x.rating < 82 && !x.wonderkid && !x.hero && !x.legend && (!pos || x.pos === pos) && !this.owned(x.name)))[0];
+        if (!p && pos === 'GK') p = { name: 'Youth Keeper', pos: 'GK', fc26: 70, rating: 70 };
+        if (!p) p = E.shuffle(ALL_PLAYERS.filter((x) => x.rating < 82 && !x.wonderkid && !x.hero && !x.legend && x.pos !== 'GK' && !this.owned(x.name)))[0] || { name: 'Youth Prospect', pos: 'MID', fc26: 68, rating: 68 };
         m.squad.push({ ...p, seasonMod: 0 });
         m.signings.push({ player: p.name, price: 0, window: 'freebie' });
         this.io.emit('autoFill', { manager: m.name, player: p.name, pos: p.pos });
       };
-      if (!m.squad.some((p) => p.pos === 'GK')) grant('GK');
-      for (const pos of ['DEF', 'MID', 'ATT']) if (!m.squad.some((p) => p.pos === pos)) grant(pos);
+      // 1) exactly one keeper
+      if (has('GK') === 0) grant('GK');
+      // 2) at least one of each outfield line
+      for (const pos of ['DEF', 'MID', 'ATT']) if (has(pos) === 0) grant(pos);
+      // 3) one SPARE in each outfield line (so a red-carded/injured starter always has a like-for-like sub)
       let guard = 0;
-      while (m.squad.length < 5 && guard++ < 10) grant(null);
+      for (const pos of ['DEF', 'MID', 'ATT']) {
+        if (has(pos) < 2 && guard++ < 12) grant(pos);
+      }
+      // 4) top up to at least 6 with outfield bodies so any formation is coverable
+      guard = 0;
+      const outfield = ['DEF', 'MID', 'ATT'];
+      while (m.squad.length < 6 && guard++ < 20) grant(outfield[guard % 3]);
     }
   }
 
@@ -438,9 +456,17 @@ class Game {
   static deriveStyle(starters) {
     const c = { DEF: 0, MID: 0, ATT: 0 };
     for (const p of starters) if (c[p.pos] !== undefined) c[p.pos]++;
-    if (c.DEF >= 3) return 'DEF';
-    if (c.ATT >= 3) return 'ATT';
+    // shape -> tactic: more attackers = Attacking, more defenders = Defensive, else Balanced
+    if (c.ATT > c.DEF) return 'ATT';
+    if (c.DEF > c.ATT) return 'DEF';
     return 'BAL';
+  }
+  static formationName(starters) {
+    const c = { DEF: 0, MID: 0, ATT: 0 };
+    for (const p of starters) if (c[p.pos] !== undefined) c[p.pos]++;
+    if (c.ATT > c.DEF) return { key: 'ATT', name: 'Attacking', shape: '1-1-2', blurb: ['Score more goals', 'Concede a little more'] };
+    if (c.DEF > c.ATT) return { key: 'DEF', name: 'Defensive', shape: '2-1-1', blurb: ['Concede fewer goals', 'Score a little less'] };
+    return { key: 'BAL', name: 'Balanced', shape: '1-2-1', blurb: ['Strong midfield control', 'Steady at both ends'] };
   }
 
   requestStarters(half) {
@@ -466,9 +492,11 @@ class Game {
     const players = names.map((nm) => m.squad.find((p) => p.name === nm));
     if (players.length !== 5) return { error: 'Pick exactly 5 (you have ' + players.length + ')' };
     if (new Set(names).size !== 5) return { error: 'Duplicate player picked' };
-    if (players.some((p) => p.name === m.injured)) return { error: 'Injured player selected' };
+    const healthy = m.squad.filter((p) => p.name !== m.injured);
+    // only forbid the injured player if the squad can field 5 without him
+    if (healthy.length >= 5 && players.some((p) => p.name === m.injured)) return { error: 'Injured player selected' };
     if (players.filter((p) => p.pos === 'GK').length !== 1) return { error: 'Exactly one keeper' };
-    const fit = m.squad.filter((p) => p.name !== m.injured);
+    const fit = healthy.length >= 5 ? healthy : m.squad;
     for (const pos of ['DEF', 'MID', 'ATT']) {
       if (fit.some((p) => p.pos === pos) && !players.some((p) => p.pos === pos)) {
         return { error: 'You must field at least one ' + pos };
@@ -555,10 +583,10 @@ class Game {
     const n = this.managers.length;
     const humanTeams = this.managers.map((m, i) => ({ type: 'human', mIdx: i, name: m.club }));
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
-    const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
+    const avg = strengths.reduce((s, t) => s + (t.attack + t.midfield + t.defence) / 3, 0) / n;
     const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => {
-      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.2, defence: s.defence - 1.2 };
-      if (t.name === 'Eastvale Rovers') { t.attack += 0.7; t.defence += 0.7; t.elite = true; }
+      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.2, midfield: s.midfield - 1.2, defence: s.defence - 1.2 };
+      if (t.name === 'Eastvale Rovers') { t.attack += 0.7; t.midfield += 0.7; t.defence += 0.7; t.elite = true; }
       return t;
     });
     this.season = {
@@ -570,8 +598,11 @@ class Game {
       results: [],
       ptsHist: this.managers.map(() => []),   // cumulative points per matchday, per team index
       gfHist: this.managers.map(() => []),    // cumulative goals-for per matchday
+      allPtsHist: [...humanTeams, ...ais].map(() => []), // every team's cumulative points, for the league race
       teamCount: 0,
     };
+    this.suspensions = {}; // fresh each season — never carry red-card state across games
+    this.rusty = {};
     this.phase = 'firstHalf';
     this.io.emit('phase', { phase: 'firstHalf' });
     this.revealHalf(0, 11, () => this.startWinter()); // spin parked — respins are back
@@ -595,12 +626,16 @@ class Game {
   }
 
   teamStrengthNow(t, md) {
-    if (t.type === 'ai') return { attack: t.attack + (t.comeback || 0), defence: t.defence + (t.comeback || 0) };
+    if (t.type === 'ai') return { attack: t.attack + (t.comeback || 0), midfield: (t.midfield != null ? t.midfield : t.attack) + (t.comeback || 0), defence: t.defence + (t.comeback || 0) };
     const m = this.managers[t.mIdx];
     this.suspensions = this.suspensions || {};
+    this.rusty = this.rusty || {};
     const eligible = this.lineupFor(t, md) || [];
     const s = E.teamStrength(eligible.length ? eligible : m.starters, m.formation);
-    return { attack: s.attack + (t.comeback || 0), defence: s.defence + (t.comeback || 0) };
+    // a player coming back from a red is rusty: small, slightly noticeable team penalty that one game
+    const rustyBack = eligible.some((p) => this.rusty[p.name] === md);
+    const pen = rustyBack ? 1.2 : 0;
+    return { attack: s.attack + (t.comeback || 0) - pen, midfield: s.midfield + (t.comeback || 0) - pen, defence: s.defence + (t.comeback || 0) - pen };
   }
 
   suspendedFor(md, ...teams) {
@@ -637,10 +672,19 @@ class Game {
       const sA = TA.type === 'human' ? this.lineupFor(TA, md) : null;
       const sB = TB.type === 'human' ? this.lineupFor(TB, md) : null;
       if (sA || sB) {
-        detail = E.buildCommentary(r, sA || [{ name: TA.name, pos: 'ATT', rating: 80 }], sB || [{ name: TB.name, pos: 'ATT', rating: 80 }], { redA: !!sA, redB: !!sB });
+        // a player can only be sent off if the manager has a same-position bench replacement available
+        const replaceable = (T, lineup) => {
+          if (!lineup) return null;
+          const m = this.managers[T.mIdx];
+          return lineup
+            .filter((p) => p.pos !== 'GK' && m.squad.some((q) => q.pos === p.pos && !lineup.includes(q) && q.name !== m.injured))
+            .map((p) => p.name);
+        };
+        const redPool = { A: replaceable(TA, sA), B: replaceable(TB, sB) };
+        detail = E.buildCommentary(r, sA || [{ name: TA.name, pos: 'ATT', rating: 80 }], sB || [{ name: TB.name, pos: 'ATT', rating: 80 }], { redA: !!sA, redB: !!sB, redPool });
         this.suspensions = this.suspensions || {};
         for (const red of detail.reds || []) {
-          if ((red.side === 'A' && sA) || (red.side === 'B' && sB)) { this.suspensions[red.name] = md + 1; const rs = (this.season.playerStats[red.name] ||= { goals: 0, assists: 0 }); rs.reds = (rs.reds || 0) + 1; }
+          if ((red.side === 'A' && sA) || (red.side === 'B' && sB)) { this.suspensions[red.name] = md + 1; this.rusty = this.rusty || {}; this.rusty[red.name] = md + 2; const rs = (this.season.playerStats[red.name] ||= { goals: 0, assists: 0 }); rs.reds = (rs.reds || 0) + 1; }
         }
         for (const s of detail.scorersA) if (sA && !s.og) this.bumpStat(s.name, s.assist);
         for (const s of detail.scorersB) if (sB && !s.og) this.bumpStat(s.name, s.assist);
@@ -892,6 +936,7 @@ class Game {
       injuries: this.winterInjuries,
       sackings: this.winterSackings,
       breakdowns: this.buildBreakdowns(),
+      race: this.raceHistory(),
       review: this.activeManagers().map((m) => ({
         id: m.id,
         manager: m.name,
@@ -950,7 +995,7 @@ class Game {
         m.sacked = true;
         const ti = this.season.teams.findIndex((t) => t.type === 'human' && this.managers[t.mIdx].name === m.name);
         const s = E.teamStrength(m.starters, m.formation);
-        this.season.teams[ti] = { type: 'ai', name: this.season.teams[ti].name, attack: s.attack, defence: s.defence };
+        this.season.teams[ti] = { type: 'ai', name: this.season.teams[ti].name, attack: s.attack, midfield: s.midfield, defence: s.defence };
         this.winterSackings.push({ manager: m.name, club: lowestHuman.name });
       }
     }
@@ -1011,48 +1056,46 @@ class Game {
 
   buildWinterPool() {
     const n = this.activeManagers().length;
-    const total = 3 * n;
-    // 60% of windows feature 1 legend, 40% feature 2 — regardless of player count. NEVER keepers.
+    // per manager: 1 GK, 1 DEF, 1 MID, 1 ATT, plus 1 extra that is a 50/50 MID or ATT
+    const want = { GK: n, DEF: n, MID: n, ATT: n };
+    for (let k = 0; k < n; k++) want[Math.random() < 0.5 ? 'MID' : 'ATT']++;
+    const total = want.GK + want.DEF + want.MID + want.ATT;
+    // 60% of windows feature 1 legend, 40% feature 2 — outfield legends replace an outfield slot
     const legendCount = Math.random() < 0.6 ? 1 : 2;
     const legends = E.shuffle(LEGENDS.filter((l) => !this.owned(l.name) && l.pos !== 'GK')).slice(0, legendCount).map((l) => ({ ...l, rating: 96, pot: 96 }));
-    const restCount = total - legends.length;
-    const ok = (p, pos, lo) => p.pos === pos && p.rating >= lo && !p.wonderkid && !p.hero && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name);
+    const ok = (p, pos, lo) => p.pos === pos && p.rating >= lo && !p.wonderkid && !p.hero && !p.autofillOnly && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name);
     const fresh = (lo) => ({
+      GK: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'GK', lo))),
       DEF: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'DEF', lo))),
       MID: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'MID', lo))),
       ATT: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'ATT', lo))),
     });
-    const byPos = fresh(88);
-    const backup = fresh(88); // strictly 88+
+    const byPos = fresh(86);
+    const backup = fresh(82);
     const rest = [];
-    // ~30% of winter windows include a top keeper (legend GK or hero GK)
-    if (Math.random() < 0.30) {
-      const gkPool = E.shuffle([
-        ...LEGENDS.filter((l) => l.pos === 'GK' && !this.owned(l.name)).map((l) => ({ ...l, rating: 95, pot: 95 })),
-        ...ALL_PLAYERS.filter((p) => p.pos === 'GK' && p.hero && !this.owned(p.name)),
-      ]);
-      if (gkPool[0]) rest.push(gkPool[0]);
-    } else if (Math.random() < 0.30) {
-      // otherwise a ~30% chance of one outfield hero (mutually exclusive, so at most one hero per window)
-      const hero = E.shuffle(ALL_PLAYERS.filter((p) => p.hero && p.pos !== 'GK' && !this.owned(p.name) && !rest.some((x) => x.name === p.name)))[0];
-      if (hero) rest.push(hero);
-    }
-    const order = E.shuffle(['DEF', 'MID', 'ATT']);
-    const want = { DEF: 0, MID: 0, ATT: 0 };
-    for (let k = 0; k < restCount; k++) want[order[k % 3]]++;
-    for (const pos of order) {
-      for (let k = 0; k < want[pos] && rest.length < restCount; k++) {
+    const take = (pos, cnt) => {
+      for (let k = 0; k < cnt; k++) {
         const p = byPos[pos].shift() || backup[pos].find((x) => !rest.includes(x));
         if (p && !rest.includes(p)) rest.push(p);
       }
+    };
+    // each legend consumes one outfield slot of its position so totals stay on-spec
+    const legByPos = { DEF: 0, MID: 0, ATT: 0 };
+    for (const l of legends) if (legByPos[l.pos] != null) legByPos[l.pos]++;
+    take('GK', want.GK);
+    for (const pos of ['DEF', 'MID', 'ATT']) take(pos, Math.max(0, want[pos] - legByPos[pos]));
+    // optionally upgrade one slot to a hero (mutually exclusive: keeper OR outfield, at most one)
+    if (Math.random() < 0.30) {
+      const hk = E.shuffle([
+        ...LEGENDS.filter((l) => l.pos === 'GK' && !this.owned(l.name)).map((l) => ({ ...l, rating: 95, pot: 95 })),
+        ...ALL_PLAYERS.filter((p) => p.pos === 'GK' && p.hero && !this.owned(p.name)),
+      ])[0];
+      if (hk) { const i = rest.findIndex((x) => x.pos === 'GK'); if (i >= 0) rest[i] = hk; else rest.push(hk); }
+    } else if (Math.random() < 0.30) {
+      const hero = E.shuffle(ALL_PLAYERS.filter((p) => p.hero && p.pos !== 'GK' && !this.owned(p.name) && !rest.some((x) => x.name === p.name)))[0];
+      if (hero) { const i = rest.findIndex((x) => x.pos === hero.pos); if (i >= 0) rest[i] = hero; else rest.push(hero); }
     }
-    let guard = 0;
-    while (rest.length < restCount && guard++ < restCount * 6) {
-      const pos = order[guard % 3];
-      const p = byPos[pos].shift() || backup[pos].find((x) => !rest.includes(x));
-      if (p && !rest.includes(p)) rest.push(p);
-    }
-    // legends: never lots 1-3, never back-to-back
+    // place legends: never lots 1-3, never back-to-back
     const seq = E.shuffle(rest);
     const used = [];
     for (const l of legends) {
@@ -1068,16 +1111,23 @@ class Game {
 
 
   startSecondHalf() {
-    for (const m of this.activeManagers()) for (const p of m.squad) if (p.seasonMod === undefined) p.seasonMod = E.rollSeasonEvent(p.rating);
+    // re-roll hidden season form for the second half (winter growth already baked into rating).
+    for (const m of this.activeManagers()) for (const p of m.squad) {
+      let mod = E.rollSeasonEvent(p.rating);
+      if (p.freshSigning && mod < 0) mod = 0; // a brand-new signing arrives fresh, never in an instant slump
+      p.seasonMod = mod;
+      delete p.freshSigning;
+    }
     // re-anchor AI clubs to the post-winter human level so scorelines stay sane
     const live = this.activeManagers();
     if (live.length) {
       const strengths = live.map((m) => E.teamStrength(m.starters, m.formation));
-      const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / live.length;
+      const avg = strengths.reduce((s, t) => s + (t.attack + t.midfield + t.defence) / 3, 0) / live.length;
       for (const t of this.season.teams) {
         if (t.type === 'ai' && !t.wasHuman) {
           const base = avg + E.gauss() * 1.1 - 2.6; // post-winter squads are stronger; keep AI a clear step below
           t.attack = base + E.gauss() * 0.6 + (t.elite ? 0.7 : 0);
+          t.midfield = base + E.gauss() * 0.6 + (t.elite ? 0.7 : 0);
           t.defence = base + E.gauss() * 0.6 + (t.elite ? 0.7 : 0);
         }
       }
@@ -1128,6 +1178,17 @@ class Game {
     });
   }
 
+  seasonFormOf(p) {
+    // prefer the form already shown on the winter report so numbers never disagree on screen
+    if (p.winterForm != null) return p.winterForm;
+    const st = this.season.playerStats[p.name] || {};
+    const apps = st.apps || 0;
+    const eff = p.rating + (p.seasonMod || 0);
+    const perGame = apps ? (st.goals || 0) + (st.assists || 0) * 0.6 : 0;
+    let form = 5.0 + (eff - 83) * 0.12 + perGame * 1.4 + (p.seasonMod || 0) * 0.18 - (st.reds || 0) * 0.4;
+    return Math.round(E.clamp(form, 1, 10) * 10) / 10;
+  }
+
   buildBreakdowns() {
     return this.managers.map((m, mi) => {
       const ti = this.season.teams.findIndex((t) => t.type === 'human' && t.mIdx === mi);
@@ -1146,6 +1207,7 @@ class Game {
             goals: st.goals || 0, assists: st.assists || 0, reds: st.reds || 0,
             apps: st.apps || 0,
             avgRtg: st.apps ? +(st.rtgSum / st.apps).toFixed(1) : (p.rating + (p.seasonMod || 0)),
+            form: this.seasonFormOf(p),
             price: priceOf[p.name] != null ? priceOf[p.name] : null,
           };
         }).sort((a, b) => b.goals - a.goals || b.assists - a.assists || b.rating - a.rating),
@@ -1294,7 +1356,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v5.8',
+      serverV: 'v6.7',
       paused: this.paused,
     };
   }

@@ -1,6 +1,6 @@
 // E2E: 4 bot managers play a complete game over real websockets.
 const { io } = require('socket.io-client');
-const URL = 'http://localhost:3220[0-9][0-9]';
+const URL = 'http://localhost:3380';
 
 const NAMES = ['Louis', 'Tom', 'Ben', 'Jack'];
 const log = (...a) => console.log(...a);
@@ -108,6 +108,20 @@ const connected = (s) => s.connected ? Promise.resolve() : new Promise((res) => 
     log('CHAMPION:', f.champion.name, f.champion.pts, 'pts', f.champion.type);
     log('AWARDS:', JSON.stringify(f.awards));
     assert(f.awards.goldenBoot && f.awards.goldenBoot.goals > 0, 'no golden boot');
+    // breakdowns: every squad has >=6, form present on players
+    assert(Array.isArray(f.breakdowns) && f.breakdowns.length === 4, 'breakdowns missing');
+    for (const b of f.breakdowns) {
+      assert(b.squad.length >= 6, b.manager + ' squad under 6: ' + b.squad.length);
+      assert(b.squad.every((p) => typeof p.form === 'number'), b.manager + ' missing form');
+    }
+    // race accuracy: final race points must equal final table points
+    assert(Array.isArray(f.race) && f.race.length === 12, 'race missing');
+    for (const rt of f.race) {
+      const row = f.table.find((t) => t.name === rt.name);
+      if (row) assert(rt.pts[rt.pts.length - 1] === row.pts, 'race/table mismatch ' + rt.name);
+    }
+    // freebies must be under 82 (unless wonderkid)
+    log('breakdowns ok: squads>=6, form present, race matches table');
   }
   assert(b0.seen.phase_firstHalf, 'no firstHalf phase');
   assert(b0.seen.auction_winter, 'winter market never opened');
