@@ -666,6 +666,9 @@ class Game {
       const ti = this.season.teams.findIndex((t) => t.type === 'human' && t.mIdx === mi);
       if (ti >= 0) { this.season.ptsHist[mi].push(this.season.pts[ti]); this.season.gfHist[mi].push(this.season.gf[ti]); }
     });
+    // snapshot EVERY team's cumulative points for the league-race animation
+    this.season.allPtsHist = this.season.allPtsHist || this.season.teams.map(() => []);
+    this.season.teams.forEach((t, i) => this.season.allPtsHist[i].push(this.season.pts[i]));
     return out;
   }
   bumpStat(name, assist) {
@@ -888,6 +891,7 @@ class Game {
       budgets: this.activeManagers().map((m) => ({ manager: m.name, budget: m.budget })),
       injuries: this.winterInjuries,
       sackings: this.winterSackings,
+      breakdowns: this.buildBreakdowns(),
       review: this.activeManagers().map((m) => ({
         id: m.id,
         manager: m.name,
@@ -1119,29 +1123,45 @@ class Game {
         biggestFlop: biggestFlop ? { player: biggestFlop.player, price: biggestFlop.price, manager: biggestFlop.manager } : null,
         winterSplash: winterSplash ? { player: winterSplash.player, price: winterSplash.price, manager: winterSplash.manager } : null,
       },
-      breakdowns: this.managers.map((m, mi) => {
-        const ti = this.season.teams.findIndex((t) => t.type === 'human' && t.mIdx === mi);
-        const priceOf = {};
-        for (const s of m.signings) if (priceOf[s.player] == null || s.price > 0) priceOf[s.player] = s.price;
-        return {
-          manager: m.name, club: m.club, sacked: !!m.sacked,
-          finalPos: ti >= 0 ? (this.table().findIndex((r) => r.manager === m.name) + 1) : null,
-          ptsHist: this.season.ptsHist[mi] || [],
-          gfHist: this.season.gfHist[mi] || [],
-          squad: m.squad.map((p) => {
-            const st = this.season.playerStats[p.name] || {};
-            return {
-              name: p.name, pos: p.pos, rating: p.rating + (p.seasonMod || 0),
-              legend: !!p.legend, wonderkid: !!p.wonderkid, hero: !!p.hero,
-              goals: st.goals || 0, assists: st.assists || 0, reds: st.reds || 0,
-              apps: st.apps || 0,
-              avgRtg: st.apps ? +(st.rtgSum / st.apps).toFixed(1) : (p.rating + (p.seasonMod || 0)),
-              price: priceOf[p.name] != null ? priceOf[p.name] : null,
-            };
-          }).sort((a, b) => b.goals - a.goals || b.assists - a.assists || b.rating - a.rating),
-        };
-      }),
+      breakdowns: this.buildBreakdowns(),
+      race: this.raceHistory(),
     });
+  }
+
+  buildBreakdowns() {
+    return this.managers.map((m, mi) => {
+      const ti = this.season.teams.findIndex((t) => t.type === 'human' && t.mIdx === mi);
+      const priceOf = {};
+      for (const s of m.signings) if (priceOf[s.player] == null || s.price > 0) priceOf[s.player] = s.price;
+      return {
+        manager: m.name, club: m.club, sacked: !!m.sacked,
+        finalPos: ti >= 0 ? (this.table().findIndex((r) => r.manager === m.name) + 1) : null,
+        ptsHist: this.season.ptsHist[mi] || [],
+        gfHist: this.season.gfHist[mi] || [],
+        squad: m.squad.map((p) => {
+          const st = this.season.playerStats[p.name] || {};
+          return {
+            name: p.name, pos: p.pos, rating: p.rating + (p.seasonMod || 0),
+            legend: !!p.legend, wonderkid: !!p.wonderkid, hero: !!p.hero,
+            goals: st.goals || 0, assists: st.assists || 0, reds: st.reds || 0,
+            apps: st.apps || 0,
+            avgRtg: st.apps ? +(st.rtgSum / st.apps).toFixed(1) : (p.rating + (p.seasonMod || 0)),
+            price: priceOf[p.name] != null ? priceOf[p.name] : null,
+          };
+        }).sort((a, b) => b.goals - a.goals || b.assists - a.assists || b.rating - a.rating),
+      };
+    });
+  }
+
+  // points-by-matchday for every team (humans + AI) — for the animated league race
+  raceHistory() {
+    const hist = this.season.allPtsHist || [];
+    return this.season.teams.map((t, i) => ({
+      name: t.name,
+      manager: t.type === 'human' ? this.managers[t.mIdx].name : null,
+      human: t.type === 'human',
+      pts: hist[i] || [],
+    }));
   }
 
   // ---------- connection handling ----------
@@ -1274,7 +1294,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v5.7',
+      serverV: 'v5.8',
       paused: this.paused,
     };
   }

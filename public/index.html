@@ -234,7 +234,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v5.7';
+const VERSION = 'v5.8';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -1013,7 +1013,14 @@ function doRespin(name){
   if(!confirm('Respin '+name+'? You get a random replacement in the same position — no going back.')) return;
   s.emit('respin',{name},(r)=>{ if(r&&r.error) toast(r.error); });
 }
+function openWinterBreakdown(){
+  if(!W||!W.breakdowns) return;
+  window.__bd={ breakdowns:W.breakdowns, back:'winter' };
+  const idx=W.breakdowns.findIndex(b=>b.manager===ME.name);
+  renderTeamBreakdown(idx<0?0:idx);
+}
 function renderWinterReport(){
+  window.__bd=null;
   if(!W) return;
   const mine = W.review.find(r=>r.manager===ME.name);
   if(mine && typeof mine.respins==='number') RESPINS=mine.respins;
@@ -1052,6 +1059,7 @@ function renderWinterReport(){
     <div style="font-family:var(--disp);font-weight:800;font-size:24px;color:#F4FF00">WINTER MARKET</div>
     <div class="muted" style="font-size:15px;margin-top:4px">3 players per manager hit the auction block — bigger names, and 1–2 LEGENDS 👑</div>
   </div>
+  ${(W.breakdowns&&W.breakdowns.find(b=>b.manager===ME.name))?`<button class="bigbtn" style="margin-bottom:10px" onclick="openWinterBreakdown()">📊 My team breakdown so far</button>`:''}
   ${ME.isHost && !ME.sacked
     ?`<button class="primary bigbtn" onclick="openWinterMarket()">Open the winter market ▸</button>
        <div class="muted center" style="font-size:13px;margin-top:8px">Everyone keeps their respins until you open it</div>`
@@ -1067,6 +1075,45 @@ function openWinterMarket(){
 s.on('finished',(f)=>{ MATCHLIVE=false; runCeremony(f); });
 let CTIMERS=[];
 function runCeremony(f){
+  CTIMERS.forEach(clearTimeout); CTIMERS=[];
+  window.__finalData=f;
+  if(f.race && f.race.length && f.race[0].pts && f.race[0].pts.length){ return runLeagueRace(f); }
+  ceremonyPodium(f);
+}
+function runLeagueRace(f){
+  const teams=f.race.filter(t=>t.pts&&t.pts.length);
+  const MD=Math.max(...teams.map(t=>t.pts.length));
+  const palette=['#FF2E7E','#4FC3F7','#3DDC84','#F4FF00','#9B5CFF','#FF8A3D','#FF5470','#56E0C8','#C9A227','#B7B7C4'];
+  teams.forEach((t,i)=>t._c=t.human?palette[i%palette.length]:'#555');
+  const maxPts=Math.max(1,...teams.map(t=>t.pts[t.pts.length-1]));
+  $(`<div class="screen center" style="justify-content:flex-start;padding-top:6vh">
+    <div class="eyebrow" style="margin-bottom:6px">The race for the title</div>
+    <div id="raceMd" class="disp" style="font-size:22px;margin-bottom:14px">Matchday 1</div>
+    <div id="raceRows" style="width:100%;max-width:460px;display:flex;flex-direction:column;gap:7px"></div>
+    <button onclick="ceremonyPodium(window.__finalData)" style="position:fixed;bottom:18px;right:18px;font-size:14px;padding:9px 13px;opacity:.6">Skip ›</button>
+  </div>`);
+  let md=0;
+  const draw=()=>{
+    const rows=teams.map(t=>({name:t.name,manager:t.manager,human:t.human,c:t._c,p:t.pts[Math.min(md,t.pts.length-1)]}))
+      .sort((a,b)=>b.p-a.p);
+    const el=document.getElementById('raceRows'); if(!el) return;
+    el.innerHTML=rows.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;transition:all .5s ease">
+      <span style="width:18px;text-align:right;font-weight:800;color:var(--muted);font-size:13px">${i+1}</span>
+      <span style="width:96px;font-size:13px;font-weight:${r.human?800:600};color:${r.human?'#fff':'var(--muted)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.manager||r.name)}</span>
+      <span style="flex:1;height:16px;background:var(--surface2);border-radius:8px;overflow:hidden"><span style="display:block;height:100%;width:${(r.p/maxPts*100).toFixed(1)}%;background:${r.c};border-radius:8px;transition:width .5s ease"></span></span>
+      <span class="disp" style="width:30px;text-align:right;font-size:15px;font-weight:800">${r.p}</span></div>`).join('');
+    const mdEl=document.getElementById('raceMd'); if(mdEl) mdEl.textContent='Matchday '+(md+1);
+  };
+  draw(); sfx('tick');
+  const stepAll=()=>{
+    md++;
+    if(md>=MD){ draw(); CTIMERS.push(setTimeout(()=>ceremonyPodium(f),1400)); return; }
+    draw(); if(md%3===0) sfx('tick');
+    CTIMERS.push(setTimeout(stepAll, 520));
+  };
+  CTIMERS.push(setTimeout(stepAll, 900));
+}
+function ceremonyPodium(f){
   CTIMERS.forEach(clearTimeout); CTIMERS=[];
   const podium=f.table.slice(0,3);
   const nm=(t)=>esc(t.name)+(t.manager?` <span class="muted" style="font-size:18px">(${esc(t.manager)})</span>`:'');
@@ -1113,6 +1160,7 @@ function showFinal(){
   <div class="muted center" style="margin-top:10px;font-size:14px">Take your time — the stats stay here until you leave.</div>`);
 }
 function renderBreakdownList(){
+  window.__bd=null;
   const f=window.__finalData; if(!f||!f.breakdowns) return;
   const ord=[...f.breakdowns].sort((a,b)=>(a.finalPos||99)-(b.finalPos||99));
   $(`<button class="backbtn" onclick="showFinal()">‹</button>
@@ -1135,14 +1183,15 @@ function lineChart(series,label,color){
   </svg></div>`;
 }
 function renderTeamBreakdown(idx){
-  const f=window.__finalData; const b=f&&f.breakdowns&&f.breakdowns[idx]; if(!b) return;
+  const src=window.__bd||window.__finalData; const b=src&&src.breakdowns&&src.breakdowns[idx]; if(!b) return;
+  const backFn=window.__bd?'renderWinterReport()':'renderBreakdownList()';
   const tag=(p)=>p.legend?' 👑':p.hero?' 🦸':p.wonderkid?' ⭐':'';
-  $(`<button class="backbtn" onclick="renderBreakdownList()">‹</button>
-  <div class="eyebrow" style="padding-left:48px">${b.finalPos?`Finished ${b.finalPos}${b.finalPos===1?'st':b.finalPos===2?'nd':b.finalPos===3?'rd':'th'}`:''}${b.sacked?' · sacked':''}</div>
+  $(`<button class="backbtn" onclick="${backFn}">‹</button>
+  <div class="eyebrow" style="padding-left:48px">${window.__bd?'Mid-season':(b.finalPos?`Finished ${b.finalPos}${b.finalPos===1?'st':b.finalPos===2?'nd':b.finalPos===3?'rd':'th'}`:'')}${b.sacked?' · sacked':''}</div>
   <h1 style="font-size:30px">${esc(b.club)}</h1>
   <div class="muted" style="margin-top:-6px">${esc(b.manager)}</div>
-  ${lineChart(b.ptsHist,'Points across the season','#FF2E7E')}
-  ${lineChart(b.gfHist,'Goals scored across the season','#3DDC84')}
+  ${lineChart(b.ptsHist,'Points'+(window.__bd?' so far':' across the season'),'#FF2E7E')}
+  ${lineChart(b.gfHist,'Goals scored'+(window.__bd?' so far':' across the season'),'#3DDC84')}
   <h2 style="margin:14px 0 6px">Squad</h2>
   <div class="panel" style="padding:6px 10px">
     <div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);font-size:12px;font-weight:800;color:var(--muted)">
@@ -1155,8 +1204,8 @@ function renderTeamBreakdown(idx){
       <span style="width:28px;text-align:center">${p.reds||'·'}</span>
       <span style="width:36px;text-align:center;font-family:var(--disp);font-weight:800">${p.avgRtg}</span></div>`).join('')}
   </div>
-  <button class="bigbtn" style="margin-top:12px" onclick="renderBreakdownList()">👀 Compare other teams</button>
-  <button class="primary bigbtn" style="margin-top:10px" onclick="showFinal()">‹ Back</button>`);
+  ${window.__bd?'':'<button class="bigbtn" style="margin-top:12px" onclick="renderBreakdownList()">👀 Compare other teams</button>'}
+  <button class="primary bigbtn" style="margin-top:10px" onclick="${backFn}">‹ Back</button>`);
 }
 
 /* ---------------- CONNECTION ---------------- */
