@@ -6,13 +6,13 @@ const PARAMS = {
   K: 0.10,
   EVENT_RATE: 1 / 6,
   EVENT_SIZE: 5,
-  FORM_MOD: 1.5,  // explicit formation tactical nudge
-  MID_INFLUENCE: 0.18, // how much winning midfield tilts the game
+  FORM_MOD: 2.5,  // explicit formation tactical nudge (noticeable)
+  MID_INFLUENCE: 0.20, // how much winning midfield tilts the game
   MID_CAP: 2.2,        // max swing from the midfield battle (keeps it from dominating)
-  AI_MEAN_OFF: { 2: -6.2, 3: -5.4, 4: -4.5, 5: -4.0, 6: -3.5 },
+  AI_MEAN_OFF: { 2: -4.8, 3: -4.0, 4: -3.2, 5: -2.7, 6: -2.3 },
   AI_SD: 3.4,
   COMEBACK: 0.8,
-  MATCH_NOISE: 1.5,
+  MATCH_NOISE: 1.15,
 };
 
 // ---------- randomness ----------
@@ -107,7 +107,7 @@ function attributeGoals(goals, starters) {
   let outfield = starters.filter((p) => p.pos !== 'GK');
   if (!outfield.length) outfield = starters; // keeper-only freak lineup: he scores them all
   const w = (p) => {
-    const base = p.pos === 'ATT' ? 6 : p.pos === 'MID' ? 3 : 1;
+    const base = p.pos === 'ATT' ? 9 : p.pos === 'MID' ? 2.5 : 0.6; // forwards score the bulk, defenders rarely
     return base * (1 + ((p.rating + (p.seasonMod || 0)) - 75) / 50);
   };
   const total = outfield.reduce((s, p) => s + w(p), 0);
@@ -125,13 +125,13 @@ function attributeGoals(goals, starters) {
   return scorers.sort((a, b) => a.minute - b.minute);
 }
 
-// assists: 60% of goals get one, weighted MID 5, ATT 3, DEF 1, never the scorer
-function attributeAssists(scorers, starters) {
-  const outfield = starters.filter((p) => p.pos !== 'GK');
-  const w = (p) => (p.pos === 'MID' ? 5 : p.pos === 'ATT' ? 3 : 1);
+// assists: 60% of goals get one, midfielders supply most; GK can very rarely assist; never the scorer
+function attributeAssists(scorers, starters, sentOff) {
+  const w = (p) => (p.pos === 'MID' ? 8 : p.pos === 'ATT' ? 3 : p.pos === 'DEF' ? 1.5 : 0.15); // GK 0.15 = rare
+  const off = new Set(sentOff || []);
   return scorers.map((s) => {
     if (Math.random() > 0.6) return { ...s, assist: null };
-    const cands = outfield.filter((p) => p.name !== s.name);
+    const cands = starters.filter((p) => p.name !== s.name && !off.has(p.name));
     if (!cands.length) return { ...s, assist: null };
     const total = cands.reduce((t, p) => t + w(p), 0);
     let r = Math.random() * total;
@@ -173,9 +173,25 @@ function fill(t, p, m) { return t.replace('{p}', p).replace('{m}', m); }
 // builds short text event list for a match result
 function buildCommentary(result, startersA, startersB, opts) {
   const events = [];
-  const sA = attributeAssists(attributeGoals(result.goalsA, startersA), startersA);
-  const sB = attributeAssists(attributeGoals(result.goalsB, startersB), startersB);
-  // own goals: ~5% of goals are turned in by the OTHER side's defence
+  // red cards FIRST, so the players sent off can be excluded from assists
+  const reds = [];
+  const redOk = { A: !opts || opts.redA !== false, B: !opts || opts.redB !== false };
+  for (const [side, st] of [['A', startersA], ['B', startersB]]) {
+    if (!redOk[side]) continue;
+    if (Math.random() < 0.051) {
+      const pool = (opts && opts.redPool && opts.redPool[side]) || null;
+      const cands = st.filter((x) => x.pos !== 'GK' && (!pool || pool.includes(x.name)));
+      const p = pick(cands); if (!p) continue;
+      const minute = 20 + Math.floor(Math.random() * 70);
+      reds.push({ side, name: p.name, minute });
+    }
+  }
+  const sentA = reds.filter((x) => x.side === 'A').map((x) => x.name);
+  const sentB = reds.filter((x) => x.side === 'B').map((x) => x.name);
+  const sA = attributeAssists(attributeGoals(result.goalsA, startersA), startersA, sentA);
+  const sB = attributeAssists(attributeGoals(result.goalsB, startersB), startersB, sentB);
+  for (const r of reds) events.push({ minute: r.minute, side: r.side, text: `🟥 ${r.name} is SENT OFF! (${r.minute}') — suspended next game` });
+  // own goals: rare
   const ogify = (list, oppStarters) => {
     for (const s of list) {
       if (Math.random() < 0.037) {
@@ -187,21 +203,6 @@ function buildCommentary(result, startersA, startersB, opts) {
   ogify(sA, startersB); ogify(sB, startersA);
   for (const s of sA) events.push({ minute: s.minute, side: 'A', scorer: s.og ? null : s.name, assist: s.assist, text: s.og ? `🥅 Own goal! ${s.ogBy} turns it into his own net (${s.minute}')` : fill(pick(TPL.goal), s.name, s.minute) });
   for (const s of sB) events.push({ minute: s.minute, side: 'B', scorer: s.og ? null : s.name, assist: s.assist, text: s.og ? `🥅 Own goal! ${s.ogBy} turns it into his own net (${s.minute}')` : fill(pick(TPL.goal), s.name, s.minute) });
-  // red cards: rare (~1.2% per side per match, outfielders only), and only for a player the
-  // manager can actually replace (caller passes eligible names per side via opts.redPool)
-  const reds = [];
-  const redOk = { A: !opts || opts.redA !== false, B: !opts || opts.redB !== false };
-  for (const [side, st] of [['A', startersA], ['B', startersB]]) {
-    if (!redOk[side]) continue;
-    if (Math.random() < 0.051) {
-      const pool = (opts && opts.redPool && opts.redPool[side]) || null;
-      const cands = st.filter((x) => x.pos !== 'GK' && (!pool || pool.includes(x.name)));
-      const p = pick(cands); if (!p) continue;
-      const minute = 20 + Math.floor(Math.random() * 70);
-      events.push({ minute, side, text: `🟥 ${p.name} is SENT OFF! (${minute}') — suspended next game` });
-      reds.push({ side, name: p.name });
-    }
-  }
   // one flavour/miss line for spice if low-scoring
   if (events.length <= 1) {
     const side = Math.random() < 0.5 ? startersA : startersB;
@@ -209,18 +210,17 @@ function buildCommentary(result, startersA, startersB, opts) {
     events.push({ minute: 1 + Math.floor(Math.random() * 90), side: 'X', text: fill(pick(TPL.miss), p.name, 0) });
   }
   events.sort((a, b) => a.minute - b.minute);
-  return { ...result, scorersA: sA, scorersB: sB, events, reds };
+  return { ...result, scorersA: sA, scorersB: sB, events, reds: reds.map((r) => ({ side: r.side, name: r.name })) };
 }
-
 // winter development: everyone drifts; wonderkids explode
 function winterGrowth(p, form) {
   const pot = p.pot != null ? p.pot : p.rating;
   const gap = pot - p.rating;
   let d;
   if (p.wonderkid) {
-    // uniform +6..+11, hard ceiling 94 overall, never down
-    d = 6 + Math.floor(Math.random() * 6);
-    d = Math.max(0, Math.min(d, 94 - p.rating));
+    // upgrade to a final rating of 91-94 (even chance across that range), never down
+    const target = 91 + Math.floor(Math.random() * 4); // 91,92,93,94
+    d = Math.max(0, target - p.rating);
   } else if (p.old || gap <= -1) {
     // old: usually fade 1-2, but proven class can still tick up 1-2
     const r = Math.random();

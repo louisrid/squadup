@@ -188,8 +188,9 @@ class Game {
         pool[pool.indexOf(victim)] = sub; have90++;
       }
     }
-    // exactly 1 wonderkid 60% of the time, 2 otherwise — never more
-    const wantWk = Math.random() < 0.6 ? 1 : 2;
+    // wonderkids on offer: 1 (35%), 2 (60%), 3 (5%) — a little more than before, never a flood
+    const wkRoll = Math.random();
+    const wantWk = wkRoll < 0.35 ? 1 : wkRoll < 0.95 ? 2 : 3;
     let haveWk = pool.filter((p) => p.wonderkid).length;
     while (haveWk > wantWk) {
       const wk = pool.find((p) => p.wonderkid);
@@ -217,17 +218,29 @@ class Game {
         if (victim) { inPool.delete(victim.name); inPool.add(hero.name); pool[pool.indexOf(victim)] = hero; }
       }
     }
-    // first lot only: never a wonderkid, rating ≤ 85 (a gentle opener)
+    // first lot is always a gentle opener (no wonderkid, ≤85). then DISTRIBUTE the strong
+    // players across the whole auction so lot 2 isn't instantly a 90+ headliner.
     pool.sort((a, b) => a.rating - b.rating);
-    const openers = pool.filter((p) => !p.wonderkid && p.rating <= 85).slice(0, 1);
-    let rest = E.shuffle(pool.filter((p) => !openers.includes(p)));
-    for (let i = 1; i < rest.length; i++) {
-      if (rest[i].wonderkid && rest[i - 1].wonderkid) {
-        const j = rest.findIndex((p, k) => k > i && !p.wonderkid);
-        if (j > 0) { const t = rest[i]; rest[i] = rest[j]; rest[j] = t; }
+    const opener = pool.filter((p) => !p.wonderkid && p.rating <= 85)[0] || pool[0];
+    let remaining = E.shuffle(pool.filter((p) => p !== opener));
+    const elites = remaining.filter((p) => p.rating >= 88);     // the headliners
+    const others = E.shuffle(remaining.filter((p) => p.rating < 88));
+    // spread elites roughly evenly through the "others" timeline, never two in a row,
+    // and never in the first two slots after the opener (so the start stays calm).
+    const seq = [...others];
+    const ne = elites.length;
+    if (ne) {
+      const span = seq.length;
+      for (let k = 0; k < ne; k++) {
+        // target positions spaced across the back ~75% of the list
+        let idx = Math.round(span * (0.25 + 0.7 * ((k + 0.5) / ne)));
+        idx = Math.min(seq.length, Math.max(2, idx)) + k; // shift for earlier inserts
+        // avoid back-to-back elites
+        while (idx > 0 && seq[idx - 1] && seq[idx - 1].rating >= 88) idx++;
+        seq.splice(Math.min(idx, seq.length), 0, elites[k]);
       }
     }
-    return [...openers, ...rest];
+    return [opener, ...seq];
   }
 
   // ---------- auction flow ----------
@@ -420,12 +433,11 @@ class Game {
         if (Math.random() < 0.05) {
           p = E.shuffle(ALL_PLAYERS.filter((x) => x.wonderkid && (!pos || x.pos === pos) && !this.owned(x.name)))[0];
         }
-        // prefer the dedicated low-rated filler pool first
+        // ONLY the dedicated AI-generated filler pool — never real players from autofill
         if (!p) p = E.shuffle(ALL_PLAYERS.filter((x) => x.autofillOnly && (!pos || x.pos === pos) && !this.owned(x.name)))[0];
-        // then any sub-82 free agent
-        if (!p) p = E.shuffle(ALL_PLAYERS.filter((x) => x.rating < 82 && !x.wonderkid && !x.hero && !x.legend && (!pos || x.pos === pos) && !this.owned(x.name)))[0];
+        if (!p) p = E.shuffle(ALL_PLAYERS.filter((x) => x.autofillOnly && x.pos !== 'GK' && !this.owned(x.name)))[0];
         if (!p && pos === 'GK') p = { name: 'Youth Keeper', pos: 'GK', fc26: 70, rating: 70 };
-        if (!p) p = E.shuffle(ALL_PLAYERS.filter((x) => x.rating < 82 && !x.wonderkid && !x.hero && !x.legend && x.pos !== 'GK' && !this.owned(x.name)))[0] || { name: 'Youth Prospect', pos: 'MID', fc26: 68, rating: 68 };
+        if (!p) p = { name: 'Youth Prospect', pos: pos && pos !== 'GK' ? pos : 'MID', fc26: 70, rating: 70 };
         m.squad.push({ ...p, seasonMod: 0 });
         m.signings.push({ player: p.name, price: 0, window: 'freebie' });
         this.io.emit('autoFill', { manager: m.name, player: p.name, pos: p.pos });
@@ -584,9 +596,13 @@ class Game {
     const humanTeams = this.managers.map((m, i) => ({ type: 'human', mIdx: i, name: m.club }));
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
     const avg = strengths.reduce((s, t) => s + (t.attack + t.midfield + t.defence) / 3, 0) / n;
+    // each season: Eastvale Rovers is always a notch above; ALSO pick one other (non-Donkey) AI to be a bit strong.
+    const eligibleSecond = AI_CLUB_NAMES.filter((nm) => nm !== 'Eastvale Rovers' && nm !== 'Donkey United');
+    const secondStrong = eligibleSecond[Math.floor(Math.random() * eligibleSecond.length)];
     const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => {
-      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.2, midfield: s.midfield - 1.2, defence: s.defence - 1.2 };
-      if (t.name === 'Eastvale Rovers') { t.attack += 0.7; t.midfield += 0.7; t.defence += 0.7; t.elite = true; }
+      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 0.8, midfield: s.midfield - 0.8, defence: s.defence - 0.8 };
+      if (t.name === 'Eastvale Rovers') { t.attack += 1.4; t.midfield += 1.4; t.defence += 1.4; t.elite = true; t.eliteBonus = 1.4; }
+      else if (t.name === secondStrong) { t.attack += 0.9; t.midfield += 0.9; t.defence += 0.9; t.elite = true; t.eliteBonus = 0.9; }
       return t;
     });
     this.season = {
@@ -703,7 +719,10 @@ class Game {
       if (r.goalsA > r.goalsB) { this.season.pts[a] += 3; this.season.w[a]++; this.season.l[b]++; }
       else if (r.goalsA < r.goalsB) { this.season.pts[b] += 3; this.season.w[b]++; this.season.l[a]++; }
       else { this.season.pts[a]++; this.season.pts[b]++; this.season.d[a]++; this.season.d[b]++; }
-      out.push({ md, a, b, ...r, detail, suspended, humans: (sA ? 1 : 0) + (sB ? 1 : 0) });
+      out.push({ md, a, b, ...r, detail, suspended,
+        homeForm: TA.type === 'human' ? Game.formationName(this.managers[TA.mIdx].starters).key : null,
+        awayForm: TB.type === 'human' ? Game.formationName(this.managers[TB.mIdx].starters).key : null,
+        humans: (sA ? 1 : 0) + (sB ? 1 : 0) });
     }
     // snapshot cumulative standings for every human team this matchday
     this.managers.forEach((m, mi) => {
@@ -774,6 +793,8 @@ class Game {
       awayPos: this.season.teams[item.b].type === 'ai' ? this.table().findIndex((r) => r.name === this.season.teams[item.b].name) + 1 : null,
       score: [item.goalsA, item.goalsB],
       events: item.detail ? item.detail.events : [],
+      homeForm: item.homeForm || null,
+      awayForm: item.awayForm || null,
       suspended: item.suspended || [],
       featured: item.humans === 2,
       hostName: host ? host.name : 'Host',
@@ -975,7 +996,7 @@ class Game {
     }
     this.winterInjuries = [];
     for (const m of this.activeManagers()) {
-      if (Math.random() < 0.25) {
+      if (Math.random() < 0.03) {
         const ranked = [...m.squad].sort((a, b) => (b.rating + b.seasonMod) - (a.rating + a.seasonMod));
         const victim = ranked.find((p) => p.pos !== 'GK' && !p.wonderkid && !p.legend);
         if (victim) {
@@ -1125,10 +1146,11 @@ class Game {
       const avg = strengths.reduce((s, t) => s + (t.attack + t.midfield + t.defence) / 3, 0) / live.length;
       for (const t of this.season.teams) {
         if (t.type === 'ai' && !t.wasHuman) {
-          const base = avg + E.gauss() * 1.1 - 2.6; // post-winter squads are stronger; keep AI a clear step below
-          t.attack = base + E.gauss() * 0.6 + (t.elite ? 0.7 : 0);
-          t.midfield = base + E.gauss() * 0.6 + (t.elite ? 0.7 : 0);
-          t.defence = base + E.gauss() * 0.6 + (t.elite ? 0.7 : 0);
+          const base = avg + E.gauss() * 1.1 - 3.2; // post-winter squads are stronger; keep AI a clear step below
+          const eb = t.eliteBonus || 0;
+          t.attack = base + E.gauss() * 0.6 + eb;
+          t.midfield = base + E.gauss() * 0.6 + eb;
+          t.defence = base + E.gauss() * 0.6 + eb;
         }
       }
     }
@@ -1356,7 +1378,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v6.7',
+      serverV: 'v6.9',
       paused: this.paused,
     };
   }

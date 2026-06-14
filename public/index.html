@@ -19,7 +19,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body
 .muted{color:var(--muted)!important;font-weight:600}
 button{font-weight:700}
 @media (max-width:768px){ body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0} }
-@media (min-width:769px){ .backbtn{top:38px;left:38px;width:56px;height:56px;font-size:26px} }
+@media (min-width:769px){ .backbtn{top:38px;left:38px;width:56px;height:56px;font-size:26px} .mdscreen{padding-top:16vh !important} }
 .wheelWrap{position:relative;width:min(380px,90vw);aspect-ratio:1;margin:12px auto}
 .wheelWrap svg{width:100%;height:100%;display:block;shape-rendering:geometricPrecision}
 #wheelRot{width:100%;height:100%;transform:rotate(0deg);transition:transform 3.4s cubic-bezier(.12,.8,.13,1);will-change:transform}
@@ -139,7 +139,7 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 .score .gl{color:var(--pink)}
 .featuredTag{display:inline-block;background:var(--pink);color:#fff;font-family:var(--disp);font-weight:800;
   font-size:12px;letter-spacing:.16em;padding:3px 10px;border-radius:6px;text-transform:uppercase}
-.evt{font-size:16px;padding:8px 0;border-bottom:1px solid var(--line);opacity:0;animation:pop .4s forwards}
+.evt{font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line);opacity:0;animation:pop .4s forwards}
 @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .tick{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
 /* ---------- tables / form ---------- */
@@ -235,7 +235,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v6.7';
+const VERSION = 'v6.9';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -727,7 +727,7 @@ function rebuildSlots(oldSlots, avail, d, m2, a){
 }
 function formationInfo(slots){
   const c={DEF:0,MID:0,ATT:0};
-  slots.filter(x=>x.player).forEach(x=>{ if(c[x.ppos]!=null)c[x.ppos]++; });
+  slots.forEach(x=>{ if(c[x.ppos]!=null)c[x.ppos]++; }); // count the SHAPE (all slots), not just filled ones
   if(c.ATT>c.DEF) return {name:'Attacking',shape:'1-1-2',blurb:['Score more goals','Concede a little more'],col:'#FF8FB6',key:'ATT'};
   if(c.DEF>c.ATT) return {name:'Defensive',shape:'2-1-1',blurb:['Concede fewer goals','Score a little less'],col:'#7FB8FF',key:'DEF'};
   return {name:'Balanced',shape:'1-2-1',blurb:['Strong midfield control','Steady at both ends'],col:'#C9D2E0',key:'BAL'};
@@ -747,7 +747,13 @@ function unitBars(slots, avail){
   const fbox=`<div class="blackbox" style="padding:9px 12px;margin-bottom:8px;text-align:center">
     <div style="font-family:var(--disp);font-weight:800;font-size:17px;color:${fi.col}">${fi.name} <span class="muted" style="font-size:13px">${fi.shape}</span></div>
     <div class="muted" style="font-size:12.5px;margin-top:2px">${fi.blurb.map(b=>'• '+b).join('&nbsp;&nbsp;')}</div></div>`;
-  return fbox+`<div class="blackbox" style="display:flex;gap:4px;padding:11px 6px;margin-bottom:8px">${cell('⚔️ ATT',atk,'#FF8FB6')}${cell('🎯 MID',mid,'#F4FF8F')}${cell('🛡️ DEF',def,'#7FB8FF')}</div>`;
+  // overall = simple mean of the 3 (display only, never influences anything)
+  const vals=[atk,mid,def].filter(v=>v!=null);
+  const overall=vals.length===3?((atk+mid+def)/3):null;
+  const obox=`<div class="blackbox" style="padding:8px 12px;margin-bottom:8px;text-align:center">
+    <div class="muted" style="font-size:12px">⭐ OVERALL TEAM RATING</div>
+    <div style="font-family:var(--disp);font-weight:800;font-size:30px;color:${overall!=null?'#FFE08A':'#FF5470'}">${overall!=null?overall.toFixed(1):'—'}</div></div>`;
+  return fbox+obox+`<div class="blackbox" style="display:flex;gap:4px;padding:11px 6px;margin-bottom:8px">${cell('⚔️ ATT',atk,'#FF8FB6')}${cell('🎯 MID',mid,'#F4FF8F')}${cell('🛡️ DEF',def,'#7FB8FF')}</div>`;
 }
 let lockedManagers=[];
 s.on('pickStarters',(p)=>{
@@ -844,9 +850,15 @@ function renderLockWait(){
 
 /* ---------------- SEASON REVEALS ---------------- */
 let MATCHLIVE=false;
-function evLine(e){
+function evLine(e, m){
   const t=(e.text||'').replace(/\(?\d+\+?\d*'\)?/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s+/g,' ').replace(/\s+([,.!])/g,'$1').trim();
-  return `<b>${e.minute!=null?e.minute+"'":''}</b> ${esc(t)}`;
+  // grey assist text for a goal scored by a human team (engine already excludes the scorer & red-carded players)
+  let assistTxt='';
+  if(e.assist && e.scorer && m){
+    const humanSide=(e.side==='A'&&m.homeMgr)||(e.side==='B'&&m.awayMgr);
+    if(humanSide) assistTxt=` <span style="color:var(--muted);font-size:12px">(assist: ${esc(e.assist)})</span>`;
+  }
+  return `<b>${e.minute!=null?e.minute+"'":''}</b> ${esc(t)}${assistTxt}`;
 }
 let MATCH_SFXT=[];
 function clearMatchSfx(){ MATCH_SFXT.forEach(clearTimeout); MATCH_SFXT=[]; }
@@ -855,24 +867,26 @@ function renderMatch(m){
   clearMatchSfx();
   clearInterval(timerInt);
   const yours = ME.club && (m.home===ME.club || m.away===ME.club);
-  const teamLine=(name,mgr,pos,delay)=>`<div style="opacity:0;animation:cerIn .5s ${delay}s forwards">
+  const fbadge=(key)=>{ if(!key) return ''; const m={ATT:['ATTACKING','#FF8FB6'],DEF:['DEFENSIVE','#7FB8FF'],BAL:['BALANCED','#C9D2E0']}[key]||['',''];
+    return ` <span style="font-family:var(--disp);font-weight:800;font-size:13px;color:${m[1]};border:1px solid ${m[1]};border-radius:6px;padding:1px 6px;vertical-align:middle">${m[0]}</span>`; };
+  const teamLine=(name,mgr,pos,delay,formKey)=>`<div style="opacity:0;animation:cerIn .5s ${delay}s forwards">
     ${pos?`<div class="muted" style="font-size:13px;letter-spacing:.12em">#${pos} IN THE LEAGUE</div>`:''}
-    <div class="score" style="font-size:34px">${esc(name)}${mgr?` <span style="font-size:20px;color:var(--muted)">(${esc(mgr)})</span>`:''}</div>
+    <div class="score" style="font-size:34px">${esc(name)}${mgr?` <span style="font-size:20px;color:var(--muted)">(${esc(mgr)})</span>`:''}${mgr?fbadge(formKey):''}</div>
   </div>`;
-  $(`<div class="screen" style="justify-content:flex-start;padding-top:max(12vh,84px)">
+  $(`<div class="screen mdscreen" style="justify-content:flex-start;padding-top:max(12vh,84px)">
     <div class="center">
       <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
       ${yours?`<div style="font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.1em;color:var(--pink);margin-bottom:8px">YOUR MATCH</div>`:''}
       ${(m.suspended&&m.suspended.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:15px;color:#FFB347;margin-bottom:8px">⛔ Suspended this game: ${m.suspended.map(esc).join(', ')}</div>`:''}
-      ${teamLine(m.home,m.homeMgr,m.homePos,0.1)}
+      ${teamLine(m.home,m.homeMgr,m.homePos,0.1,m.homeForm)}
       <div class="muted" style="font-size:16px;margin:4px 0;opacity:0;animation:cerIn .4s .5s forwards">vs</div>
-      ${teamLine(m.away,m.awayMgr,m.awayPos,0.8)}
+      ${teamLine(m.away,m.awayMgr,m.awayPos,0.8,m.awayForm)}
       <div class="blackbox" style="margin:16px auto;width:min(260px,90%);opacity:0;animation:cerIn .5s 1.5s forwards">
         <div class="score" style="font-size:44px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div>
       </div>
       <div style="text-align:left;max-width:420px;margin:0 auto">
-        ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${(2.1+i*0.5).toFixed(1)}s">${evLine(e)}</div>`).join('')||'<div class="muted center">No goals. Grim.</div>'}
+        ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${(2.1+i*0.5).toFixed(1)}s">${evLine(e,m)}</div>`).join('')||'<div class="muted center">No goals. Grim.</div>'}
 
       </div>
       ${ME.isHost
@@ -882,10 +896,9 @@ function renderMatch(m){
   </div>`);
   const hHome=!!m.homeMgr, hAway=!!m.awayMgr;
   if(hHome||hAway){
-    const endAt=(2.1+m.events.length*0.5+0.7)*1000;
     const humanWon=(hHome&&m.score[0]>m.score[1])||(hAway&&m.score[1]>m.score[0]);
     const k=(hHome&&hAway)?'cheer':(humanWon?'cheer':(m.score[0]===m.score[1]?null:'boo'));
-    if(k) MATCH_SFXT.push(setTimeout(()=>sfx(k),endAt));
+    if(k) sfx(k); // fire straight away on reveal, not after all events play out
   }
 }
 s.on('matchReveal',renderMatch);
@@ -1024,14 +1037,8 @@ s.on('respun',(x)=>{
   } else toast(`🎰 ${x.manager} respun ${x.out} → ${x.in.name}`);
 });
 function doRespin(name){
-  if(!confirm('Respin '+name+'? You get a random replacement in the same position — no going back.')) return;
+  sfx('spin');
   s.emit('respin',{name},(r)=>{ if(r&&r.error) toast(r.error); });
-}
-function openWinterBreakdown(){
-  if(!W||!W.breakdowns) return;
-  window.__bd={ breakdowns:W.breakdowns, race:W.race, back:'winter' };
-  const idx=W.breakdowns.findIndex(b=>b.manager===ME.name);
-  renderTeamBreakdown(idx<0?0:idx);
 }
 function renderWinterReport(){
   window.__bd=null;
@@ -1049,6 +1056,12 @@ function renderWinterReport(){
   const tips=(mine0&&mine0.tips)||[];
   $(`<div class="eyebrow" style="padding-top:4px">Winter break</div>
   <h1 style="margin-bottom:6px">The window is open</h1>
+  <div class="muted" style="font-size:13px;margin:-2px 0 6px">League standings</div>
+  <div class="panel" style="padding:6px 8px;max-height:230px;overflow-y:auto;margin-bottom:10px">
+    <table><tr><th>#</th><th>Club</th><th>Pts</th></tr>
+    ${(W.table||[]).map((r,i)=>`<tr class="${r.manager?(r.manager===ME.name?'me':'hu'):''}">
+      <td>${i+1}</td><td>${esc(r.name)}${r.manager?`<br><span class="muted">${esc(r.manager)}${r.sacked?' · SACKED':''}</span>`:''}</td><td><b>${r.pts}</b></td></tr>`).join('')}
+    </table></div>
   <div class="blackbox" style="padding:14px;margin-bottom:10px;text-align:center">
     <div class="muted" style="font-size:14px">War chest topped up</div>
     <div class="score" style="font-size:38px;color:#7CE38B">+£50m</div>
@@ -1058,30 +1071,23 @@ function renderWinterReport(){
   ${W.sackings.length?`<div class="panel" style="border-color:var(--att)">${W.sackings.map(x=>`<div>🪓 <b>${esc(x.manager)}</b> sacked — ${esc(x.club)} carry on without him</div>`).join('')}</div>`:''}
   <div class="row" style="margin:10px 0 4px">
     <h2 class="grow" style="margin:0">Your squad developed</h2>
-    <button onclick="renderStats()" style="font-size:16px;padding:11px 15px">📊 Stats</button>
+    ${(!ME.sacked)?`<div style="font-family:var(--disp);font-weight:800;font-size:17px;color:#F4FF00">${RESPINS}/3 respins</div>`:''}
   </div>
   ${mine?`<div class="panel" style="padding:8px 12px">${mine.players.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
     <span class="pos ${p.pos}">${p.pos}</span>
     <span class="grow" style="font-size:17px;font-weight:700">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.injured?' 🤕':''}</span>
     <span class="formchip ${fcCls(p.form)}" style="margin-right:8px">${p.form==null?'NEW':p.form.toFixed(1)}</span>
     <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:21px">${p.rtg}</span>${grewBox(p)}
-    ${(!ME.sacked&&RESPINS>0)?`<button class="spinbtn" style="margin-left:8px" onclick="doRespin('${esc(p.name).replace(/'/g,"\\'")}')">🎰</button>`:''}</div>`).join('')}
-    ${RESPINS>0?`<div class="muted" style="padding:8px 0 2px;font-size:14px">🎰 ${RESPINS} respin${RESPINS===1?'':'s'} left — swap a player for a random one in his position</div>`:''}</div>`:''}
+    ${(!ME.sacked&&RESPINS>0)?`<button class="spinbtn" style="margin-left:8px" onclick="doRespin('${esc(p.name).replace(/'/g,"\\'")}')">🎰</button>`:''}</div>`).join('')}</div>`:''}
   ${tips.length?`<h2 style="margin:14px 0 4px">📋 Assistant's notes</h2>
   <div class="panel" style="border-color:#4FC3F7">${tips.map(t=>`<div style="font-size:16px;line-height:1.45;padding:6px 0">💬 ${esc(t)}</div>`).join('')}</div>`:''}
-  <div class="blackbox" style="padding:14px;margin:14px 0;text-align:center">
-    <div style="font-family:var(--disp);font-weight:800;font-size:24px;color:#F4FF00">WINTER MARKET</div>
-    <div class="muted" style="font-size:15px;margin-top:4px">3 players per manager hit the auction block — bigger names, and 1–2 LEGENDS 👑</div>
-  </div>
-  ${(W.breakdowns&&W.breakdowns.find(b=>b.manager===ME.name))?`<button class="bigbtn" style="margin-bottom:10px" onclick="openWinterBreakdown()">📊 My team breakdown so far</button>`:''}
   ${ME.isHost && !ME.sacked
-    ?`<button class="primary bigbtn" onclick="openWinterMarket()">Open the winter market ▸</button>
+    ?`<button class="primary bigbtn" style="margin-top:6px" onclick="openWinterMarket()">Open the winter market ▸</button>
        <div class="muted center" style="font-size:13px;margin-top:8px">Everyone keeps their respins until you open it</div>`
-    :`<div class="center muted" style="padding:8px 0">Waiting for the host to open the market…</div>`}`);
+    :`<div class="center muted" style="padding:8px 0">Waiting for the host to open the market…</div>`}
+  ${statPanels(W.stats)}`);
 }
 function openWinterMarket(){
-  const others=(W&&W.review||[]).filter(r=>r.manager!==ME.name && (r.respins||0)>0).map(r=>r.manager);
-  if(others.length && !confirm(`${others.join(', ')} ${others.length>1?'still have':'still has'} respins left. Open the market anyway? Their unused respins are lost.`)) return;
   s.emit('startWinterAuction',(r)=>{ if(r&&r.error) toast(r.error); });
 }
 
@@ -1100,10 +1106,11 @@ function runLeagueRace(f){
   const palette=['#FF2E7E','#4FC3F7','#3DDC84','#F4FF00','#9B5CFF','#FF8A3D','#FF5470','#56E0C8','#C9A227','#B7B7C4'];
   teams.forEach((t,i)=>t._c=t.human?palette[i%palette.length]:'#555');
   const maxPts=Math.max(1,...teams.map(t=>t.pts[t.pts.length-1]));
-  $(`<div class="screen center" style="justify-content:flex-start;padding-top:6vh">
-    <div class="eyebrow" style="margin-bottom:6px">The race for the title</div>
-    <div id="raceMd" class="disp" style="font-size:22px;margin-bottom:14px">Matchday 1</div>
+  $(`<div class="screen center" style="justify-content:center;min-height:100dvh">
+    <div class="eyebrow" style="margin-bottom:10px;font-size:15px">The race for the title</div>
+    <div id="raceMd" class="disp" style="font-size:22px;margin-bottom:18px">Matchday 1</div>
     <div id="raceRows" style="width:100%;max-width:460px;display:flex;flex-direction:column;gap:7px"></div>
+    <div id="raceNext" style="margin-top:22px;min-height:48px"></div>
     <button onclick="ceremonyPodium(window.__finalData)" style="position:fixed;bottom:18px;right:18px;font-size:14px;padding:9px 13px;opacity:.6">Skip ›</button>
   </div>`);
   let md=0;
@@ -1123,10 +1130,18 @@ function runLeagueRace(f){
   draw(); sfx('tick'); prevLeader=leaderNow();
   const stepAll=()=>{
     md++;
-    if(md>=MD){ draw(); sfx('prize'); CTIMERS.push(setTimeout(()=>{ sfx('sold'); ceremonyPodium(f); },1600)); return; }
+    if(md>=MD){
+      draw(); sfx('prize');
+      // HOLD on the final standings — host presses next, others wait, so everyone can examine it
+      const nx=document.getElementById('raceNext');
+      if(nx){ nx.innerHTML = ME.isHost
+        ? `<button class="primary bigbtn" style="max-width:300px" onclick="ceremonyPodium(window.__finalData)">Continue to the podium ▸</button>`
+        : `<div class="muted">${esc((window.__finalData&&window.__finalData.hostName)||'The host')} will continue when ready…</div>`; }
+      return;
+    }
     draw();
     const L=leaderNow();
-    if(L!==prevLeader){ sfx('goal'); prevLeader=L; }   // a lead change gets a louder cue
+    if(L!==prevLeader){ sfx('goal'); prevLeader=L; }
     else sfx('tick');
     CTIMERS.push(setTimeout(stepAll, 620));
   };
@@ -1174,80 +1189,17 @@ function showFinal(){
     ${a.winterSplash?`<div class="award"><b>💰 Winter splash</b><span>${esc(a.winterSplash.player)} — £${a.winterSplash.price}m (${esc(a.winterSplash.manager)})</span></div>`:''}
   </div>
   ${f.stats?statPanels(f.stats):''}
-  ${(f.breakdowns&&f.breakdowns.find(b=>b.manager===ME.name))?`<button class="bigbtn" style="margin-top:14px" onclick="renderTeamBreakdown(window.__finalData.breakdowns.findIndex(b=>b.manager===ME.name))">📊 My team breakdown</button>`:(f.breakdowns&&f.breakdowns.length?`<button class="bigbtn" style="margin-top:14px" onclick="renderBreakdownList()">📊 Team breakdowns</button>`:'')}
+  ${(()=>{ const mine=f.breakdowns&&f.breakdowns.find(b=>b.manager===ME.name); if(!mine) return '';
+    const sorted=[...mine.squad].sort((a,b)=>b.goals-a.goals||b.assists-a.assists);
+    return `<h2 style="margin:14px 0 4px">Your squad this season</h2>
+    <div class="panel" style="padding:8px 12px">${sorted.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
+      <span class="pos ${p.pos}">${p.pos}</span>
+      <span class="grow" style="font-size:16px;font-weight:700">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.hero?' 🔥':''}</span>
+      <span class="muted" style="font-size:13px;margin-right:8px">⚽${p.goals} 🅰️${p.assists}</span>
+      <span class="formchip ${fcCls(p.form)}" style="margin-right:8px">${p.form==null?'–':p.form.toFixed(1)}</span>
+      <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:20px">${Math.round(p.rating)}</span></div>`).join('')}</div>`; })()}
   <button class="primary" style="width:100%;margin-top:10px" onclick="location.reload()">‹ Back to home</button>
   <div class="muted center" style="margin-top:10px;font-size:14px">Take your time — the stats stay here until you leave.</div>`);
-}
-function renderBreakdownList(){
-  window.__bd=null;
-  const f=window.__finalData; if(!f||!f.breakdowns) return;
-  const ord=[...f.breakdowns].sort((a,b)=>(a.finalPos||99)-(b.finalPos||99));
-  $(`<button class="backbtn" onclick="showFinal()">‹</button>
-  <div class="eyebrow" style="padding-left:48px">Team breakdowns</div>
-  <h1 style="font-size:34px">📊 The season</h1>
-  <div class="panel">${ord.map((b,i)=>`<div class="row" style="padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer" onclick="renderTeamBreakdown(${f.breakdowns.indexOf(b)})">
-    <span class="disp grow" style="font-size:19px">${b.finalPos?`${b.finalPos}. `:''}${esc(b.club)} <span class="muted" style="font-size:14px">(${esc(b.manager)}${b.manager===ME.name?' — you':''})</span></span>
-    <span class="muted">view ›</span></div>`).join('')}</div>
-  <button class="primary bigbtn" style="margin-top:12px" onclick="showFinal()">‹ Back</button>`);
-}
-function posChart(b,src){
-  // derive this team's league position at each matchday from everyone's points history
-  const all=(src&&src.race)?src.race:null;
-  let series=null;
-  if(all&&all.length&&all[0].pts&&all[0].pts.length){
-    const me=all.find(t=>t.manager===b.manager)||all.find(t=>t.name===b.club);
-    if(me){const MD=me.pts.length; series=[];
-      for(let i=0;i<MD;i++){ const mine=me.pts[i]; let pos=1; for(const t of all){ if(t!==me && (t.pts[i]||0)>mine) pos++; } series.push(pos); }
-    }
-  }
-  if(!series||!series.length) return '';
-  const W=320,H=120,pad=10,n=series.length,teams=(src.race||[]).length||series.length;
-  const step=n>1?(W-pad*2)/(n-1):0;
-  const y=(v)=>pad+((v-1)/(Math.max(1,teams-1)))*(H-pad*2); // pos 1 at top
-  const pts=series.map((v,i)=>`${(pad+i*step).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  const end=series[n-1];
-  return `<div style="margin:8px 0"><div class="muted" style="font-size:13px;margin-bottom:4px">League position by matchday — ${window.__bd?'currently':'finished'} ${end}${end===1?'st':end===2?'nd':end===3?'rd':'th'}</div>
-  <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:var(--surface2);border-radius:10px">
-    <polyline fill="none" stroke="#4FC3F7" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>
-    ${series.map((v,i)=>`<circle cx="${(pad+i*step).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.5" fill="#4FC3F7"/>`).join('')}
-    <text x="${pad}" y="12" fill="#7c8" font-size="9">1st</text>
-  </svg></div>`;
-}
-function lineChart(series,label,color){
-  const W=320,H=120,pad=8,n=series.length;
-  if(!n) return '';
-  const max=Math.max(1,...series), step=n>1?(W-pad*2)/(n-1):0;
-  const pts=series.map((v,i)=>`${(pad+i*step).toFixed(1)},${(H-pad-(v/max)*(H-pad*2)).toFixed(1)}`).join(' ');
-  return `<div style="margin:8px 0"><div class="muted" style="font-size:13px;margin-bottom:4px">${label} — final ${series[n-1]||0}</div>
-  <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:var(--surface2);border-radius:10px">
-    <polyline fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>
-    ${series.map((v,i)=>`<circle cx="${(pad+i*step).toFixed(1)}" cy="${(H-pad-(v/max)*(H-pad*2)).toFixed(1)}" r="2.5" fill="${color}"/>`).join('')}
-  </svg></div>`;
-}
-function renderTeamBreakdown(idx){
-  const src=window.__bd||window.__finalData; const b=src&&src.breakdowns&&src.breakdowns[idx]; if(!b) return;
-  const backFn=window.__bd?'renderWinterReport()':'renderBreakdownList()';
-  const tag=(p)=>p.legend?' 👑':p.hero?' 🦸':p.wonderkid?' ⭐':'';
-  $(`<button class="backbtn" onclick="${backFn}">‹</button>
-  <div class="eyebrow" style="padding-left:48px">${window.__bd?'Mid-season':(b.finalPos?`Finished ${b.finalPos}${b.finalPos===1?'st':b.finalPos===2?'nd':b.finalPos===3?'rd':'th'}`:'')}${b.sacked?' · sacked':''}</div>
-  <h1 style="font-size:30px">${esc(b.club)}</h1>
-  <div class="muted" style="margin-top:-6px">${esc(b.manager)}</div>
-  ${posChart(b,src)}
-  ${lineChart(b.ptsHist,'Points'+(window.__bd?' so far':''),'#FF2E7E')}
-  <h2 style="margin:14px 0 6px">Squad</h2>
-  <div class="panel" style="padding:6px 10px">
-    <div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);font-size:12px;font-weight:800;color:var(--muted)">
-      <span class="grow">PLAYER</span><span style="width:34px;text-align:center">£</span><span style="width:28px;text-align:center">⚽</span><span style="width:28px;text-align:center">🅰</span><span style="width:28px;text-align:center">🟥</span><span style="width:42px;text-align:center">FORM</span></div>
-    ${b.squad.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);font-size:15px">
-      <span class="grow"><span class="pos ${p.pos}" style="margin-right:6px">${p.pos}</span>${esc(p.name)}${tag(p)}</span>
-      <span style="width:34px;text-align:center;font-weight:700">${p.price!=null?'£'+p.price:'—'}</span>
-      <span style="width:28px;text-align:center;font-weight:700">${p.goals}</span>
-      <span style="width:28px;text-align:center">${p.assists}</span>
-      <span style="width:28px;text-align:center">${p.reds||'·'}</span>
-      <span style="width:42px;text-align:center;font-family:var(--disp);font-weight:800;color:${p.form>=7.5?'#3DDC84':p.form<5.5?'#FF5470':'#fff'}">${p.form!=null?p.form.toFixed(1):'—'}</span></div>`).join('')}
-  </div>
-  ${window.__bd?'':'<button class="bigbtn" style="margin-top:12px" onclick="renderBreakdownList()">👀 Compare other teams</button>'}
-  <button class="primary bigbtn" style="margin-top:10px" onclick="${backFn}">‹ Back</button>`);
 }
 
 /* ---------------- CONNECTION ---------------- */
