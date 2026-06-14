@@ -413,25 +413,37 @@ class Game {
     else      base = r >= 92 ? 15 : r >= 89 ? 11 : r >= 86 ? 8 : r >= 83 ? 6 : r >= 80 ? 4 : 2;
     const n = this.botNeeds(m);
     const need = n.needs(player.pos);
-    if (need <= 0 && !player.wonderkid) return 0; // bargain-chasing handled in scheduleBotBids
-    const seed = this.botSeed(m, player);          // stable per bot+player
-    const aggro = m.aggro || 1;                    // persistent personality (0.85–1.15)
+    const winterMkt = this.auction && this.auction.window === 'winter';
+    // WINTER is an UPGRADE market: squads are already full, so a bot bids when the player
+    // is clearly better than its current weakest player in that position (or fills a rare gap).
+    let upgrade = false;
+    if (winterMkt && need <= 0 && !player.wonderkid) {
+      const samePos = m.squad.filter((p) => p.pos === player.pos);
+      const weakest = samePos.length ? Math.min(...samePos.map((p) => p.rating)) : 0;
+      if (r >= weakest + 2) upgrade = true;       // a real improvement
+      else return 0;
+    } else if (need <= 0 && !player.wonderkid) {
+      return 0; // main auction, already stocked → handled by bargain-chase in scheduleBotBids
+    }
+    const seed = this.botSeed(m, player);
+    const aggro = m.aggro || 1;
     const wkBonus = player.wonderkid ? (hard ? 1.3 : 1.05) : 1;
     let factor;
     if (hard) {
-      factor = (1.0 + seed * 0.2) * aggro;         // ~1.00–1.20, scaled by personality
+      factor = (1.0 + seed * 0.2) * aggro;
       const lineMean = (pos) => { const ps = m.squad.filter((p) => p.pos === pos); return ps.length ? ps.reduce((s, p) => s + p.rating, 0) / ps.length : 0; };
       const myLine = lineMean(player.pos === 'GK' ? 'GK' : player.pos);
       if (need >= 1 && myLine < 80) factor += 0.15;
       else if (need >= 1) factor += 0.05;
     } else {
-      factor = (0.62 + seed * 0.18) * aggro;       // consistently cheap, personality-scaled
+      factor = (0.62 + seed * 0.18) * aggro;
     }
     const slotsLeft = n.needs('GK') + n.needs('DEF') + n.needs('MID') + n.needs('ATT');
     const reserve = Math.max(0, slotsLeft - 1);
     const cap = Math.max(1, m.budget - reserve);
     let val = Math.round(base * wkBonus * factor);
     if (need >= 2) val = Math.round(val * 1.08);
+    if (upgrade) val = Math.round(val * 0.9); // upgrades: slightly less keen than filling a true need
     return Math.min(cap, val);
   }
   scheduleBotBids() {
@@ -441,11 +453,13 @@ class Game {
     // randomise order every lot so no single bot has a permanent first-mover advantage
     const bots = E.shuffle(this.activeManagers().filter((m) => m.isBot));
     for (const m of bots) {
-      if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue;
+      if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue; // can never hold 2 keepers
       const need = this.botNeeds(m).needs(a.current.pos);
       const hard = m.diff === 'hard';
-      // already stocked at this position: only sometimes chase a bargain
-      if (need <= 0 && !a.current.wonderkid) {
+      const winterMkt = a.window === 'winter';
+      // main auction, already stocked: only sometimes chase a bargain.
+      // winter: let botMaxBid decide (it bids on genuine upgrades) — don't gate it out here.
+      if (need <= 0 && !a.current.wonderkid && !winterMkt) {
         if (Math.random() >= (hard ? 0.30 : 0.10)) continue;
       }
       let ceiling = this.botMaxBid(m, a.current);
@@ -1585,7 +1599,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v8.0',
+      serverV: 'v8.8',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

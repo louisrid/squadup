@@ -2,13 +2,14 @@
 // Do not change constants without re-running calibration.
 
 const PARAMS = {
-  BASE_LAMBDA: 1.35,
-  K: 0.10,
+  BASE_LAMBDA: 1.46,
+  K: 0.05,
   EVENT_RATE: 1 / 6,
   EVENT_SIZE: 5,
-  FORM_MOD: 2.5,  // explicit formation tactical nudge (noticeable)
-  MID_INFLUENCE: 0.20, // how much winning midfield tilts the game
-  MID_CAP: 2.2,        // max swing from the midfield battle (keeps it from dominating)
+  FORM_MOD: 7,  // formation nudge — Attacking is high-octane (scores+concedes lots), Defensive is a fortress
+  TILT_CORR: 0.0015, // cancels exp() convexity bias so no formation nets free points at even ratings
+  MID_INFLUENCE: 0.10, // how much winning midfield tilts the game (kept modest so it doesn't inflate goals)
+  MID_CAP: 1.0,        // max swing from the midfield battle
   AI_MEAN_OFF: { 2: -4.8, 3: -4.0, 4: -3.2, 5: -2.7, 6: -2.3 },
   AI_SD: 3.4,
   COMEBACK: 0.8,
@@ -87,8 +88,13 @@ function playMatch(tA, tB) {
   const midEdge = clamp((mA - mB) * PARAMS.MID_INFLUENCE, -PARAMS.MID_CAP, PARAMS.MID_CAP);
   const aAtk = tA.attack + midEdge, aDef = tA.defence + midEdge;
   const bAtk = tB.attack - midEdge, bDef = tB.defence - midEdge;
-  let la = PARAMS.BASE_LAMBDA * Math.exp(PARAMS.K * ((aAtk + na) - (bDef + nb)));
-  let lb = PARAMS.BASE_LAMBDA * Math.exp(PARAMS.K * ((bAtk + nb) - (aDef + na)));
+  // Convexity correction: exp() rewards a high-attack/low-defence split more than it punishes it,
+  // which would make Attacking net free points. Dampen each side's lambda by a sliver of its own
+  // attack-tilt (attack - defence) so all formations earn ~equal points at even ratings, while the
+  // scoreline TEXTURE (attacking = more goals both ways, defensive = fortress) is preserved.
+  const aTilt = tA.attack - tA.defence, bTilt = tB.attack - tB.defence;
+  let la = PARAMS.BASE_LAMBDA * Math.exp(PARAMS.K * ((aAtk + na) - (bDef + nb)) - PARAMS.TILT_CORR * aTilt);
+  let lb = PARAMS.BASE_LAMBDA * Math.exp(PARAMS.K * ((bAtk + nb) - (aDef + na)) - PARAMS.TILT_CORR * bTilt);
   la = clamp(la, 0.15, 6);
   lb = clamp(lb, 0.15, 6);
   // ~2% of matches are demolitions: one side (usually the stronger) goes ballistic

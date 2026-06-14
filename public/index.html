@@ -30,7 +30,7 @@ button{font-weight:700}
 th{font-weight:800}
 input,td{font-weight:600}
 body{max-width:500px;margin:0 auto;padding:16px 16px 150px;min-height:100vh;font-size:16px;font-weight:600}
-.screen{min-height:86vh;display:flex;flex-direction:column;justify-content:center}
+.screen{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;justify-content:flex-start;padding-top:max(84px,calc(env(safe-area-inset-top) + 68px))}
 @media (min-width:700px){
   body{max-width:600px;font-size:17px}
   h1{font-size:64px!important}
@@ -42,7 +42,7 @@ body{max-width:500px;margin:0 auto;padding:16px 16px 150px;min-height:100vh;font
 }
 h1,h2,.disp{font-family:var(--disp);text-transform:uppercase;letter-spacing:.02em}
 h1{font-size:34px;font-weight:800;margin:10px 0 2px;line-height:.95}
-h2{font-size:27px;font-weight:700;margin:24px 0 10px}
+h2{font-size:24px;font-weight:700;margin:16px 0 8px}
 .eyebrow{font-family:var(--disp);text-transform:uppercase;font-weight:700;font-size:16px;letter-spacing:.14em;color:var(--pink)}
 .muted{color:var(--muted);font-size:16px;font-weight:500}
 .flabel{display:block;font-family:var(--disp);text-transform:uppercase;font-weight:700;font-size:15px;letter-spacing:.1em;color:var(--muted);margin:12px 0 4px}
@@ -55,7 +55,7 @@ button.primary{background:var(--pink);border-color:var(--pink);color:#fff;box-sh
 button:disabled{opacity:.35;pointer-events:none}
 input{padding:15px 15px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:18px;width:100%;margin:5px 0;font-family:var(--body);font-weight:600}
 input:focus{outline:2px solid var(--pink);border-color:transparent}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;margin:16px 0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .grow{flex:1}
 .center{text-align:center}
@@ -120,10 +120,12 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .bidder{color:var(--pink);font-weight:700;font-size:16px}
 .bidbar #budgets{margin:0 0 6px}.bidbar .bchip{font-size:11px;padding:5px 7px}
 .bidbar{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));
-  max-width:468px;margin:0 auto;display:flex;flex-direction:column;max-height:62vh;
+  max-width:468px;margin:0 auto;display:flex;flex-direction:column;max-height:48vh;overflow:hidden;
   background:rgba(20,20,28,.97);border:1px solid var(--line);border-radius:18px;
   padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
 .bidbar .bidline,.bidbar #bidderEl{flex:0 0 auto}
+.bidbar-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-height:0}
+.bidbar-scroll::-webkit-scrollbar{display:none}
 @media (min-width:700px){.bidbar{max-width:568px}}
 input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:6px;background:var(--surface2);outline:none;border:1px solid var(--line);padding:0;margin:0}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;border-radius:50%;background:var(--pink);border:3px solid #fff;box-shadow:0 2px 10px rgba(255,61,138,.5);cursor:pointer}
@@ -143,14 +145,17 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .tick{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
 /* ---------- tables / form ---------- */
-table{width:100%;border-collapse:collapse;font-size:15px}
-td,th{padding:11px 6px;border-bottom:1px solid var(--line);text-align:left;font-size:16px}
+table{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed}
+td,th{padding:9px 3px;border-bottom:1px solid var(--line);text-align:center;font-size:14px;overflow:hidden;text-overflow:ellipsis}
+td:nth-child(2),th:nth-child(2){text-align:left;width:auto}
+td:first-child,th:first-child{width:22px}
+td:not(:nth-child(2)),th:not(:nth-child(2)){width:26px}
 th{font-family:var(--disp);text-transform:uppercase;font-size:12px;letter-spacing:.1em;color:var(--muted)}
 tr.hu td{background:rgba(255,61,138,.06)}
 tr.me td{background:rgba(255,61,138,.14)}
 .formchip{display:inline-block;min-width:30px;text-align:center;font-family:var(--disp);font-weight:800;border-radius:8px;padding:2px 6px;color:#0b0b10}
 .f-g{background:#39d97c}.f-y{background:#ffd23d}.f-o{background:#ff9838}.f-r{background:#ff5247;color:#fff}
-.pos{display:inline-block;font-family:var(--disp);font-weight:800;font-size:11px;letter-spacing:.08em;padding:2px 6px;border-radius:5px;margin-right:7px;color:#0b0b10}
+.pos{display:inline-block;flex-shrink:0;font-family:var(--disp);font-weight:800;font-size:11px;letter-spacing:.08em;padding:2px 6px;border-radius:5px;margin-right:7px;color:#0b0b10}
 .pos.GK{background:var(--gk)}.pos.DEF{background:var(--def);color:#fff}.pos.MID{background:var(--mid)}.pos.ATT{background:var(--att);color:#fff}
 /* ---------- pick ---------- */
 .pickgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -220,7 +225,9 @@ tr.me td{background:rgba(255,61,138,.14)}
 .bp.inj{opacity:.35;pointer-events:none}
 /* ---------- awards ---------- */
 .trophy{font-size:54px;line-height:1}
-.award{display:flex;justify-content:space-between;gap:8px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+.award{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px;align-items:baseline}
+.award b{flex:0 0 auto;white-space:nowrap}
+.award span{text-align:right;min-width:0;word-break:break-word;color:#C9D2E0}
 .award b{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em}
 .auctionWrap{align-items:center!important;width:100%;max-width:620px;margin-left:auto!important;margin-right:auto!important}
 /* budgets row handled by the .budgets rule above */
@@ -235,7 +242,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v8.0';
+const VERSION = 'v8.8';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -263,7 +270,7 @@ function cardHTML(p, sm){
 
 /* ---------------- HOME ---------------- */
 function home(){
-  $(`<div class="screen center" id="homeScr" style="position:relative;overflow:hidden;min-height:100dvh;justify-content:center;padding-bottom:6vh">
+  $(`<div class="screen center" id="homeScr" style="position:relative;overflow:hidden;min-height:100dvh;justify-content:center;padding-top:4vh;padding-bottom:6vh">
   <div style="position:relative;z-index:1;width:100%;display:flex;flex-direction:column;align-items:center">
   <h1 style="font-size:clamp(78px,13vw,236px);font-style:italic;font-weight:900;letter-spacing:-.01em;line-height:.95"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
   <div style="margin:24px 0 30px;font-size:15px;font-weight:600;color:#A7A7B6">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
@@ -290,9 +297,11 @@ function home(){
 function renderWhatsNew(){
   const li=(t)=>`<div style="font-size:17px;line-height:1.5;padding:5px 0">• ${t}</div>`;
   $(`<button class="backbtn" onclick="home()">‹</button>
+  <div style="padding-top:max(80px,calc(env(safe-area-inset-top) + 64px))"></div>
   <div class="eyebrow" style="padding-left:48px">What's new</div>
   <h1 style="color:#FFD75E">⭐ The season so far</h1>
   <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">FRESH IN</h2>
+    ${li(`🎮 <b>SINGLE PLAYER</b> — take on a field of AI clubs solo, on Easy or Hard`)}
     ${li(`🧠 <b>REAL TACTICS</b> — Attacking, Balanced & Defensive shapes that genuinely change how your games play out`)}
     ${li(`⚔️🎯🛡️ <b>ATTACK · MIDFIELD · DEFENCE</b> — build a complete team, watch your live ratings move as you pick`)}
     ${li(`👑 <b>LEGENDS & ICONS</b> — the all-time greats turn up in the winter market`)}
@@ -311,12 +320,13 @@ function renderWhatsNew(){
 }
 function renderHowTo(){
   $(`<button class="backbtn" onclick="home()">‹</button>
+  <div style="padding-top:max(80px,calc(env(safe-area-inset-top) + 64px))"></div>
   <div class="eyebrow" style="padding-left:48px">How to play</div>
   <h1>SQUADUP in 60 seconds</h1>
   <div class="panel"><h2 style="margin-top:0">1 · The auction</h2>
   <div style="font-size:16px;line-height:1.5">Everyone starts with the same budget. Players come up one at a time and you bid against your mates — the host runs the room. Snap up stars, sneaky bargains and rainbow-carded <b>wonderkids</b>, and build the deepest squad you can afford.</div></div>
   <div class="panel"><h2 style="margin-top:0">2 · Pick your team</h2>
-  <div style="font-size:16px;line-height:1.5">Choose your shape — <b>Attacking, Balanced or Defensive</b> — and your formation actually shapes your matches. Your live <b>⚔️ Attack · 🎯 Midfield · 🛡️ Defence</b> ratings update as you pick, so you always know how your side stacks up. Take all the time you want; the game waits for everyone.</div></div>
+  <div style="font-size:16px;line-height:1.5">Choose your shape — <b>Attacking, Balanced or Defensive</b> — and your formation actually shapes your matches. <b>Attacking</b> scores more but leaks more, <b>Defensive</b> grinds out tight clean sheets, <b>Balanced</b> sits in between — none is stronger, they just play differently. Your live <b>⚔️ Attack · 🎯 Midfield · 🛡️ Defence</b> ratings update as you pick, so you always know how your side stacks up. Take all the time you want; the game waits for everyone.</div></div>
   <div class="panel"><h2 style="margin-top:0">3 · The season</h2>
   <div style="font-size:16px;line-height:1.5">Battle through the campaign against your friends and a field of AI clubs, with full match commentary, goals, assists and plenty of drama. Better teams tend to win — but upsets, thrashings and last-gasp moments are always on the cards.</div></div>
   <div class="panel"><h2 style="margin-top:0">4 · The winter market</h2>
@@ -437,7 +447,7 @@ function restoreFromSnapshot(snap){
   if(snap.spin){ SPIN={segments:snap.spin.segments,spun:snap.spin.spun}; if(snap.spin.spun) renderSpinWait(); else renderSpinReady(); return; }
   if(snap.pick){
     if(snap.pick.locked){
-      $(`<div class="screen center"><div class="blackbox" style="width:100%"><div class="score">Locked in</div>
+      $(`<div class="screen center" style="justify-content:center"><div class="blackbox" style="width:100%"><div class="score">Locked in</div>
       <div class="muted" style="margin-top:8px">Waiting for the other managers…</div></div></div>`);
     } else {
       pickState={half:snap.pick.half, squad:snap.pick.squad, slots:null};
@@ -453,7 +463,7 @@ function restoreFromSnapshot(snap){
     else renderLot();
     setTimeout(applyPauseUI,0);
   } else if(snap.phase!=='lobby'){
-    $(`<div class="screen center"><div class="score" style="font-size:30px">You're back in</div>
+    $(`<div class="screen center" style="justify-content:center"><div class="score" style="font-size:30px">You're back in</div>
     <div class="muted" style="margin-top:8px">Hang tight for the next event…</div>
     <button class="bigbtn" style="margin-top:22px;max-width:300px" onclick="location.reload()">‹ Back to home</button></div>`);
   }
@@ -620,11 +630,11 @@ function renderLot(){
   const R=70, C=2*Math.PI*R;
   A.out = A.out||false;
   const minBid=A.highBid+1, canAfford=ME.budget>=minBid, maxBid=Math.max(minBid, ME.budget);
-  $(`${backBtn(1)}<div class="row" style="padding-left:48px">
+  $(`${backBtn(1)}<div class="row" style="padding-left:64px;padding-top:max(28px,calc(env(safe-area-inset-top) + 14px));padding-right:8px">
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
-  <div class="auctionWrap" data-lock style="justify-content:flex-start;align-items:center;min-height:auto;padding-top:max(3vh,18px);padding-bottom:340px;gap:14px">
+  <div class="auctionWrap" data-lock style="justify-content:flex-start;align-items:center;min-height:auto;padding-top:max(3vh,18px);padding-bottom:52vh;gap:14px">
   <div class="lotRow" style="align-items:center;justify-content:center;gap:20px">
     <div style="width:194px">${cardHTML(A.player)}</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
@@ -642,26 +652,28 @@ function renderLot(){
   </div>`:''}
   </div>
   <div class="bidbar">
+    <div class="bidbar-scroll">
     <div class="row" style="align-items:baseline;justify-content:center;gap:10px;margin-bottom:8px">
       <span class="bidline" id="bidlineEl" style="font-size:30px">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</span>
       <span class="bidder" id="bidderEl" style="font-size:14px">${A.highBidder?`🔨 ${esc(A.highBidder)}`:'No bids yet'}</span>
     </div>
     <div id="budgets" class="budgets"></div>
     ${MYSQUAD.length?`<div class="minirow">${MYSQUAD.map(p=>`<span class="mini"><span class="pos ${p.pos}" style="margin-right:0">${p.pos}</span>${esc(p.name)}${p.wonderkid?'⭐':''}${p.rtg?` <b>${p.rtg}</b>`:''}</span>`).join('')}</div>`:''}
+    </div>
     ${A.out
     ?`<div class="center muted" style="padding:10px 0;font-size:17px">You're out of this lot</div>`
-    :canAfford?`<div class="row" style="width:100%">
+    :canAfford?`<div class="row" style="width:100%;margin-top:6px">
       <input type="range" id="bidRange" class="grow" min="${minBid}" max="${maxBid}" step="1" value="${BIDAMT=clampBid(BIDAMT??minBid)}"
         oninput="bidSet(parseInt(this.value))">
     </div>
-    <div class="row" style="width:100%;align-items:center;justify-content:center;margin-top:8px">
-      <span id="bidAmt" class="disp" style="font-size:32px;font-weight:800;text-align:center">£${BIDAMT}m</span>
+    <div class="row" style="width:100%;align-items:center;justify-content:center;margin-top:6px">
+      <span id="bidAmt" class="disp" style="font-size:30px;font-weight:800;text-align:center">£${BIDAMT}m</span>
     </div>
-    <div class="row" style="width:100%;margin-top:10px">
-      <button class="primary grow" style="font-size:19px" onclick="bid(BIDAMT)">Place bid £<span id="bidBtnAmt">${BIDAMT}</span>m</button>
+    <div class="row" style="width:100%;margin-top:8px">
+      <button class="primary grow" style="font-size:18px" onclick="bid(BIDAMT)">Place bid £<span id="bidBtnAmt">${BIDAMT}</span>m</button>
       <button class="giveup" onclick="giveUp()">Give up</button>
     </div>`
-    :`<div class="row" style="width:100%"><div class="center muted grow" style="padding:8px 0;font-size:16px">Can't afford the next bid (£${minBid}m)</div>
+    :`<div class="row" style="width:100%;margin-top:6px"><div class="center muted grow" style="padding:8px 0;font-size:16px">Can't afford the next bid (£${minBid}m)</div>
     <button class="giveup" onclick="giveUp()">Give up</button></div>`}
   </div>`);
   clearInterval(timerInt);
@@ -769,8 +781,8 @@ function unitBars(slots, avail){
   let mid=mean(placed.filter(p=>p.pos==='MID'));
   let def=mean(placed.filter(p=>p.pos==='GK'||p.pos==='DEF'));
   const fi=formationInfo(slots);
-  if(fi.key==='ATT'&&atk!=null&&def!=null){ atk+=1.5; def-=1.5; }
-  else if(fi.key==='DEF'&&atk!=null&&def!=null){ def+=1.5; atk-=1.5; }
+  if(fi.key==='ATT'&&atk!=null&&def!=null){ atk+=7; def-=7; }
+  else if(fi.key==='DEF'&&atk!=null&&def!=null){ def+=7; atk-=7; }
   const cell=(lbl,v,col)=>`<div style="flex:1;text-align:center"><div class="muted" style="font-size:12px">${lbl}</div>
     <div style="font-family:var(--disp);font-weight:800;font-size:25px;color:${v!=null?col:'#FF5470'}">${v!=null?v.toFixed(1):'—'}</div></div>`;
   const fbox=`<div class="blackbox" style="padding:9px 12px;margin-bottom:8px;text-align:center">
@@ -811,7 +823,7 @@ function renderPick(){
         : `<div class="slot"><span class="plus">＋</span>${pos}</div>`;}).join('')}</div>`;
   }).join('');
   const filled = used.length;
-  $k(`${backBtn(1)}<div style="padding-top:52px"></div>
+  $k(`${backBtn(1)}<div style="padding-top:max(80px,calc(env(safe-area-inset-top) + 64px))"></div>
   <div class="eyebrow">${p.half==='first'?'Pre-season':'Second half'}</div>
   <h1 style="margin-bottom:6px">Pick your five</h1>
   ${formChips(p.squad.filter(x=>!x.injured),'pickForm')}
@@ -871,7 +883,7 @@ function submitPick(){
   });
 }
 function renderLockWait(){
-  $(`<div class="screen center"><div class="blackbox" style="width:100%"><div class="score">Locked in</div>
+  $(`<div class="screen center" style="justify-content:center"><div class="blackbox" style="width:100%"><div class="score">Locked in</div>
   <div class="muted" style="margin-top:8px">Waiting for the other managers…</div></div>
   <div class="panel" id="lockedlist" style="text-align:left;font-size:17px">${lockedManagers.map(n=>`<div>🟢 ${esc(n)}</div>`).join('')}</div></div>`);
 }
@@ -898,9 +910,9 @@ function renderMatch(m){
   const yours = ME.club && (m.home===ME.club || m.away===ME.club);
   const fbadge=(key)=>{ if(!key) return ''; const m={ATT:['ATTACKING','#FF8FB6'],DEF:['DEFENSIVE','#7FB8FF'],BAL:['BALANCED','#C9D2E0']}[key]||['',''];
     return ` <span style="font-family:var(--disp);font-weight:800;font-size:13px;color:${m[1]};border:1px solid ${m[1]};border-radius:6px;padding:1px 6px;vertical-align:middle">${m[0]}</span>`; };
-  const teamLine=(name,mgr,pos,delay,formKey)=>`<div style="opacity:0;animation:cerIn .5s ${delay}s forwards">
+  const teamLine=(name,mgr,pos,delay,formKey)=>`<div style="opacity:0;animation:cerIn .5s ${delay}s forwards;max-width:440px;margin:0 auto">
     ${pos?`<div class="muted" style="font-size:13px;letter-spacing:.12em">#${pos} IN THE LEAGUE</div>`:''}
-    <div class="score" style="font-size:34px">${esc(name)}${mgr?` <span style="font-size:20px;color:var(--muted)">(${esc(mgr)})</span>`:''}${mgr?fbadge(formKey):''}</div>
+    <div class="score" style="font-size:clamp(22px,6vw,34px);word-break:break-word">${esc(name)}${mgr?` <span style="font-size:.6em;color:var(--muted)">(${esc(mgr)})</span>`:''}${mgr?fbadge(formKey):''}</div>
   </div>`;
   $(`<div class="screen mdscreen" style="justify-content:flex-start;padding-top:max(12vh,84px)">
     <div class="center">
@@ -1037,22 +1049,28 @@ function applyWinter(w){
 }
 s.on('winter',applyWinter);
 function fcCls(f){ return f==null?'f-n':f>=8?'f-g':f>=6?'f-y':f>=4?'f-o':'f-r'; }
-function statPanels(st){
+function statPanels(st,mineOnly){
+  let scorers=st.topScorers||[], assists=st.topAssists||[];
+  if(mineOnly && ME.club){
+    scorers=scorers.filter(r=>r.owner===ME.club);
+    assists=assists.filter(r=>r.owner===ME.club);
+  }
   const row=(r,i,v)=>`<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)">
     <span class="muted" style="min-width:26px;font-size:15px">${i+1}</span>
     <span class="grow" style="font-size:17px;font-weight:700">${esc(r.name)}</span>
     <span class="muted" style="font-size:14px;margin-right:8px">${r.owner?esc(r.owner):'gone 🎰'}</span>
     <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:20px">${v}</span></div>`;
-  return `${st.topScorers.length?`<h2>👟 Top scorers</h2><div class="panel">${st.topScorers.map((r,i)=>row(r,i,r.goals)).join('')}</div>`:''}
-  ${st.topAssists.length?`<h2>🎯 Top assists</h2><div class="panel">${st.topAssists.map((r,i)=>row(r,i,r.assists)).join('')}</div>`:''}`;
+  return `${scorers.length?`<h2>👟 Top scorers</h2><div class="panel">${scorers.map((r,i)=>row(r,i,r.goals)).join('')}</div>`:''}
+  ${assists.length?`<h2>🎯 Top assists</h2><div class="panel">${assists.map((r,i)=>row(r,i,r.assists)).join('')}</div>`:''}`;
 }
 function renderStats(){
   if(!W) return;
   const tierTxt={worse:'<span class="t-worse">▼ worse</span>',better:'<span class="t-better">▲ better</span>',great:'<span class="t-great">▲▲ great</span>',legend:'<span class="t-legend">👑 LEGEND</span>'};
   $(`<button class="backbtn" onclick="renderWinterReport()">‹</button>
+  <div style="padding-top:max(80px,calc(env(safe-area-inset-top) + 64px))"></div>
   <div class="eyebrow" style="padding-left:48px">Season so far</div>
   ${tableHTML(W.table,'Halfway table')}
-  ${statPanels(W.stats)}
+  ${statPanels(W.stats,true)}
   <button class="primary bigbtn" style="margin-top:14px" onclick="renderWinterReport()">‹ Back</button>`);
 }
 let RESPINS=3;
@@ -1079,11 +1097,12 @@ function renderWinterReport(){
     const v=p.grew||0;
     const bg=v>0?'rgba(124,227,139,.16)':v<0?'rgba(255,84,112,.16)':'rgba(255,255,255,.07)';
     const col=v>0?'#7CE38B':v<0?'#FF5470':'#9aa0ae';
-    return `<span style="display:inline-block;min-width:42px;text-align:center;margin-left:8px;padding:3px 7px;border-radius:8px;background:${bg};color:${col};font-family:var(--disp);font-weight:800;font-size:16px;border:1px solid ${col}44">${v>0?'+'+v:v<0?v:'±0'}</span>`;
+    return `<span style="display:inline-block;min-width:34px;text-align:center;margin-left:5px;padding:2px 5px;border-radius:7px;background:${bg};color:${col};font-family:var(--disp);font-weight:800;font-size:14px;border:1px solid ${col}44;flex-shrink:0">${v>0?'+'+v:v<0?v:'±0'}</span>`;
   };
   const mine0=W.review.find(r=>r.manager===ME.name);
   const tips=(mine0&&mine0.tips)||[];
-  $(`<div class="eyebrow" style="padding-top:4px">Winter break</div>
+  $(`<div style="padding-top:max(40px,calc(env(safe-area-inset-top) + 24px))"></div>
+  <div class="eyebrow" style="padding-top:4px">Winter break</div>
   <h1 style="margin-bottom:6px">The window is open</h1>
   <div class="muted" style="font-size:13px;margin:-2px 0 6px">League standings</div>
   <div class="panel" style="padding:6px 8px;max-height:230px;overflow-y:auto;margin-bottom:10px">
@@ -1102,19 +1121,19 @@ function renderWinterReport(){
     <h2 class="grow" style="margin:0">Your squad developed</h2>
     ${(!ME.sacked)?`<div style="font-family:var(--disp);font-weight:800;font-size:17px;color:#F4FF00">${RESPINS}/3 respins</div>`:''}
   </div>
-  ${mine?`<div class="panel" style="padding:8px 12px">${mine.players.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
+  ${mine?`<div class="panel" style="padding:8px 10px">${mine.players.map(p=>`<div class="row spinrow" style="padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:nowrap;gap:6px">
     <span class="pos ${p.pos}">${p.pos}</span>
-    <span class="grow" style="font-size:17px;font-weight:700">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.injured?' 🤕':''}</span>
-    <span class="formchip ${fcCls(p.form)}" style="margin-right:8px">${p.form==null?'NEW':p.form.toFixed(1)}</span>
-    <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:21px">${p.rtg}</span>${grewBox(p)}
-    ${(!ME.sacked&&RESPINS>0)?`<button class="spinbtn" style="margin-left:8px" onclick="doRespin('${esc(p.name).replace(/'/g,"\\'")}')">🎰</button>`:''}</div>`).join('')}</div>`:''}
+    <span class="grow" style="font-size:15px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.injured?' 🤕':''}</span>
+    <span class="formchip ${fcCls(p.form)}" style="font-size:14px;min-width:40px;padding:3px 6px;flex-shrink:0">${p.form==null?'NEW':p.form.toFixed(1)}</span>
+    <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:18px;flex-shrink:0">${p.rtg}</span>${grewBox(p)}
+    ${(!ME.sacked&&RESPINS>0)?`<button class="spinbtn" style="margin-left:4px;font-size:15px;padding:7px 9px;min-width:0;flex-shrink:0" onclick="doRespin('${esc(p.name).replace(/'/g,"\\'")}')">🎰</button>`:''}</div>`).join('')}</div>`:''}
   ${tips.length?`<h2 style="margin:14px 0 4px">📋 Assistant's notes</h2>
   <div class="panel" style="border-color:#4FC3F7">${tips.map(t=>`<div style="font-size:16px;line-height:1.45;padding:6px 0">💬 ${esc(t)}</div>`).join('')}</div>`:''}
   ${ME.isHost && !ME.sacked
     ?`<button class="primary bigbtn" style="margin-top:6px" onclick="openWinterMarket()">Open the winter market ▸</button>
        <div class="muted center" style="font-size:13px;margin-top:8px">Everyone keeps their respins until you open it</div>`
     :`<div class="center muted" style="padding:8px 0">Waiting for the host to open the market…</div>`}
-  ${statPanels(W.stats)}`);
+  ${statPanels(W.stats,true)}`);
 }
 function openWinterMarket(){
   s.emit('startWinterAuction',(r)=>{ if(r&&r.error) toast(r.error); });
@@ -1180,7 +1199,7 @@ function ceremonyPodium(f){
   CTIMERS.forEach(clearTimeout); CTIMERS=[];
   const podium=f.table.slice(0,3);
   const nm=(t)=>esc(t.name)+(t.manager?` <span class="muted" style="font-size:18px">(${esc(t.manager)})</span>`:'');
-  const stage=(html2)=>$(`<div class="screen center">${html2}
+  const stage=(html2)=>$(`<div class="screen center" style="justify-content:center">${html2}
     <button onclick="showFinal()" style="position:fixed;bottom:18px;right:18px;font-size:14px;padding:9px 13px;opacity:.6">Skip</button>`);
   stage(`<div class="ceremonyTxt">The season is over</div>`);
   CTIMERS.push(setTimeout(()=>stage(`<div class="eyebrow" style="margin-bottom:14px">The podium</div>
@@ -1205,7 +1224,7 @@ function showFinal(){
   $(`<div class="blackbox" style="padding:26px 16px;margin-top:18px">
     <div class="trophy">🏆</div>
     <div class="eyebrow">${champMine?'You are the champion':'Champions'}</div>
-    <div class="score">${esc(f.champion.name)}</div>
+    <div class="score" style="font-size:clamp(28px,7vw,46px);word-break:break-word">${esc(f.champion.name)}</div>
     ${f.champion.manager?`<div class="bidder" style="font-size:18px">${esc(f.champion.manager)}</div>`:'<div class="muted">An AI club took it. Embarrassing.</div>'}
   </div>
   ${tableHTML(f.table,'Final table')}
@@ -1221,12 +1240,12 @@ function showFinal(){
   ${(()=>{ const mine=f.breakdowns&&f.breakdowns.find(b=>b.manager===ME.name); if(!mine) return '';
     const sorted=[...mine.squad].sort((a,b)=>b.goals-a.goals||b.assists-a.assists);
     return `<h2 style="margin:14px 0 4px">Your squad this season</h2>
-    <div class="panel" style="padding:8px 12px">${sorted.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
+    <div class="panel" style="padding:8px 10px">${sorted.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:nowrap;gap:6px">
       <span class="pos ${p.pos}">${p.pos}</span>
-      <span class="grow" style="font-size:16px;font-weight:700">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.hero?' 🔥':''}</span>
-      <span class="muted" style="font-size:13px;margin-right:8px">⚽${p.goals} 🅰️${p.assists}</span>
-      <span class="formchip ${fcCls(p.form)}" style="margin-right:8px">${p.form==null?'–':p.form.toFixed(1)}</span>
-      <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:20px">${Math.round(p.rating)}</span></div>`).join('')}</div>`; })()}
+      <span class="grow" style="font-size:15px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.hero?' 🔥':''}</span>
+      <span class="muted" style="font-size:12px;margin-right:4px;flex-shrink:0;white-space:nowrap">⚽${p.goals} 🅰️${p.assists}</span>
+      <span class="formchip ${fcCls(p.form)}" style="font-size:13px;min-width:38px;padding:3px 5px;flex-shrink:0">${p.form==null?'–':p.form.toFixed(1)}</span>
+      <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:18px;flex-shrink:0">${Math.round(p.rating)}</span></div>`).join('')}</div>`; })()}
   <button class="primary" style="width:100%;margin-top:10px" onclick="location.reload()">‹ Back to home</button>
   <div class="muted center" style="margin-top:10px;font-size:14px">Take your time — the stats stay here until you leave.</div>`);
 }
