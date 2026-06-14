@@ -20,6 +20,12 @@ const LEGENDS = [
   { name: 'Ronaldo Nazário', pos: 'ATT', fc26: 95, rating: 95, legend: true },
   { name: 'Eusébio', pos: 'ATT', fc26: 95, rating: 93, legend: true },
   { name: 'Romário', pos: 'ATT', fc26: 95, rating: 92, legend: true },
+  { name: 'Andrés Iniesta', pos: 'MID', fc26: 95, rating: 94, legend: true },
+  { name: 'Xavi', pos: 'MID', fc26: 95, rating: 93, legend: true },
+  { name: 'Ronaldinho', pos: 'MID', fc26: 95, rating: 95, legend: true },
+  { name: 'Thierry Henry', pos: 'ATT', fc26: 95, rating: 94, legend: true },
+  { name: 'Andrea Pirlo', pos: 'MID', fc26: 95, rating: 93, legend: true },
+  { name: 'Kaká', pos: 'ATT', fc26: 95, rating: 93, legend: true },
 ];
 
 const AI_CLUB_NAMES = [
@@ -150,7 +156,7 @@ class Game {
     const pool = [];
     const inPool = new Set();
     for (const t of tiers) {
-      const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.rating >= t.lo && p.rating <= t.hi && !inPool.has(p.name)));
+      const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.rating >= t.lo && p.rating <= t.hi && !p.hero && !inPool.has(p.name)));
       for (const p of cand.slice(0, t.count)) { pool.push(p); inPool.add(p.name); }
     }
     // enforce exact position quotas via same-tier swaps (total quota == pool size,
@@ -163,8 +169,8 @@ class Game {
         if (!victims.length) break;
         const victim = E.pick(victims);
         const tier = tiers.find((t) => victim.rating >= t.lo && victim.rating <= t.hi);
-        let repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= tier.lo && p.rating <= tier.hi && !inPool.has(p.name)))[0];
-        if (!repl) repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= 80 && !inPool.has(p.name)))[0];
+        let repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= tier.lo && p.rating <= tier.hi && !p.hero && !inPool.has(p.name)))[0];
+        if (!repl) repl = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === pos && p.rating >= 80 && !p.hero && !inPool.has(p.name)))[0];
         if (!repl) break;
         inPool.delete(victim.name); inPool.add(repl.name);
         pool[pool.indexOf(victim)] = repl;
@@ -204,8 +210,8 @@ class Game {
         haveWk++;
       }
     }
-    // rare hero card in the opening auction (~35% of windows, one slot)
-    if (Math.random() < 0.35) {
+    // rare hero card in the opening auction (~18% of windows, one slot)
+    if (Math.random() < 0.18) {
       const hero = E.shuffle(ALL_PLAYERS.filter((p) => p.hero && !inPool.has(p.name) && !this.owned(p.name)))[0];
       if (hero) {
         const victim = E.shuffle(pool.filter((p) => !p.wonderkid && p.pos === hero.pos)) [0] || E.shuffle(pool.filter((p) => !p.wonderkid && p.pos !== 'GK'))[0];
@@ -545,7 +551,7 @@ class Game {
 
   // ---------- season ----------
   startSeason() {
-    for (const m of this.activeManagers()) for (const p of m.squad) p.seasonMod = E.rollSeasonEvent();
+    for (const m of this.activeManagers()) for (const p of m.squad) p.seasonMod = E.rollSeasonEvent(p.rating);
     const n = this.managers.length;
     const humanTeams = this.managers.map((m, i) => ({ type: 'human', mIdx: i, name: m.club }));
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
@@ -964,8 +970,12 @@ class Game {
     const old = m.squad.find((p) => p.name === playerName);
     if (!old) return { error: 'Not your player' };
     const lo = Math.max(84, old.rating), hi = Math.min(93, old.rating + 6); // never a downgrade
-    const cand = E.shuffle(ALL_PLAYERS.filter((p) => p.pos === old.pos && !p.wonderkid && p.rating >= lo && p.rating <= hi && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name)))[0]
-      || E.shuffle(ALL_PLAYERS.filter((p) => p.pos === old.pos && !this.owned(p.name)))[0];
+    const allowHero = Math.random() < 0.12; // heroes only on a rare lucky respin
+    const eligible = (p) => p.pos === old.pos && !p.wonderkid && p.rating >= lo && p.rating <= hi
+      && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name) && (allowHero || !p.hero);
+    const cand = E.shuffle(ALL_PLAYERS.filter(eligible))[0]
+      || E.shuffle(ALL_PLAYERS.filter((p) => p.pos === old.pos && !p.hero && p.rating >= lo && p.rating <= hi && !this.owned(p.name) && !p.wonderkid && !LEGENDS.some((l) => l.name === p.name)))[0]
+      || E.shuffle(ALL_PLAYERS.filter((p) => p.pos === old.pos && !p.hero && !this.owned(p.name)))[0];
     if (!cand) return { error: 'Nobody available' };
     m.squad[m.squad.indexOf(old)] = { ...cand, seasonMod: 0 };
     if (m.injured === old.name) m.injured = null;
@@ -1002,7 +1012,7 @@ class Game {
     const legendCount = Math.random() < 0.6 ? 1 : 2;
     const legends = E.shuffle(LEGENDS.filter((l) => !this.owned(l.name) && l.pos !== 'GK')).slice(0, legendCount).map((l) => ({ ...l, rating: 96, pot: 96 }));
     const restCount = total - legends.length;
-    const ok = (p, pos, lo) => p.pos === pos && p.rating >= lo && !p.wonderkid && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name);
+    const ok = (p, pos, lo) => p.pos === pos && p.rating >= lo && !p.wonderkid && !p.hero && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name);
     const fresh = (lo) => ({
       DEF: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'DEF', lo))),
       MID: E.shuffle(ALL_PLAYERS.filter((p) => ok(p, 'MID', lo))),
@@ -1011,13 +1021,17 @@ class Game {
     const byPos = fresh(88);
     const backup = fresh(88); // strictly 88+
     const rest = [];
-    // ~45% of winter windows include a top keeper (legend GK or 90+ hero GK)
-    if (Math.random() < 0.45) {
+    // ~30% of winter windows include a top keeper (legend GK or hero GK)
+    if (Math.random() < 0.30) {
       const gkPool = E.shuffle([
         ...LEGENDS.filter((l) => l.pos === 'GK' && !this.owned(l.name)).map((l) => ({ ...l, rating: 95, pot: 95 })),
         ...ALL_PLAYERS.filter((p) => p.pos === 'GK' && p.hero && !this.owned(p.name)),
       ]);
       if (gkPool[0]) rest.push(gkPool[0]);
+    } else if (Math.random() < 0.30) {
+      // otherwise a ~30% chance of one outfield hero (mutually exclusive, so at most one hero per window)
+      const hero = E.shuffle(ALL_PLAYERS.filter((p) => p.hero && p.pos !== 'GK' && !this.owned(p.name) && !rest.some((x) => x.name === p.name)))[0];
+      if (hero) rest.push(hero);
     }
     const order = E.shuffle(['DEF', 'MID', 'ATT']);
     const want = { DEF: 0, MID: 0, ATT: 0 };
@@ -1050,7 +1064,7 @@ class Game {
 
 
   startSecondHalf() {
-    for (const m of this.activeManagers()) for (const p of m.squad) if (p.seasonMod === undefined) p.seasonMod = E.rollSeasonEvent();
+    for (const m of this.activeManagers()) for (const p of m.squad) if (p.seasonMod === undefined) p.seasonMod = E.rollSeasonEvent(p.rating);
     // re-anchor AI clubs to the post-winter human level so scorelines stay sane
     const live = this.activeManagers();
     if (live.length) {
@@ -1058,7 +1072,7 @@ class Game {
       const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / live.length;
       for (const t of this.season.teams) {
         if (t.type === 'ai' && !t.wasHuman) {
-          const base = avg + E.gauss() * 1.1 - 1.2; // equal treatment both halves
+          const base = avg + E.gauss() * 1.1 - 2.6; // post-winter squads are stronger; keep AI a clear step below
           t.attack = base + E.gauss() * 0.6 + (t.elite ? 0.7 : 0);
           t.defence = base + E.gauss() * 0.6 + (t.elite ? 0.7 : 0);
         }
@@ -1260,7 +1274,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v5.1',
+      serverV: 'v5.7',
       paused: this.paused,
     };
   }

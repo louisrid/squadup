@@ -4,7 +4,7 @@
 const PARAMS = {
   BASE_LAMBDA: 1.35,
   K: 0.10,
-  EVENT_RATE: 1 / 12,
+  EVENT_RATE: 1 / 6,
   EVENT_SIZE: 5,
   FORM_MOD: 2.0,
   AI_MEAN_OFF: { 2: -6.2, 3: -5.4, 4: -4.5, 5: -4.0, 6: -3.5 },
@@ -41,7 +41,9 @@ function shuffle(arr) {
 }
 
 // ---------- season events (rolled ONCE at season start, per player) ----------
-function rollSeasonEvent() {
+function rollSeasonEvent(rating) {
+  // rare hidden breakout: a sub-86 player quietly overperforms by +7 all season (never surfaced to the player)
+  if (rating != null && rating < 86 && Math.random() < 0.055) return 7;
   if (Math.random() < PARAMS.EVENT_RATE) {
     return Math.random() < 0.5 ? PARAMS.EVENT_SIZE : -PARAMS.EVENT_SIZE;
   }

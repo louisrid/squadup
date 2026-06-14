@@ -234,7 +234,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v5.1';
+const VERSION = 'v5.7';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -509,7 +509,7 @@ s.on('bid',(b)=>{ sfx('bid'); if(!A) return;
         am=document.getElementById('bidAmt');
   if(!bl) return renderLot();
   bl.innerHTML=`£${A.highBid}<small>m</small>`;
-  bd.textContent=A.highBidder;
+  bd.textContent="🔨 "+A.highBidder;
   bl.classList.remove('bidflash'); void bl.offsetWidth; bl.classList.add('bidflash');
   const minBid=A.highBid+1;
   if(BIDAMT!=null && BIDAMT<minBid){ BIDAMT=minBid; }
@@ -594,7 +594,7 @@ function renderLot(){
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
-  <div class="auctionWrap" data-lock style="justify-content:flex-end;min-height:calc(100dvh - 248px);padding-top:12px;padding-bottom:8px;gap:16px">
+  <div class="auctionWrap" data-lock style="justify-content:flex-start;align-items:center;min-height:auto;padding-top:max(3vh,18px);padding-bottom:340px;gap:14px">
   <div class="lotRow" style="align-items:center;justify-content:center;gap:20px">
     <div style="width:194px">${cardHTML(A.player)}</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
@@ -610,12 +610,12 @@ function renderLot(){
   ${ME.isHost?`<div class="row" style="justify-content:center;margin-top:2px">
     <button onclick="toggleSpeed()" style="width:194px;font-size:17px;padding:12px;font-weight:800;${SPEED===2?'background:#4FC3F7;border-color:#4FC3F7;color:#06222e':''}">${SPEED===2?'2x speed ✓':'2x speed'}</button>
   </div>`:''}
-  <div class="blackbox" style="margin:3px auto;width:min(248px,88%);padding:7px 12px;border-radius:13px">
-    <div class="bidline" id="bidlineEl" style="font-size:25px">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</div>
-    <div class="bidder" id="bidderEl" style="font-size:13px">${A.highBidder?`🔨 ${esc(A.highBidder)}`:'No bids yet'}</div>
-  </div>
   </div>
   <div class="bidbar">
+    <div class="row" style="align-items:baseline;justify-content:center;gap:10px;margin-bottom:8px">
+      <span class="bidline" id="bidlineEl" style="font-size:30px">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</span>
+      <span class="bidder" id="bidderEl" style="font-size:14px">${A.highBidder?`🔨 ${esc(A.highBidder)}`:'No bids yet'}</span>
+    </div>
     <div id="budgets" class="budgets"></div>
     ${MYSQUAD.length?`<div class="minirow">${MYSQUAD.map(p=>`<span class="mini"><span class="pos ${p.pos}" style="margin-right:0">${p.pos}</span>${esc(p.name)}${p.wonderkid?'⭐':''}${p.rtg?` <b>${p.rtg}</b>`:''}</span>`).join('')}</div>`:''}
     ${A.out
@@ -1108,7 +1108,7 @@ function showFinal(){
     ${a.winterSplash?`<div class="award"><b>💰 Winter splash</b><span>${esc(a.winterSplash.player)} — £${a.winterSplash.price}m (${esc(a.winterSplash.manager)})</span></div>`:''}
   </div>
   ${f.stats?statPanels(f.stats):''}
-  ${(f.breakdowns&&f.breakdowns.find(b=>b.manager===ME.name))?`<button class="bigbtn" style="margin-top:14px" onclick="renderTeamBreakdown(f.breakdowns.findIndex(b=>b.manager===ME.name))">📊 My team breakdown</button>`:(f.breakdowns&&f.breakdowns.length?`<button class="bigbtn" style="margin-top:14px" onclick="renderBreakdownList()">📊 Team breakdowns</button>`:'')}
+  ${(f.breakdowns&&f.breakdowns.find(b=>b.manager===ME.name))?`<button class="bigbtn" style="margin-top:14px" onclick="renderTeamBreakdown(window.__finalData.breakdowns.findIndex(b=>b.manager===ME.name))">📊 My team breakdown</button>`:(f.breakdowns&&f.breakdowns.length?`<button class="bigbtn" style="margin-top:14px" onclick="renderBreakdownList()">📊 Team breakdowns</button>`:'')}
   <button class="primary" style="width:100%;margin-top:10px" onclick="location.reload()">‹ Back to home</button>
   <div class="muted center" style="margin-top:10px;font-size:14px">Take your time — the stats stay here until you leave.</div>`);
 }

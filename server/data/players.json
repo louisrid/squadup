@@ -3706,33 +3706,6 @@
 "hero": true
 },
 {
-"name": "Andrea Pirlo",
-"pos": "MID",
-"league": "ICON",
-"fc26": 91,
-"rating": 91,
-"pot": 91,
-"age": "prime"
-},
-{
-"name": "Xavi",
-"pos": "MID",
-"league": "ICON",
-"fc26": 92,
-"rating": 92,
-"pot": 92,
-"age": "prime"
-},
-{
-"name": "Andrés Iniesta",
-"pos": "MID",
-"league": "ICON",
-"fc26": 93,
-"rating": 93,
-"pot": 93,
-"age": "prime"
-},
-{
 "name": "Carles Puyol",
 "pos": "DEF",
 "league": "ICON",
@@ -3763,15 +3736,6 @@
 "hero": true
 },
 {
-"name": "Thierry Henry",
-"pos": "ATT",
-"league": "ICON",
-"fc26": 93,
-"rating": 93,
-"pot": 93,
-"age": "prime"
-},
-{
 "name": "Samuel Eto’o",
 "pos": "ATT",
 "league": "ICON",
@@ -3787,24 +3751,6 @@
 "fc26": 90,
 "rating": 90,
 "pot": 90,
-"age": "prime"
-},
-{
-"name": "Kaká",
-"pos": "MID",
-"league": "ICON",
-"fc26": 92,
-"rating": 92,
-"pot": 92,
-"age": "prime"
-},
-{
-"name": "Ronaldinho",
-"pos": "MID",
-"league": "ICON",
-"fc26": 93,
-"rating": 93,
-"pot": 93,
 "age": "prime"
 },
 {
@@ -3844,7 +3790,8 @@
 "fc26": 90,
 "rating": 90,
 "pot": 90,
-"age": "prime"
+"age": "prime",
+"hero": true
 },
 {
 "name": "Nemanja Vidić",
