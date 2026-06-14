@@ -235,7 +235,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v6.9';
+const VERSION = 'v7.1';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -290,22 +290,21 @@ function renderWhatsNew(){
   const li=(t)=>`<div style="font-size:17px;line-height:1.5;padding:5px 0">• ${t}</div>`;
   $(`<button class="backbtn" onclick="home()">‹</button>
   <div class="eyebrow" style="padding-left:48px">What's new</div>
-  <h1 style="color:#FFD75E">⭐ The big update</h1>
-  <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">ADDED</h2>
-    ${li(`🎰 <b>WINTER RESPINS</b> — two chances to gamble a player away for a mystery replacement`)}
-    ${li(`❄️ <b>THE WINTER MARKET</b> — +£50m, bigger names, and <b>LEGENDS 👑</b>`)}
-    ${li(`⭐ <b>WONDERKIDS</b> — rainbow cards that explode at the break`)}
-    ${li(`📈 <b>PLAYER DEVELOPMENT</b> — squads grow, fade and surprise you`)}
-    ${li(`♾️ <b>UNLIMITED SQUADS</b> — one keeper. No other limits`)}
-    ${li(`🟥 <b>RED CARDS, SUSPENSIONS & OWN GOALS</b>`)}
-    ${li(`🎯 <b>EXACT RATINGS</b> the moment you sign — plus live team ⚔️/🛡️`)}
-    ${li(`…and icons, faster auctions, and a meaner league`)}
+  <h1 style="color:#FFD75E">⭐ The season so far</h1>
+  <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">FRESH IN</h2>
+    ${li(`🧠 <b>REAL TACTICS</b> — Attacking, Balanced & Defensive shapes that genuinely change how your games play out`)}
+    ${li(`⚔️🎯🛡️ <b>ATTACK · MIDFIELD · DEFENCE</b> — build a complete team, watch your live ratings move as you pick`)}
+    ${li(`👑 <b>LEGENDS & ICONS</b> — the all-time greats turn up in the winter market`)}
+    ${li(`⭐ <b>WONDERKIDS</b> — rainbow cards that level up into superstars at the break`)}
+    ${li(`❄️ <b>THE WINTER MARKET</b> — a fresh war chest, bigger names and a second run at glory`)}
+    ${li(`🎰 <b>RESPINS</b> — roll the dice on a squad player for a mystery upgrade`)}
+    ${li(`🏁 <b>THE TITLE RACE</b> — a live animated run through the season before the trophy lift`)}
   </div>
-  <div class="panel" style="border-color:#FF5470"><h2 style="margin-top:0;color:#FF5470">REMOVED</h2>
-    ${li(`🎰 Respins — gone`)}
-    ${li(`The 6-player squad cap — gone`)}
-    ${li(`Pick timers — take your time`)}
-    ${li(`Fake formations — 3 real shapes now`)}
+  <div class="panel" style="border-color:#4FC3F7"><h2 style="margin-top:0;color:#4FC3F7">SHARPER THAN EVER</h2>
+    ${li(`📈 Squads that grow, fade and surprise you across the year`)}
+    ${li(`🟥 Red cards, suspensions, own goals & last-minute drama`)}
+    ${li(`🤖 Smarter rivals — the AI clubs will push you all the way`)}
+    ${li(`⚡ Faster auctions, slicker screens, no waiting around`)}
   </div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
 }
@@ -314,15 +313,15 @@ function renderHowTo(){
   <div class="eyebrow" style="padding-left:48px">How to play</div>
   <h1>SQUADUP in 60 seconds</h1>
   <div class="panel"><h2 style="margin-top:0">1 · The auction</h2>
-  <div style="font-size:16px;line-height:1.5">Everyone gets <b>£100m</b>. Players come up one at a time — the host paces the lots and can pause at any moment. Bid with the slider; every bid adds 3s to the clock, but the clock can never climb past 12s. Cards show a <b>rating range</b> (if the host enabled hints) — the exact rating is revealed the moment someone signs him. <b>Wonderkids</b> have rainbow cards: young stars rated 85 or less with huge potential. Buy as many players as your budget allows — the only rule is <b>max one keeper</b>.</div></div>
-  <div class="panel"><h2 style="margin-top:0">2 · Pick your five</h2>
-  <div style="font-size:16px;line-height:1.5">Field <b>1 GK + 4 outfielders</b> in a real shape: <b>2-1-1, 1-2-1 or 1-1-2</b> — at least one defender, one midfielder and one attacker. The live <b>⚔️ ATTACK / 🛡️ DEFENCE</b> box shows your team's true strength as you build. Auto-fill places your best players into your selected shape. There's <b>no time limit</b> — the game waits for everyone. Some players secretly over- or under-perform each half.</div></div>
+  <div style="font-size:16px;line-height:1.5">Everyone starts with the same budget. Players come up one at a time and you bid against your mates — the host runs the room. Snap up stars, sneaky bargains and rainbow-carded <b>wonderkids</b>, and build the deepest squad you can afford.</div></div>
+  <div class="panel"><h2 style="margin-top:0">2 · Pick your team</h2>
+  <div style="font-size:16px;line-height:1.5">Choose your shape — <b>Attacking, Balanced or Defensive</b> — and your formation actually shapes your matches. Your live <b>⚔️ Attack · 🎯 Midfield · 🛡️ Defence</b> ratings update as you pick, so you always know how your side stacks up. Take all the time you want; the game waits for everyone.</div></div>
   <div class="panel"><h2 style="margin-top:0">3 · The season</h2>
-  <div style="font-size:16px;line-height:1.5">22 matchdays vs your mates and AI clubs — and a couple of them are hiding surprises… Full commentary: goals, assists, <b>own goals</b>, and <b>red cards — a sending-off suspends that player for exactly one match</b> and your team plays it weakened. Better attacks score more, better defences concede less, but upsets and demolitions are always live. The bottom human far adrift at the break gets <b>sacked</b>.</div></div>
-  <div class="panel"><h2 style="margin-top:0">4 · Halftime & the winter market</h2>
-  <div style="font-size:16px;line-height:1.5">First, everyone banks <b>+£50m</b> and gets <b>🎰 two respins</b> — gamble any squad player away for a random replacement in his position. Meanwhile and every player develops — young players rise, ageing stars fade, in-form players never decline, and <b>wonderkids jump +6 to +11</b> (capped at 94). Then the market opens: <b>3 players per manager, all 88+ rated</b>, plus <b>1-2 LEGENDS 👑</b> rated 96. Re-pick your five and chase the title.</div></div>
+  <div style="font-size:16px;line-height:1.5">Battle through the campaign against your friends and a field of AI clubs, with full match commentary, goals, assists and plenty of drama. Better teams tend to win — but upsets, thrashings and last-gasp moments are always on the cards.</div></div>
+  <div class="panel"><h2 style="margin-top:0">4 · The winter market</h2>
+  <div style="font-size:16px;line-height:1.5">At the break your squad develops — youngsters rise, veterans fade, wonderkids break out. Then the big window opens: a fresh budget, marquee names and <b>LEGENDS 👑</b> up for grabs. Roll a <b>respin</b> to gamble on an upgrade, re-pick your team and chase the title.</div></div>
   <div class="panel"><h2 style="margin-top:0">5 · Glory</h2>
-  <div style="font-size:16px;line-height:1.5">Most points wins the league. Golden Boot, assists king, best bargain, biggest flop and the winter splash all get their moment at the ceremony — and the stats stay up as long as you want them.</div></div>
+  <div style="font-size:16px;line-height:1.5">Most points takes the crown. Sit back for the animated title race, the trophy lift and the end-of-season awards — Golden Boot, top playmaker, best bargain and more.</div></div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
 }
 function rejoinAs(code){
@@ -1230,6 +1229,12 @@ s.on('connect',()=>{
   });
 });
 home();
+// Refreshing a scrollable page makes browsers restore the OLD scroll position
+// (which lands at the bottom). Disable that and pin to the top on every load.
+if('scrollRestoration' in history) history.scrollRestoration='manual';
+window.scrollTo(0,0);
+requestAnimationFrame(()=>window.scrollTo(0,0));
+window.addEventListener('load',()=>window.scrollTo(0,0));
 </script>
 </body>
 </html>
