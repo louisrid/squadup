@@ -19,7 +19,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body
 .muted{color:var(--muted)!important;font-weight:600}
 button{font-weight:700}
 @media (max-width:768px){ body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0} }
-@media (min-width:769px){ .backbtn{top:38px;left:38px;width:56px;height:56px;font-size:26px} .mdscreen{padding-top:16vh !important} }
+@media (min-width:769px){ .backbtn{top:30px;left:30px;width:46px;height:46px;font-size:22px} .mdscreen{padding-top:16vh !important} }
 .wheelWrap{position:relative;width:min(380px,90vw);aspect-ratio:1;margin:12px auto}
 .wheelWrap svg{width:100%;height:100%;display:block;shape-rendering:geometricPrecision}
 #wheelRot{width:100%;height:100%;transform:rotate(0deg);transition:transform 3.4s cubic-bezier(.12,.8,.13,1);will-change:transform}
@@ -97,9 +97,9 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
   font-family:var(--disp);font-weight:800;font-size:clamp(30px,8vw,42px);color:var(--text)}
 .giveup{border-color:var(--att);color:var(--att);background:transparent;font-size:16px}
 /* ---------- back button ---------- */
-.backbtn{position:fixed;top:max(24px,env(safe-area-inset-top));left:max(24px,env(safe-area-inset-left));z-index:70;
-  width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  background:var(--surface2);border:2px solid var(--line);font-size:24px;padding:0;color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.5);
+.backbtn{position:fixed;top:max(20px,env(safe-area-inset-top));left:max(20px,env(safe-area-inset-left));z-index:70;
+  width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--surface2);border:2px solid var(--line);font-size:20px;padding:0;color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.5);
   transition:transform .12s ease,border-color .12s ease;cursor:pointer}
 .backbtn:hover{border-color:var(--pink)}
 .backbtn:active{transform:scale(.9)}
@@ -252,11 +252,12 @@ tr.me td{background:rgba(255,61,138,.14)}
 <body>
 <div id="pausebar" class="paused" style="display:none"></div>
 <div id="toast"></div>
+<button id="sndBtn" onclick="toggleSnd()" style="position:fixed;top:max(20px,env(safe-area-inset-top));right:max(20px,env(safe-area-inset-right));width:42px;height:42px;border-radius:50%;font-size:18px;padding:0;z-index:71;background:var(--surface2);border:2px solid var(--line);color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.5)">🔊</button>
 <div id="app"></div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v9.4';
+const VERSION = 'v9.7';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -298,7 +299,6 @@ function home(){
   <button class="primary bigbtn" style="margin-top:12px" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
   <button class="bigbtn" style="margin-top:12px;border-color:#C9A227;color:#FFD75E" onclick="renderWhatsNew()">⭐ What's new!</button>
-  <button id="sndBtn" onclick="toggleSnd()" style="position:fixed;top:16px;right:16px;width:46px;height:46px;border-radius:50%;font-size:20px;padding:0;z-index:41">${SND?'🔊':'🔇'}</button>
   <div id="rejoinSlot" style="width:100%"></div>
   <button style="margin-top:18px;font-size:16px;padding:11px 18px;font-weight:800;color:#fff" onclick="renderHowTo()">📖 How to play</button>
   <div class="muted" style="margin-top:18px;font-size:13px;opacity:.6">${VERSION}</div>
@@ -355,7 +355,7 @@ function renderHowTo(){
 }
 function rejoinAs(code){
   const sv=JSON.parse(localStorage.getItem('squp')||'null'); if(!sv) return;
-  s.emit('joinLobby',{code,name:sv.name,club:''},(r)=>{
+  s.emit('joinLobby',{code,name:sv.name,club:'',uid:sv.uid},(r)=>{
     if(r.error) return toast(r.error);
     onJoined(r,sv.name);
     if(!r.snapshot) toast('Back in — waiting for the next event');
@@ -388,8 +388,13 @@ function getNC(){
   return {name,club};
 }
 function addBot(){
-  const d=document.getElementById('botDiff'); const difficulty=d?d.dataset.d:'easy';
-  s.emit('addBot',{difficulty},(r)=>{ if(r&&r.error) return toast(r.error); if(r&&r.name) toast(r.name+' joined ('+difficulty+')'); });
+  // add at whatever the current global difficulty is (read from the toggle, default easy)
+  const t=document.getElementById('diffToggle');
+  const difficulty=(t && t.textContent.trim()==='HARD')?'hard':'easy';
+  s.emit('addBot',{difficulty},(r)=>{ if(r&&r.error) return toast(r.error); });
+}
+function setBotsDiff(diff){
+  s.emit('setBotsDiff',{difficulty:diff},(r)=>{ if(r&&r.error) toast(r.error); });
 }
 function createL(){ const {name,club}=getNC(); if(!name) return toast('Enter a name');
   const tgl=document.getElementById('hintsTgl');
@@ -397,20 +402,25 @@ function createL(){ const {name,club}=getNC(); if(!name) return toast('Enter a n
 function joinL(){ const {name,club}=getNC(); const code=document.getElementById('code').value.trim();
   if(!name) return toast('Enter a name'); if(!code) return toast('Enter the lobby code');
   s.emit('joinLobby',{code,name,club},(r)=>{ if(r.error) return toast(r.error); onJoined(r,name); }); }
-function onJoined(r,name){ ME.id=r.managerId; ME.code=r.code; ME.name=name;
-  try{ localStorage.setItem('squp', JSON.stringify({name, code:r.code})); }catch(e){}
+function onJoined(r,name){ ME.id=r.managerId; ME.code=r.code; ME.name=name; if(r.uid) ME.uid=r.uid;
+  try{ localStorage.setItem('squp', JSON.stringify({name, code:r.code, uid:ME.uid})); }catch(e){}
   if(lastLobby && lastLobby.code===ME.code) renderLobby(lastLobby);
   if(r.snapshot) restoreFromSnapshot(r.snapshot); }
+function resyncSession(){
+  if(!ME.code || !ME.name) return;
+  s.emit('joinLobby',{code:ME.code,name:ME.name,club:'',uid:ME.uid},(r)=>{
+    if(r && r.ok){ ME.id=r.managerId; if(r.uid) ME.uid=r.uid;
+      try{ localStorage.setItem('squp', JSON.stringify({name:ME.name, code:ME.code, uid:ME.uid})); }catch(e){}
+      if(r.snapshot) restoreFromSnapshot(r.snapshot);
+    } else if(r && r.error && /not found/i.test(r.error)){ ME.code=null; toast('That game no longer exists — start a fresh one'); home(); }
+  });
+}
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState!=='visible') return;
+  if(AC && AC.state==='suspended') AC.resume(); // restore sound after tab-out suspended the audio context
   if(!s){ return; }
   if(!s.connected){ s.connect(); return; } // reconnect → 'connect' handler re-joins & restores
-  // socket stayed alive but the tab was backgrounded: re-sync the view from a fresh snapshot
-  if(ME.code && ME.name && !MATCHLIVE){
-    s.emit('joinLobby',{code:ME.code,name:ME.name,club:''},(r)=>{
-      if(r && r.ok){ ME.id=r.managerId; if(r.snapshot) restoreFromSnapshot(r.snapshot); }
-    });
-  }
+  resyncSession(); // tab back: always re-sync from a fresh snapshot
 });
 /* ---------------- SOUND ---------------- */
 let AC=null, SND=(localStorage.getItem('squp_snd')??'1')==='1';
@@ -422,7 +432,7 @@ function tone(f,dur,type,vol,when,f2){ if(!SND) return; sndInit(); if(!AC) retur
   if(f2) o.frequency.linearRampToValueAtTime(f2,t+dur);
   g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime((vol||0.12)*0.28,t+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
   o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t+dur+0.05); }
-function sfx(k){ if(!SND||!AC) return;
+function sfx(k){ if(!SND) return; if(!AC){ sndInit(); } if(!AC) return; if(AC.state==='suspended') AC.resume();
   if(k==='bid'){ tone(620,0.07,'square',0.07); tone(880,0.06,'square',0.05,0.05); }
   else if(k==='tick'){ tone(1100,0.05,'square',0.06); }
   else if(k==='sold'){ tone(523,0.12,'triangle',0.12); tone(659,0.12,'triangle',0.12,0.1); tone(784,0.2,'triangle',0.14,0.2); }
@@ -531,12 +541,19 @@ function renderLobby(l){
       <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.isBot?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${m.diff==='hard'?'#FF5470':'#7CE38B'};border:1px solid ${m.diff==='hard'?'#FF5470':'#7CE38B'};border-radius:5px;padding:0 5px">${m.diff==='hard'?'HARD':'EASY'} BOT</span>`:''}${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
       <span>${m.ready?'🟢':'⚪️'}</span></div>`).join('')}
   </div>
-  ${l.hostId===ME.id?`<div class="panel" style="border-color:#3DDC84;padding:12px">
-    <div class="row" style="margin-bottom:8px"><b class="grow" style="color:#7CE38B">🤖 Add bots</b>
-      <button id="botDiff" data-d="easy" style="font-size:14px;padding:7px 12px" onclick="this.dataset.d=this.dataset.d==='easy'?'hard':'easy';this.textContent=this.dataset.d==='easy'?'Easy':'Hard';this.classList.toggle('startready',this.dataset.d==='hard')">Easy</button></div>
+  ${l.hostId===ME.id?(()=>{
+    const botCount=l.managers.filter(m=>m.isBot).length;
+    const allHard=botCount>0 && l.managers.filter(m=>m.isBot).every(m=>m.diff==='hard');
+    const diff=allHard?'hard':'easy';
+    return `<div class="panel" style="border-color:#3DDC84;padding:12px">
+    <div class="row" style="margin-bottom:10px"><b class="grow" style="color:#7CE38B">🤖 Bots</b><span class="muted" style="font-size:13px">${botCount}/5</span></div>
     <button style="width:100%" ${l.managers.length>=6?'disabled':''} onclick="addBot()">+ Add a bot opponent${l.managers.length>=6?' (full)':''}</button>
-    <div class="muted" style="font-size:13px;margin-top:6px">Bots draft, bid & play like rival managers. Up to 5.</div>
-  </div>`:''}
+    ${botCount?`<div class="row" style="margin-top:10px;gap:8px">
+      <span class="muted grow" style="font-size:14px">Difficulty (all bots)</span>
+      <button id="diffToggle" class="${allHard?'startready':''}" style="font-size:15px;padding:8px 18px;font-weight:800;min-width:96px" onclick="setBotsDiff('${allHard?'easy':'hard'}')">${allHard?'HARD':'EASY'}</button>
+    </div>`:''}
+    <div class="muted" style="font-size:13px;margin-top:8px">Bots draft, bid & play like rival managers. Tap the difficulty to switch every bot between Easy and Hard.</div>
+  </div>`;})():''}
   <button class="primary" style="width:100%" onclick="s.emit('ready',{ready:true})">I'm ready</button>
   ${l.hostId===ME.id?(()=>{
     const allReady = l.managers.length>=2 && l.managers.every(m=>m.ready);
@@ -619,7 +636,7 @@ s.on('budgets',(rows)=>{
 });
 function flashResult(big, small){
   clearInterval(timerInt);
-  $(`<div class="screen center">
+  $(`<div class="screen center" style="justify-content:center">
     <div class="blackbox" style="width:100%"><div class="score">${big}</div>
     <div style="margin-top:10px;font-size:18px">${small}</div></div>
     <div id="nextslot" style="margin-top:18px"></div>
@@ -627,11 +644,13 @@ function flashResult(big, small){
 }
 s.on('awaitNext',(x)=>{
   const el=document.getElementById('nextslot');
-  const inner = ME.isHost
-    ? `<button class="primary" style="width:80%" onclick="s.emit('hostNext',(r)=>{if(r&&r.error)toast(r.error)})">Next player</button>`
-    : `<div class="muted">Waiting for ${esc(x.hostName)} to bring up the next player…</div>`;
+  const inner = (x && x.auto)
+    ? `<div class="muted" style="font-size:15px">Next player coming up…</div>${ME.isHost?`<button class="primary" style="width:70%;margin-top:10px;opacity:.9" onclick="s.emit('hostNext',(r)=>{if(r&&r.error&&!/already live/i.test(r.error))toast(r.error)})">Skip ▸</button>`:''}`
+    : (ME.isHost
+      ? `<button class="primary" style="width:80%" onclick="s.emit('hostNext',(r)=>{if(r&&r.error)toast(r.error)})">Next player</button>`
+      : `<div class="muted">Waiting for ${esc(x.hostName)} to bring up the next player…</div>`);
   if(el) el.innerHTML=inner;
-  else $(`<div class="screen center">${inner}<div id="budgets" class="budgets" style="margin-top:18px"></div></div>`);
+  else $(`<div class="screen center" style="justify-content:center">${inner}<div id="budgets" class="budgets" style="margin-top:18px"></div></div>`);
 });
 s.on('lotReveal',(l)=>s_lotReveal(l));
 function s_lotReveal(l){ BIDAMT=null;
@@ -658,11 +677,11 @@ function renderLot(){
   const R=70, C=2*Math.PI*R;
   A.out = A.out||false;
   const minBid=A.highBid+1, canAfford=ME.budget>=minBid, maxBid=Math.max(minBid, ME.budget);
-  $(`${backBtn(1)}<div class="row" style="padding-left:64px;padding-top:max(28px,calc(env(safe-area-inset-top) + 14px));padding-right:8px">
+  $(`${backBtn(1)}<div class="row" style="padding-left:60px;padding-top:max(74px,calc(env(safe-area-inset-top) + 58px));padding-right:60px">
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
-  <div class="auctionWrap" data-lock style="justify-content:flex-start;align-items:center;min-height:auto;padding-top:max(3vh,18px);padding-bottom:52vh;gap:14px">
+  <div class="auctionWrap" data-lock style="justify-content:center;align-items:center;min-height:48vh;padding-top:max(2vh,12px);padding-bottom:50vh;gap:12px">
   <div class="lotRow" style="align-items:center;justify-content:center;gap:min(20px,4vw);max-width:100%">
     <div style="width:min(194px,42vw);flex-shrink:1">${cardHTML(A.player)}</div>
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px;flex-shrink:0">
@@ -712,7 +731,8 @@ function renderLot(){
     if(isPaused){ if(sec) sec.textContent='⏸'; return; }
     if(!A||!A.deadline){ if(sec) sec.textContent='–'; return; }
     const ms=Math.max(0,A.deadline-Date.now());
-    const frac=Math.min(1, ms / Math.max(A.start||1, 8000));
+    if(!A._ringMax || ms>A._ringMax) A._ringMax=ms; // track peak so the ring scales to the actual lot length
+    const frac=Math.min(1, ms / Math.max(A._ringMax||1, 1000));
     el.style.strokeDashoffset = String(C*(1-frac));
     if(sec) sec.textContent=Math.ceil(ms/1000);
   },80);
@@ -1303,15 +1323,11 @@ s.on('startersLocked',(x)=>{
   if(el) el.innerHTML=lockedManagers.map(n=>`<div>🟢 ${esc(n)}</div>`).join('');
 });
 s.on('connect',()=>{
-  // transient socket blip mid-game: silently reclaim seat by code + name
-  if(ME.code && ME.name) s.emit('joinLobby',{code:ME.code,name:ME.name,club:''},(r)=>{
-    if(r.ok){ ME.id=r.managerId; if(r.snapshot) restoreFromSnapshot(r.snapshot); }
-    else if(r.error==='Lobby not found'){ // server restarted or game expired: don't strand a ghost lobby
-      ME.code=null; toast('That game no longer exists — start a fresh one'); home();
-    }
-  });
+  // socket (re)connected: reclaim seat deterministically by uid via the shared resync path
+  resyncSession();
 });
 home();
+(function(){ const b=document.getElementById('sndBtn'); if(b) b.textContent=SND?'🔊':'🔇'; })();
 // Refreshing a scrollable page makes browsers restore the OLD scroll position
 // (which lands at the bottom). Disable that and pin to the top on every load.
 if('scrollRestoration' in history) history.scrollRestoration='manual';

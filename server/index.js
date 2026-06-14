@@ -41,17 +41,18 @@ io.on('connection', (socket) => {
     socket.join(code);
     const r = game.addManager(socket.id, name, club);
     if (r.error) return cb(r);
-    joined = { code, managerId: socket.id };
-    cb({ ok: true, code, managerId: socket.id });
+    joined = { code, managerId: socket.id, uid: r.uid };
+    cb({ ok: true, code, managerId: socket.id, uid: r.uid });
   });
 
-  socket.on('joinLobby', ({ code, name, club }, cb) => {
+  socket.on('joinLobby', ({ code, name, club, uid }, cb) => {
     code = (code || '').toUpperCase().trim();
     const game = games.get(code);
     if (!game) return cb({ error: 'Lobby not found — if it existed a minute ago, the server restarted (deploy/idle). Create a fresh one.' });
-    // same name + seat free (disconnected or mid-game) -> reclaim that manager
-    const existing = game.managers.find((m) => m.name === name);
-    const canReclaim = existing && (!existing.connected || game.phase !== 'lobby');
+    // reclaim by stable uid first (survives reconnects with no name race), then fall back to name.
+    let existing = uid ? game.managers.find((m) => m.uid === uid) : null;
+    if (!existing) existing = game.managers.find((m) => m.name === name && !m.isBot);
+    const canReclaim = existing && (existing.uid === uid || !existing.connected || game.phase !== 'lobby');
     if (canReclaim) {
       const oldId = existing.id;
       existing.id = socket.id;
@@ -64,16 +65,16 @@ io.on('connection', (socket) => {
       const oldSock = io.sockets.sockets.get(oldId);
       if (oldSock && oldSock.id !== socket.id) oldSock.disconnect(true);
       socket.join(code);
-      joined = { code, managerId: socket.id };
+      joined = { code, managerId: socket.id, uid: existing.uid };
       game.setConnected(socket.id, true);
-      return cb({ ok: true, code, managerId: socket.id, snapshot: game.snapshot(socket.id) });
+      return cb({ ok: true, code, managerId: socket.id, uid: existing.uid, snapshot: game.snapshot(socket.id) });
     }
     if (existing) return cb({ error: 'Name taken in this lobby' });
     socket.join(code);
     const r = game.addManager(socket.id, name, club);
     if (r.error) return cb(r);
-    joined = { code, managerId: socket.id };
-    cb({ ok: true, code, managerId: socket.id });
+    joined = { code, managerId: socket.id, uid: r.uid };
+    cb({ ok: true, code, managerId: socket.id, uid: r.uid });
   });
 
   // rejoin after disconnect: client stores managerId + code
@@ -112,6 +113,13 @@ io.on('connection', (socket) => {
     if (!g) return cb && cb({ error: 'No game' });
     if (g.hostId !== joined.managerId) return cb && cb({ error: 'Only the host can add bots' });
     cb && cb(g.addBot(difficulty));
+  });
+
+  socket.on('setBotsDiff', ({ difficulty }, cb) => {
+    const g = current();
+    if (!g) return cb && cb({ error: 'No game' });
+    if (g.hostId !== joined.managerId) return cb && cb({ error: 'Only the host can change difficulty' });
+    cb && cb(g.setBotsDiff(difficulty));
   });
 
   socket.on('bid', ({ amount }, cb) => {
@@ -184,7 +192,16 @@ io.on('connection', (socket) => {
   });
 
   function current() {
-    return joined ? games.get(joined.code) : null;
+    if (joined && games.get(joined.code)) return games.get(joined.code);
+    // closure lost (fresh socket after reconnect): re-resolve from the rooms this socket is in
+    for (const code of socket.rooms) {
+      const g = games.get(code);
+      if (g) {
+        const m = g.managers.find((x) => x.id === socket.id);
+        if (m) { joined = { code, managerId: socket.id, uid: m.uid }; return g; }
+      }
+    }
+    return null;
   }
 });
 

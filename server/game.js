@@ -46,9 +46,11 @@ const FORMATIONS = {
 
 const FAST = process.env.FAST === '1';
 const TIMINGS = {
-  AUCTION_START_MS: FAST ? 150 : 16000,
-  AUCTION_BID_ADD_MS: FAST ? 60 : 4000,
-  AUCTION_MAX_MS: FAST ? 600 : 12000,
+  AUCTION_START_MS: FAST ? 150 : 10000,     // normal speed: 10s per player
+  AUCTION_START_2X_MS: FAST ? 150 : 5000,   // 2x speed: 5s per player
+  AUCTION_BID_ADD_MS: FAST ? 60 : 2000,     // +2s per bid (both speeds)
+  AUCTION_MAX_MS: FAST ? 600 : 12000,       // normal speed cap: 12s
+  AUCTION_MAX_2X_MS: FAST ? 600 : 7000,     // 2x speed cap: 7s
   AUCTION_BETWEEN_MS: FAST ? 30 : 4000,
   LOT_REVEAL_MS: FAST ? 20 : 4400,
   REVEAL_QUICK_MS: FAST ? 15 : 3000,
@@ -78,6 +80,10 @@ class Game {
   }
 
   sp(ms) { return Math.round(ms / this.speed); }
+  // base lot time and the per-bid cap, chosen by speed (not a simple divide, so each speed gets its own feel)
+  lotStartMs() { return FAST ? this.sp(TIMINGS.AUCTION_START_MS) : (this.speed >= 2 ? TIMINGS.AUCTION_START_2X_MS : TIMINGS.AUCTION_START_MS); }
+  lotMaxMs() { return FAST ? this.sp(TIMINGS.AUCTION_MAX_MS) : (this.speed >= 2 ? TIMINGS.AUCTION_MAX_2X_MS : TIMINGS.AUCTION_MAX_MS); }
+  lotBidAddMs() { return FAST ? this.sp(TIMINGS.AUCTION_BID_ADD_MS) : TIMINGS.AUCTION_BID_ADD_MS; }
 
   hintFor(p) {
     if (!this.showHints) return undefined;
@@ -94,11 +100,12 @@ class Game {
     if (this.phase !== 'lobby') return { error: 'Game already started' };
     if (this.managers.length >= 6) return { error: 'Lobby full' };
     if (this.managers.some((m) => m.name === name)) return { error: 'Name taken' };
-    const m = { id, name, club, ready: false, budget: 100, squad: [], starters: [], formation: 'BAL', sacked: false, injured: null, connected: true, signings: [] };
+    const uid = 'u_' + Math.random().toString(36).slice(2, 10);
+    const m = { id, uid, name, club, ready: false, budget: 100, squad: [], starters: [], formation: 'BAL', sacked: false, injured: null, connected: true, signings: [] };
     this.managers.push(m);
     if (!this.hostId) this.hostId = id;
     this.broadcastLobby();
-    return { ok: true };
+    return { ok: true, uid };
   }
   addBot(difficulty) {
     if (this.phase !== 'lobby') return { error: 'Game already started' };
@@ -111,6 +118,13 @@ class Game {
     this.managers.push(m);
     this.broadcastLobby();
     return { ok: true, name, club };
+  }
+  setBotsDiff(difficulty) {
+    if (this.phase !== 'lobby') return { error: 'Game already started' };
+    const d = difficulty === 'hard' ? 'hard' : 'easy';
+    for (const m of this.managers) if (m.isBot) m.diff = d;
+    this.broadcastLobby();
+    return { ok: true, diff: d };
   }
   hasBots() { return this.managers.some((m) => m.isBot); }
   // pick a bot's starting five + formation. hard = best five by rating with a shape that
@@ -176,11 +190,17 @@ class Game {
   // ---------- auction pool (FC26 ONLY) ----------
   buildAuctionPool() {
     const n = this.managers.length;
-    // 7 lots per manager. Tier mix BY TRUE RATING: n stars (88+), n good (86-87), 5n mid (82-85).
-    // EXACT position quotas so every squad need is structurally covered:
-    const posQuota = { GK: n, DEF: 2 * n, MID: 2 * n, ATT: 2 * n }; // 1 GK + 2 of each outfield line, per manager
+    // 5 lots per manager (was 6). Base outfield per manager: 2 DEF + 2 MID + 1 ATT, then
+    // randomly drop ONE outfield slot per manager (spread across DEF/MID/ATT) so squads are leaner.
+    const posQuota = { GK: n, DEF: 2 * n, MID: 2 * n, ATT: 1 * n };
+    for (let k = 0; k < n; k++) {
+      // drop one of the doubled outfield lines (DEF or MID) — never ATT (already only 1 per mgr),
+      // so every manager can still assemble a legal five.
+      const dropPos = E.pick(['DEF', 'MID']);
+      posQuota[dropPos] = Math.max(n, posQuota[dropPos] - 1);
+    }
     const stars = Math.max(2, n - 1); // always at least two 90+ headliners, scales with lobby size
-    const S = 7 * n;
+    const S = posQuota.GK + posQuota.DEF + posQuota.MID + posQuota.ATT;
     const cElite = Math.max(2, Math.round(0.12 * S)); // always at least two 90+
     const cHigh = Math.round(0.22 * S);               // 87-89
     const cGood = Math.round(0.25 * S);               // 85-86
@@ -342,8 +362,11 @@ class Game {
     a.highBidder = null;
     if (a.index === 0) return void setTimeout(() => this.presentLot(), FAST ? 25 : 3400);
     const host = this.managers.find((m) => m.id === this.hostId);
-    this.io.emit('awaitNext', { hostName: host ? host.name : 'Host' });
-    if (FAST) setTimeout(() => this.presentLot(), 25);
+    this.io.emit('awaitNext', { hostName: host ? host.name : 'Host', auto: true });
+    // auto-advance to the next lot after a short beat so the auction flows without a manual tap each time.
+    // (host can still press "Next player" to skip the wait — hostNextLot cancels this and presents immediately.)
+    clearTimeout(this.timers.autoNext);
+    this.timers.autoNext = setTimeout(() => { if (this.phase === 'auction' && this.auction && !this.auction.current && !this.paused) this.presentLot(); }, this.sp(FAST ? 25 : 2600));
   }
 
   canBuyPlayer(m, p) {
@@ -364,6 +387,8 @@ class Game {
 
   presentLot() {
     const a = this.auction;
+    clearTimeout(this.timers.autoNext);
+    if (!a || a.current) return; // already presenting (guards against auto + manual racing)
     a.current = a.queue[a.index];
     a.highBid = 0;
     a.highBidder = null;
@@ -376,7 +401,7 @@ class Game {
     });
     setTimeout(() => {
       if (!a.current) return;
-      a.deadline = Date.now() + this.sp(TIMINGS.AUCTION_START_MS);
+      a.deadline = Date.now() + this.lotStartMs();
       a.revealUntil = 0;
       this.io.emit('lot', {
         index: a.index, total: a.queue.length,
@@ -393,7 +418,7 @@ class Game {
     // wants ~1 GK + 2 of each outfield line; returns how many MORE of a pos it wants
     const have = { GK: 0, DEF: 0, MID: 0, ATT: 0 };
     for (const p of m.squad) have[p.pos] = (have[p.pos] || 0) + 1;
-    const target = { GK: 1, DEF: 2, MID: 2, ATT: 2 };
+    const target = { GK: 1, DEF: 2, MID: 2, ATT: 1 };
     return { have, target, needs: (pos) => Math.max(0, target[pos] - (have[pos] || 0)) };
   }
   // a small stable pseudo-random in [0,1) seeded by bot+player, so a bot values a given
@@ -408,8 +433,10 @@ class Game {
   botMaxBid(m, player) {
     const r = player.rating;
     const hard = m.diff === 'hard';
+    // wonderkids grow into stars — hard bots price them off their POTENTIAL, not current rating.
+    const effR = (player.wonderkid && hard && player.pot) ? Math.max(r, player.pot) : r;
     let base;
-    if (hard) base = r >= 92 ? 38 : r >= 89 ? 28 : r >= 86 ? 17 : r >= 83 ? 9 : r >= 80 ? 4 : 2;
+    if (hard) base = effR >= 92 ? 38 : effR >= 89 ? 28 : effR >= 86 ? 17 : effR >= 83 ? 9 : effR >= 80 ? 4 : 2;
     else      base = r >= 92 ? 15 : r >= 89 ? 11 : r >= 86 ? 8 : r >= 83 ? 6 : r >= 80 ? 4 : 2;
     const n = this.botNeeds(m);
     const need = n.needs(player.pos);
@@ -427,7 +454,7 @@ class Game {
     }
     const seed = this.botSeed(m, player);
     const aggro = m.aggro || 1;
-    const wkBonus = player.wonderkid ? (hard ? 1.3 : 1.05) : 1;
+    const wkBonus = player.wonderkid ? (hard ? 1.55 : 1.1) : 1;
     let factor;
     if (hard) {
       factor = (1.0 + seed * 0.2) * aggro;
@@ -489,6 +516,35 @@ class Game {
       }, this.sp(base + Math.random() * (FAST ? 60 : 2400)));
       (this.timers.botBids = this.timers.botBids || []).push(to);
     }
+    this.scheduleSnipes(lotName);
+  }
+
+  // LAST-MINUTE SNIPE: a regular chance for bots (esp. hard) to jump in near the deadline.
+  // Re-evaluates at fire time against the live price, so it only fires if still worth it.
+  scheduleSnipes(lotName) {
+    const a = this.auction;
+    if (!a || !a.current) return;
+    for (const m of this.activeManagers().filter((x) => x.isBot)) {
+      if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue;
+      const hard = m.diff === 'hard';
+      const chance = hard ? 0.45 : 0.18; // hard bots snipe often, easy bots occasionally
+      if (Math.random() >= chance) continue;
+      const fire = () => {
+        if (!a.current || a.current.name !== lotName || this.paused || this.phase !== 'auction') return;
+        if (a.highBidder === m.id) return; // already winning
+        const ceiling = this.botMaxBid(m, a.current);
+        if (ceiling <= a.highBid) return; // priced out
+        const jump = 1 + Math.floor(Math.random() * (hard ? 4 : 2));
+        const amount = Math.min(ceiling, a.highBid + jump, m.budget);
+        if (amount <= a.highBid) return;
+        this.bid(m.id, amount); // this re-arms the timer (+time per bid), creating real late drama
+      };
+      // fire in the final stretch before the current deadline
+      const left = a.deadline - Date.now();
+      const when = Math.max(this.sp(FAST ? 8 : 200), left - this.sp(FAST ? 30 : (900 + Math.random() * 1400)));
+      const to = setTimeout(fire, when);
+      (this.timers.botBids = this.timers.botBids || []).push(to);
+    }
   }
 
   // called after every human/bot bid: outbid bots react and fight back up to their ceiling
@@ -537,8 +593,12 @@ class Game {
     if (a.outs.has(m.id)) return { error: 'You gave up on this lot' };
     a.highBid = amount;
     a.highBidder = m.id;
-    // +3s per bid, but the clock can never exceed a 12s ceiling (and never shrinks)
-    a.deadline = Math.max(a.deadline, Math.min(a.deadline + this.sp(TIMINGS.AUCTION_BID_ADD_MS), Date.now() + this.sp(TIMINGS.AUCTION_MAX_MS)));
+    // each bid adds time but the remaining clock is capped at the per-speed max (12s normal / 7s 2x).
+    // remaining = min(remaining + add, max), and it never shrinks — so rapid bids don't stack past the cap.
+    const now = Date.now();
+    const remaining = Math.max(0, a.deadline - now);
+    const newRemaining = Math.min(remaining + this.lotBidAddMs(), this.lotMaxMs());
+    a.deadline = Math.max(a.deadline, now + newRemaining);
     this.io.emit('bid', { player: a.current.name, amount, manager: m.name, deadline: a.deadline });
     this.armLotTimer();
     this.resolveEarly();
@@ -1290,9 +1350,8 @@ class Game {
 
   buildWinterPool() {
     const n = this.activeManagers().length;
-    // per manager: 1 GK, 1 DEF, 1 MID, 1 ATT, plus 1 extra that is a 50/50 MID or ATT
+    // per manager: 1 GK, 1 DEF, 1 MID, 1 ATT (no bonus extra)
     const want = { GK: n, DEF: n, MID: n, ATT: n };
-    for (let k = 0; k < n; k++) want[Math.random() < 0.5 ? 'MID' : 'ATT']++;
     const total = want.GK + want.DEF + want.MID + want.ATT;
     // 60% of windows feature 1 legend, 40% feature 2 — outfield legends replace an outfield slot
     const legendCount = Math.random() < 0.6 ? 1 : 2;
@@ -1517,14 +1576,24 @@ class Game {
     if (!connected && (this.phase === 'setup' || this.phase === 'winter')) this.autoPickIfOnlyGhosts();
     if (!connected && this.phase === 'spin') this.autoSpinIfOnlyGhosts();
     const inAuction = this.phase === 'auction';
-    if (!connected && inAuction && !m.sacked && !this.hostPaused) {
+    if (!connected && inAuction && m.id === this.hostId) {
+      // HOST tabbed out mid-auction: hard-pause until they come back and manually press Resume.
+      if (!this.paused) { this.paused = true; this.pausedAt = Date.now(); }
+      this.hostPaused = true; // requires a manual hostResume — no auto-resume
+      this.io.emit('paused', { manager: m.name, byHost: true });
+      clearTimeout(this.timers.lot);
+      clearTimeout(this.timers.autoNext);
+      clearTimeout(this.timers.pause);
+    } else if (!connected && inAuction && !m.sacked && !this.hostPaused) {
+      // a non-host player dropped: soft-pause with an auto-resume safety timer
       if (!this.paused) { this.paused = true; this.pausedAt = Date.now(); }
       this.io.emit('paused', { manager: m.name, maxMs: TIMINGS.DISCONNECT_PAUSE_MS });
       clearTimeout(this.timers.lot);
+      clearTimeout(this.timers.autoNext);
       clearTimeout(this.timers.pause);
       this.timers.pause = setTimeout(() => this.resume(), TIMINGS.DISCONNECT_PAUSE_MS);
     }
-    if (connected && this.paused && !this.hostPaused) this.resume();
+    if (connected && this.paused && !this.hostPaused) this.resume(); // non-host returned → auto-resume
   }
 
   hostPause(managerId) {
@@ -1535,6 +1604,7 @@ class Game {
     this.pausedAt = Date.now();
     this.hostPaused = true;
     clearTimeout(this.timers.lot);
+    clearTimeout(this.timers.autoNext); // don't auto-present the next lot while paused
     clearTimeout(this.timers.pause); // a pending auto-resume can never undo a host pause
     this.io.emit('paused', { manager: 'Host', byHost: true });
     return { ok: true };
@@ -1557,6 +1627,11 @@ class Game {
       this.auction.deadline = Math.max(this.auction.deadline + pausedFor, Date.now() + 3000); // resume grace
       this.io.emit('resumed', { deadline: this.auction.deadline });
       this.armLotTimer();
+    } else if (this.phase === 'auction' && this.auction && this.auction.index < this.auction.queue.length) {
+      // was paused between lots — resume the flow by presenting the next lot shortly
+      this.io.emit('resumed', {});
+      clearTimeout(this.timers.autoNext);
+      this.timers.autoNext = setTimeout(() => { if (this.phase === 'auction' && this.auction && !this.auction.current && !this.paused) this.presentLot(); }, this.sp(FAST ? 25 : 1200));
     } else {
       this.io.emit('resumed', {});
     }
@@ -1566,7 +1641,7 @@ class Game {
     return {
       code: this.code, phase: this.phase, hostId: this.hostId, speed: this.speed,
       managers: this.managers.map((m) => ({
-        id: m.id, name: m.name, club: m.club, ready: m.ready, budget: m.budget, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null,
+        id: m.id, uid: m.uid || null, name: m.name, club: m.club, ready: m.ready, budget: m.budget, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null,
         squad: m.id === forId ? m.squad.map((p) => ({ name: p.name, pos: p.pos })) : { count: m.squad.length },
         sacked: m.sacked, injured: m.injured,
       })),
@@ -1599,7 +1674,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v9.4',
+      serverV: 'v9.7',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
