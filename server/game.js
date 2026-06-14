@@ -544,7 +544,7 @@ class Game {
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
     const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => {
       const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.2, defence: s.defence - 1.2 };
-      if (t.name === 'Eastvale Rovers') { t.attack += 2.0; t.defence += 2.0; t.elite = true; }
+      if (t.name === 'Eastvale Rovers') { t.attack += 1.2; t.defence += 1.2; t.elite = true; }
       return t;
     });
     this.season = {
@@ -1026,8 +1026,8 @@ class Game {
       for (const t of this.season.teams) {
         if (t.type === 'ai' && !t.wasHuman) {
           const base = avg + E.gauss() * 1.1 - 1.2; // equal treatment both halves
-          t.attack = base + E.gauss() * 0.6 + (t.elite ? 2.0 : 0);
-          t.defence = base + E.gauss() * 0.6 + (t.elite ? 2.0 : 0);
+          t.attack = base + E.gauss() * 0.6 + (t.elite ? 1.2 : 0);
+          t.defence = base + E.gauss() * 0.6 + (t.elite ? 1.2 : 0);
         }
       }
     }
@@ -1205,7 +1205,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v4.6',
+      serverV: 'v4.8',
       paused: this.paused,
     };
   }

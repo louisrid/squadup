@@ -118,6 +118,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .bidline{font-family:var(--disp);font-weight:800;font-size:42px;line-height:1;letter-spacing:.01em}
 .bidline small{font-size:18px;color:var(--muted);font-weight:700}
 .bidder{color:var(--pink);font-weight:700;font-size:16px}
+.bidbar #budgets{margin:0 0 6px}.bidbar .bchip{font-size:11px;padding:5px 7px}
 .bidbar{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));
   max-width:468px;margin:0 auto;display:flex;flex-direction:column;
   background:rgba(20,20,28,.97);border:1px solid var(--line);border-radius:18px;
@@ -229,7 +230,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v4.6';
+const VERSION = 'v4.8';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -610,8 +611,8 @@ function renderLot(){
     <div class="bidder" id="bidderEl">${A.highBidder?esc(A.highBidder):'No bids yet'}</div>
   </div>
   </div>
-  <div id="budgets" class="budgets"></div>
   <div class="bidbar">
+    <div id="budgets" class="budgets"></div>
     ${MYSQUAD.length?`<div class="minirow">${MYSQUAD.map(p=>`<span class="mini"><span class="pos ${p.pos}" style="margin-right:0">${p.pos}</span>${esc(p.name)}${p.wonderkid?'⭐':''}${p.rtg?` <b>${p.rtg}</b>`:''}</span>`).join('')}</div>`:''}
     ${A.out
     ?`<div class="center muted" style="padding:10px 0;font-size:17px">You're out of this lot</div>`
@@ -1048,8 +1049,14 @@ function renderWinterReport(){
     <div class="muted" style="font-size:15px;margin-top:4px">3 players per manager hit the auction block — bigger names, and 1–2 LEGENDS 👑</div>
   </div>
   ${ME.isHost && !ME.sacked
-    ?`<button class="primary bigbtn" onclick="s.emit('startWinterAuction',(r)=>{if(r&&r.error)toast(r.error)})">Open the winter market ▸</button>`
+    ?`<button class="primary bigbtn" onclick="openWinterMarket()">Open the winter market ▸</button>
+       <div class="muted center" style="font-size:13px;margin-top:8px">Everyone keeps their respins until you open it</div>`
     :`<div class="center muted" style="padding:8px 0">Waiting for the host to open the market…</div>`}`);
+}
+function openWinterMarket(){
+  const others=(W&&W.review||[]).filter(r=>r.manager!==ME.name && (r.respins||0)>0).map(r=>r.manager);
+  if(others.length && !confirm(`${others.join(', ')} ${others.length>1?'still have':'still has'} respins left. Open the market anyway? Their unused respins are lost.`)) return;
+  s.emit('startWinterAuction',(r)=>{ if(r&&r.error) toast(r.error); });
 }
 
 /* ---------------- FINISH ---------------- */
