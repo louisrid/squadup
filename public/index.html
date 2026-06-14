@@ -235,7 +235,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v7.1';
+const VERSION = 'v7.4';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -269,6 +269,7 @@ function home(){
   <div style="margin:24px 0 30px;font-size:15px;font-weight:600;color:#A7A7B6">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
   <button class="primary bigbtn" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
+  <button class="bigbtn" style="margin-top:12px;border-color:#3DDC84;color:#7CE38B" onclick="showSetup('solo')">🤖 Solo vs bots</button>
   <button class="bigbtn" style="margin-top:12px;border-color:#C9A227;color:#FFD75E" onclick="renderWhatsNew()">⭐ What's new!</button>
   <button id="sndBtn" onclick="toggleSnd()" style="position:fixed;top:16px;right:16px;width:46px;height:46px;border-radius:50%;font-size:20px;padding:0;z-index:41">${SND?'🔊':'🔇'}</button>
   <div id="rejoinSlot" style="width:100%"></div>
@@ -333,6 +334,8 @@ function rejoinAs(code){
   });
 }
 function showSetup(mode){
+  window.__solo = (mode==='solo');
+  if(mode==='solo') mode='create';
   $(`<button class="backbtn" onclick="home()">‹</button>
   <div class="screen">
   <div class="eyebrow">${mode==='create'?'Create a lobby':'Join a lobby'}</div>
@@ -355,6 +358,10 @@ function getNC(){
   const name=document.getElementById('name').value.trim();
   const club=document.getElementById('club').value.trim()||((name||'My')+' FC');
   return {name,club};
+}
+function addBot(){
+  const d=document.getElementById('botDiff'); const difficulty=d?d.dataset.d:'easy';
+  s.emit('addBot',{difficulty},(r)=>{ if(r&&r.error) return toast(r.error); if(r&&r.name) toast(r.name+' joined ('+difficulty+')'); });
 }
 function createL(){ const {name,club}=getNC(); if(!name) return toast('Enter a name');
   const tgl=document.getElementById('hintsTgl');
@@ -469,6 +476,12 @@ function renderLobby(l){
       <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
       <span>${m.ready?'🟢':'⚪️'}</span></div>`).join('')}
   </div>
+  ${l.hostId===ME.id?`<div class="panel" style="border-color:#3DDC84;padding:12px">
+    <div class="row" style="margin-bottom:8px"><b class="grow" style="color:#7CE38B">🤖 Add bots</b>
+      <button id="botDiff" data-d="easy" style="font-size:14px;padding:7px 12px" onclick="this.dataset.d=this.dataset.d==='easy'?'hard':'easy';this.textContent=this.dataset.d==='easy'?'Easy':'Hard';this.classList.toggle('startready',this.dataset.d==='hard')">Easy</button></div>
+    <button style="width:100%" ${l.managers.length>=6?'disabled':''} onclick="addBot()">+ Add a bot opponent${l.managers.length>=6?' (full)':''}</button>
+    <div class="muted" style="font-size:13px;margin-top:6px">Bots draft, bid & play like rival managers. Up to 5.</div>
+  </div>`:''}
   <button class="primary" style="width:100%" onclick="s.emit('ready',{ready:true})">I'm ready</button>
   ${l.hostId===ME.id?(()=>{
     const allReady = l.managers.length>=2 && l.managers.every(m=>m.ready);

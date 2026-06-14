@@ -107,6 +107,13 @@ io.on('connection', (socket) => {
     if (g && g.hostId === joined.managerId) g.startGame();
   });
 
+  socket.on('addBot', ({ difficulty }, cb) => {
+    const g = current();
+    if (!g) return cb && cb({ error: 'No game' });
+    if (g.hostId !== joined.managerId) return cb && cb({ error: 'Only the host can add bots' });
+    cb && cb(g.addBot(difficulty));
+  });
+
   socket.on('bid', ({ amount }, cb) => {
     const g = current();
     if (!g) return cb && cb({ error: 'No game' });

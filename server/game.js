@@ -33,6 +33,10 @@ const AI_CLUB_NAMES = [
   'Desperado FC', 'Andover FC',
 ];
 
+// names + clubs for SOLO-mode bots (always ALL-CAPS, never the special AI clubs)
+const BOT_NAMES = ['RAZOR', 'BLITZ', 'TANK', 'MAVERICK', 'NUKE', 'VIPER', 'HAVOC', 'BRUISER', 'ROCKET', 'FANG', 'SHADOW', 'TITAN'];
+const BOT_CLUBS = ['IRON WOLVES', 'NEON FC', 'GRAVELPIT UTD', 'THUNDER BAY', 'RIOT CITY', 'CRIMSON XI', 'STORMBREAK', 'HEXAGON FC', 'OVERDRIVE', 'BADLANDS', 'VANGUARD', 'NIGHT OWLS'];
+
 const FORMATIONS = {
   DEF: { slots: ['GK', 'DEF', 'DEF', 'MID', 'ATT'], label: 'Defensive' },
   BAL: { slots: ['GK', 'DEF', 'MID', 'MID', 'ATT'], label: 'Balanced' },
@@ -96,6 +100,19 @@ class Game {
     this.broadcastLobby();
     return { ok: true };
   }
+  addBot(difficulty) {
+    if (this.phase !== 'lobby') return { error: 'Game already started' };
+    if (this.managers.length >= 6) return { error: 'Lobby full' };
+    const usedNames = new Set(this.managers.map((m) => m.name));
+    const usedClubs = new Set(this.managers.map((m) => m.club));
+    const name = E.shuffle(BOT_NAMES.filter((n) => !usedNames.has(n)))[0] || ('BOT' + this.managers.length);
+    const club = E.shuffle(BOT_CLUBS.filter((c) => !usedClubs.has(c)))[0] || (name + ' FC');
+    const m = { id: 'bot_' + Math.random().toString(36).slice(2, 9), name, club, ready: true, budget: 100, squad: [], starters: [], formation: 'BAL', sacked: false, injured: null, connected: true, signings: [], isBot: true, diff: difficulty === 'hard' ? 'hard' : 'easy' };
+    this.managers.push(m);
+    this.broadcastLobby();
+    return { ok: true, name, club };
+  }
+  hasBots() { return this.managers.some((m) => m.isBot); }
   setReady(id, ready) {
     const m = this.managers.find((x) => x.id === id);
     if (m) m.ready = ready;
@@ -273,6 +290,7 @@ class Game {
   nextLot() {
     if (this.paused) return; // nothing settles while paused — resume re-arms the clock
     clearTimeout(this.timers.lot);
+    if (this.timers.botBids) { this.timers.botBids.forEach(clearTimeout); this.timers.botBids = []; }
     const a = this.auction;
     if (a.current) {
       if (a.highBidder) {
@@ -343,7 +361,68 @@ class Game {
         deadline: a.deadline,
       });
       this.armLotTimer();
+      this.scheduleBotBids();
     }, this.sp(TIMINGS.LOT_REVEAL_MS));
+  }
+
+  // ---------- SOLO-mode bot bidding ----------
+  botNeeds(m) {
+    // wants ~1 GK + 2 of each outfield line; returns how many MORE of a pos it wants
+    const have = { GK: 0, DEF: 0, MID: 0, ATT: 0 };
+    for (const p of m.squad) have[p.pos] = (have[p.pos] || 0) + 1;
+    const target = { GK: 1, DEF: 2, MID: 2, ATT: 2 };
+    return { have, target, needs: (pos) => Math.max(0, target[pos] - (have[pos] || 0)) };
+  }
+  botMaxBid(m, player) {
+    // value a player from his rating; harder bots value more accurately & spend more
+    const r = player.rating;
+    const base = r >= 92 ? 30 : r >= 89 ? 22 : r >= 86 ? 14 : r >= 83 ? 8 : r >= 80 ? 4 : 2;
+    const n = this.botNeeds(m);
+    const need = n.needs(player.pos);
+    if (need <= 0 && !player.wonderkid) {
+      // already stocked here: only chase a real bargain, and only sometimes
+      if (Math.random() < (m.diff === 'hard' ? 0.25 : 0.15)) return Math.min(m.budget, Math.round(base * 0.5));
+      return 0;
+    }
+    const wkBonus = player.wonderkid ? (m.diff === 'hard' ? 1.25 : 1.1) : 1;
+    const noise = m.diff === 'hard' ? (0.9 + Math.random() * 0.35) : (0.7 + Math.random() * 0.7); // easy = swingier/dumber
+    // keep enough budget to fill remaining REQUIRED slots (≥£1m each)
+    const slotsLeft = n.needs('GK') + n.needs('DEF') + n.needs('MID') + n.needs('ATT');
+    const reserve = Math.max(0, slotsLeft - 1);
+    const cap = Math.max(1, m.budget - reserve);
+    let val = Math.round(base * wkBonus * noise);
+    if (need >= 2) val = Math.round(val * 1.1); // wants two of these, slightly keener
+    return Math.min(cap, val);
+  }
+  scheduleBotBids() {
+    const a = this.auction;
+    if (!a || !a.current) return;
+    const lotName = a.current.name; // pin to THIS lot so a delayed timer can't bid on a later player
+    const bots = this.activeManagers().filter((m) => m.isBot);
+    for (const m of bots) {
+      if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue;
+      const ceiling = this.botMaxBid(m, a.current);
+      if (ceiling < 1) continue;
+      // each bot makes up to ~2 bidding attempts at staggered, human-ish delays
+      const tries = 1 + (Math.random() < 0.6 ? 1 : 0);
+      for (let t = 0; t < tries; t++) {
+        // delays must fit inside the live lot window so bots actually get their bids in
+        const base = FAST ? 20 : (m.diff === 'hard' ? 600 : 1100);
+        const spread = FAST ? 40 : 2600;
+        const stagger = FAST ? 30 : 1500;
+        const delay = base + Math.random() * spread + t * stagger;
+        const to = setTimeout(() => {
+          if (!a.current || a.current.name !== lotName || this.paused || this.phase !== 'auction') return;
+          if (a.highBidder === m.id) return;            // already winning
+          if (a.highBid >= ceiling) return;             // priced out — walk away
+          const step = 1 + Math.floor(Math.random() * (m.diff === 'hard' ? 3 : 2));
+          const amount = Math.min(ceiling, a.highBid + step);
+          if (amount > m.budget || amount <= a.highBid) return;
+          this.bid(m.id, amount);
+        }, this.sp(delay));
+        (this.timers.botBids = this.timers.botBids || []).push(to);
+      }
+    }
   }
 
   armLotTimer() {
@@ -493,6 +572,23 @@ class Game {
     });
     clearTimeout(this.timers.starters);
     this.startersHalf = half;
+    // bots pick instantly (with a tiny human-ish delay)
+    const bots = this.activeManagers().filter((m) => m.isBot);
+    if (bots.length) {
+      const to = setTimeout(() => {
+        for (const m of bots) {
+          if (!this.pendingStarters || !this.pendingStarters.has(m.id)) continue;
+          const avail = m.squad.filter((p) => p.name !== m.injured);
+          const starters = Game.legalFive(avail, (l) => E.shuffle([...l])) || avail.slice(0, 5);
+          m.formation = Game.deriveStyle(starters);
+          m.starters = starters;
+          this.pendingStarters.delete(m.id);
+          this.io.emit('startersLocked', { manager: m.name, auto: false });
+        }
+        if (this.pendingStarters && this.pendingStarters.size === 0) this.startersDone();
+      }, FAST ? 30 : 1500);
+      this.timers.botStarters = to;
+    }
   }
 
   submitStarters(managerId, formation, starterNames) {
@@ -522,6 +618,20 @@ class Game {
     if (this.phase === 'winter' && this.pendingStarters.size > 0) {
       // if everyone left is just spectating the hub, keep them informed who's locked
       this.io.emit('winterUpdate', { review: this.winterPayload().review });
+    }
+    // SOLO: if the only managers still to pick are bots, lock them in now so the human never waits
+    if (this.pendingStarters.size > 0) {
+      const remaining = [...this.pendingStarters].map((id) => this.managers.find((x) => x.id === id));
+      if (remaining.length && remaining.every((x) => x && x.isBot)) {
+        for (const bm of remaining) {
+          const av = bm.squad.filter((p) => p.name !== bm.injured);
+          const five = Game.legalFive(av, (l) => E.shuffle([...l])) || av.slice(0, 5);
+          bm.formation = Game.deriveStyle(five);
+          bm.starters = five;
+          this.pendingStarters.delete(bm.id);
+          this.io.emit('startersLocked', { manager: bm.name, auto: false });
+        }
+      }
     }
     if (this.pendingStarters.size === 0) this.startersDone();
     return { ok: true };
@@ -984,6 +1094,12 @@ class Game {
     if (this.phase === 'winter') return; // idempotent — never double-fire
     for (const m of this.activeManagers()) m.respins = 3;
     this.phase = 'winter';
+    // bots use a few respins on their weakest outfielders (hard bots are a touch keener)
+    for (const m of this.activeManagers().filter((x) => x.isBot)) {
+      const spins = m.diff === 'hard' ? 1 + Math.floor(Math.random() * 3) : Math.floor(Math.random() * 3);
+      const weak = [...m.squad].filter((p) => p.pos !== 'GK').sort((x, y) => x.rating - y.rating);
+      for (let i = 0; i < spins && i < weak.length && m.respins > 0; i++) this.respin(m.id, weak[i].name);
+    }
     const table = this.table();
     for (const m of this.activeManagers()) {
       m.budget += 50; // winter war chest
@@ -1378,7 +1494,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v7.1',
+      serverV: 'v7.4',
       paused: this.paused,
     };
   }
