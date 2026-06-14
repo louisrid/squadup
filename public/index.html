@@ -38,7 +38,7 @@ body{max-width:500px;margin:0 auto;padding:16px 16px 150px;min-height:100vh;font
   .lotRow .pcard{width:190px!important}
   .lotRow .ringWrap{width:190px!important;height:190px!important}
   .score{font-size:58px}
-  .bidline{font-size:52px}
+  .blackbox .bidline{font-size:25px}
 }
 h1,h2,.disp{font-family:var(--disp);text-transform:uppercase;letter-spacing:.02em}
 h1{font-size:34px;font-weight:800;margin:10px 0 2px;line-height:.95}
@@ -166,6 +166,10 @@ tr.me td{background:rgba(255,61,138,.14)}
 /* ---------- legend card ---------- */
 .pcard.legend .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#fffdf4 0%,#f5ecd0 58%,#e8d9a8 100%)}
 .pcard.legend{border:2px solid #C9A227;box-shadow:0 0 24px rgba(201,162,39,.45)}
+.pcard.hero .bgGrad{background:linear-gradient(150deg,#ff3d8a 0%,#a14bff 48%,#3aa0ff 100%)}
+.pcard.hero{border:2px solid #c98bff;box-shadow:0 0 22px rgba(160,75,255,.5)}
+.pcard.hero .nm,.pcard.hero .posb{color:#fff}
+.segHero{fill:url(#hgrad)}
 .pcard.legend .nm{color:#5b4708;background:linear-gradient(transparent,rgba(255,250,235,.95) 45%)}
 .pcard.legend svg.sil g{fill:#b99c3f}
 .pcard.legend .posb{background:#C9A227!important;color:#fff!important}
@@ -230,7 +234,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v4.8';
+const VERSION = 'v5.1';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -248,7 +252,7 @@ const num = (name) => 1 + ([...name].reduce((a,c)=>a+c.charCodeAt(0),0) % 29);
 const SIL = `<svg class="sil" viewBox="0 0 100 110"><g fill="#9a9aa6"><circle cx="50" cy="34" r="20"/><path d="M14 110 C14 76 30 62 50 62 C70 62 86 76 86 110 Z"/></g><g fill="rgba(255,255,255,.10)"><circle cx="44" cy="28" r="20"/></g></svg>`;
 
 function cardHTML(p, sm){
-  return `<div class="pcard ${p.pos} ${sm?'sm':''} ${p.legend?'legend':''} ${p.wonderkid?'wonder':''}">
+  return `<div class="pcard ${p.pos} ${sm?'sm':''} ${p.legend?'legend':''} ${p.wonderkid?'wonder':''} ${p.hero?'hero':''}">
     <div class="bgGrad"></div>${SIL}
     <div class="posb">${p.pos}</div>
     ${p.hint?`<div class="hintchip">${p.hint}</div>`:''}
@@ -481,7 +485,7 @@ s.on('phase',(p)=>{
     MYSQUAD.length=0;
     if(p.window==='winter' && W){
       const mine=(W.review||[]).find(r=>r.manager===ME.name);
-      if(mine) for(const q of mine.players) MYSQUAD.push({name:q.name,pos:q.pos,rtg:q.rtg,wonderkid:q.wonderkid});
+      if(mine) for(const q of mine.players) MYSQUAD.push({name:q.name,pos:q.pos,rtg:q.rtg,wonderkid:q.wonderkid,hero:q.hero});
     }
   }
   if(p.phase==='auction'){
@@ -606,9 +610,9 @@ function renderLot(){
   ${ME.isHost?`<div class="row" style="justify-content:center;margin-top:2px">
     <button onclick="toggleSpeed()" style="width:194px;font-size:17px;padding:12px;font-weight:800;${SPEED===2?'background:#4FC3F7;border-color:#4FC3F7;color:#06222e':''}">${SPEED===2?'2x speed ✓':'2x speed'}</button>
   </div>`:''}
-  <div class="blackbox" style="margin:6px auto;width:min(320px,100%)">
-    <div class="bidline" id="bidlineEl">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</div>
-    <div class="bidder" id="bidderEl">${A.highBidder?esc(A.highBidder):'No bids yet'}</div>
+  <div class="blackbox" style="margin:3px auto;width:min(248px,88%);padding:7px 12px;border-radius:13px">
+    <div class="bidline" id="bidlineEl" style="font-size:25px">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</div>
+    <div class="bidder" id="bidderEl" style="font-size:13px">${A.highBidder?`🔨 ${esc(A.highBidder)}`:'No bids yet'}</div>
   </div>
   </div>
   <div class="bidbar">
@@ -1104,8 +1108,55 @@ function showFinal(){
     ${a.winterSplash?`<div class="award"><b>💰 Winter splash</b><span>${esc(a.winterSplash.player)} — £${a.winterSplash.price}m (${esc(a.winterSplash.manager)})</span></div>`:''}
   </div>
   ${f.stats?statPanels(f.stats):''}
-  <button class="primary" style="width:100%;margin-top:14px" onclick="location.reload()">‹ Back to home</button>
+  ${(f.breakdowns&&f.breakdowns.find(b=>b.manager===ME.name))?`<button class="bigbtn" style="margin-top:14px" onclick="renderTeamBreakdown(f.breakdowns.findIndex(b=>b.manager===ME.name))">📊 My team breakdown</button>`:(f.breakdowns&&f.breakdowns.length?`<button class="bigbtn" style="margin-top:14px" onclick="renderBreakdownList()">📊 Team breakdowns</button>`:'')}
+  <button class="primary" style="width:100%;margin-top:10px" onclick="location.reload()">‹ Back to home</button>
   <div class="muted center" style="margin-top:10px;font-size:14px">Take your time — the stats stay here until you leave.</div>`);
+}
+function renderBreakdownList(){
+  const f=window.__finalData; if(!f||!f.breakdowns) return;
+  const ord=[...f.breakdowns].sort((a,b)=>(a.finalPos||99)-(b.finalPos||99));
+  $(`<button class="backbtn" onclick="showFinal()">‹</button>
+  <div class="eyebrow" style="padding-left:48px">Team breakdowns</div>
+  <h1 style="font-size:34px">📊 The season</h1>
+  <div class="panel">${ord.map((b,i)=>`<div class="row" style="padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer" onclick="renderTeamBreakdown(${f.breakdowns.indexOf(b)})">
+    <span class="disp grow" style="font-size:19px">${b.finalPos?`${b.finalPos}. `:''}${esc(b.club)} <span class="muted" style="font-size:14px">(${esc(b.manager)}${b.manager===ME.name?' — you':''})</span></span>
+    <span class="muted">view ›</span></div>`).join('')}</div>
+  <button class="primary bigbtn" style="margin-top:12px" onclick="showFinal()">‹ Back</button>`);
+}
+function lineChart(series,label,color){
+  const W=320,H=120,pad=8,n=series.length;
+  if(!n) return '';
+  const max=Math.max(1,...series), step=n>1?(W-pad*2)/(n-1):0;
+  const pts=series.map((v,i)=>`${(pad+i*step).toFixed(1)},${(H-pad-(v/max)*(H-pad*2)).toFixed(1)}`).join(' ');
+  return `<div style="margin:8px 0"><div class="muted" style="font-size:13px;margin-bottom:4px">${label} — final ${series[n-1]||0}</div>
+  <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;background:var(--surface2);border-radius:10px">
+    <polyline fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" points="${pts}"/>
+    ${series.map((v,i)=>`<circle cx="${(pad+i*step).toFixed(1)}" cy="${(H-pad-(v/max)*(H-pad*2)).toFixed(1)}" r="2.5" fill="${color}"/>`).join('')}
+  </svg></div>`;
+}
+function renderTeamBreakdown(idx){
+  const f=window.__finalData; const b=f&&f.breakdowns&&f.breakdowns[idx]; if(!b) return;
+  const tag=(p)=>p.legend?' 👑':p.hero?' 🦸':p.wonderkid?' ⭐':'';
+  $(`<button class="backbtn" onclick="renderBreakdownList()">‹</button>
+  <div class="eyebrow" style="padding-left:48px">${b.finalPos?`Finished ${b.finalPos}${b.finalPos===1?'st':b.finalPos===2?'nd':b.finalPos===3?'rd':'th'}`:''}${b.sacked?' · sacked':''}</div>
+  <h1 style="font-size:30px">${esc(b.club)}</h1>
+  <div class="muted" style="margin-top:-6px">${esc(b.manager)}</div>
+  ${lineChart(b.ptsHist,'Points across the season','#FF2E7E')}
+  ${lineChart(b.gfHist,'Goals scored across the season','#3DDC84')}
+  <h2 style="margin:14px 0 6px">Squad</h2>
+  <div class="panel" style="padding:6px 10px">
+    <div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);font-size:12px;font-weight:800;color:var(--muted)">
+      <span class="grow">PLAYER</span><span style="width:34px;text-align:center">£</span><span style="width:28px;text-align:center">⚽</span><span style="width:28px;text-align:center">🅰</span><span style="width:28px;text-align:center">🟥</span><span style="width:36px;text-align:center">AVG</span></div>
+    ${b.squad.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);font-size:15px">
+      <span class="grow"><span class="pos ${p.pos}" style="margin-right:6px">${p.pos}</span>${esc(p.name)}${tag(p)}</span>
+      <span style="width:34px;text-align:center;font-weight:700">${p.price!=null?'£'+p.price:'—'}</span>
+      <span style="width:28px;text-align:center;font-weight:700">${p.goals}</span>
+      <span style="width:28px;text-align:center">${p.assists}</span>
+      <span style="width:28px;text-align:center">${p.reds||'·'}</span>
+      <span style="width:36px;text-align:center;font-family:var(--disp);font-weight:800">${p.avgRtg}</span></div>`).join('')}
+  </div>
+  <button class="bigbtn" style="margin-top:12px" onclick="renderBreakdownList()">👀 Compare other teams</button>
+  <button class="primary bigbtn" style="margin-top:10px" onclick="showFinal()">‹ Back</button>`);
 }
 
 /* ---------------- CONNECTION ---------------- */

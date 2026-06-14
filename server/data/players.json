@@ -194,7 +194,8 @@
 "rating": 89,
 "potential": 89,
 "age": "prime",
-"pot": 89
+"pot": 89,
+"hero": true
 },
 {
 "name": "Jamal Musiala",
@@ -1556,11 +1557,12 @@
 "name": "Manuel Neuer",
 "pos": "GK",
 "league": "FOR",
-"fc26": 82,
-"rating": 85,
+"fc26": 91,
+"rating": 91,
 "potential": 82,
 "age": "old",
-"pot": 87
+"pot": 91,
+"hero": true
 },
 {
 "name": "Julian Brandt",
@@ -3395,10 +3397,11 @@
 "name": "Sergio Ramos",
 "pos": "DEF",
 "league": "EU",
-"fc26": 81,
-"rating": 81,
+"fc26": 91,
+"rating": 91,
 "old": true,
-"pot": 79
+"pot": 91,
+"hero": true
 },
 {
 "name": "Jordi Alba",
@@ -3413,10 +3416,11 @@
 "name": "Luis Suárez",
 "pos": "ATT",
 "league": "EU",
-"fc26": 81,
-"rating": 79,
+"fc26": 92,
+"rating": 92,
 "old": true,
-"pot": 78
+"pot": 92,
+"hero": true
 },
 {
 "name": "Marco Reus",
@@ -3660,5 +3664,316 @@
 "rating": 80,
 "pot": 82,
 "age": "young"
+},
+{
+"name": "Wayne Rooney",
+"pos": "ATT",
+"league": "ICON",
+"fc26": 92,
+"rating": 92,
+"pot": 92,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Frank Lampard",
+"pos": "MID",
+"league": "ICON",
+"fc26": 92,
+"rating": 92,
+"pot": 92,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Steven Gerrard",
+"pos": "MID",
+"league": "ICON",
+"fc26": 92,
+"rating": 92,
+"pot": 92,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Iker Casillas",
+"pos": "GK",
+"league": "ICON",
+"fc26": 92,
+"rating": 92,
+"pot": 92,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Andrea Pirlo",
+"pos": "MID",
+"league": "ICON",
+"fc26": 91,
+"rating": 91,
+"pot": 91,
+"age": "prime"
+},
+{
+"name": "Xavi",
+"pos": "MID",
+"league": "ICON",
+"fc26": 92,
+"rating": 92,
+"pot": 92,
+"age": "prime"
+},
+{
+"name": "Andrés Iniesta",
+"pos": "MID",
+"league": "ICON",
+"fc26": 93,
+"rating": 93,
+"pot": 93,
+"age": "prime"
+},
+{
+"name": "Carles Puyol",
+"pos": "DEF",
+"league": "ICON",
+"fc26": 91,
+"rating": 91,
+"pot": 91,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Philipp Lahm",
+"pos": "DEF",
+"league": "ICON",
+"fc26": 91,
+"rating": 91,
+"pot": 91,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Didier Drogba",
+"pos": "ATT",
+"league": "ICON",
+"fc26": 91,
+"rating": 91,
+"pot": 91,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Thierry Henry",
+"pos": "ATT",
+"league": "ICON",
+"fc26": 93,
+"rating": 93,
+"pot": 93,
+"age": "prime"
+},
+{
+"name": "Samuel Eto’o",
+"pos": "ATT",
+"league": "ICON",
+"fc26": 91,
+"rating": 91,
+"pot": 91,
+"age": "prime"
+},
+{
+"name": "David Villa",
+"pos": "ATT",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime"
+},
+{
+"name": "Kaká",
+"pos": "MID",
+"league": "ICON",
+"fc26": 92,
+"rating": 92,
+"pot": 92,
+"age": "prime"
+},
+{
+"name": "Ronaldinho",
+"pos": "MID",
+"league": "ICON",
+"fc26": 93,
+"rating": 93,
+"pot": 93,
+"age": "prime"
+},
+{
+"name": "Petr Čech",
+"pos": "GK",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Ashley Cole",
+"pos": "DEF",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
+},
+{
+"name": "John Terry",
+"pos": "DEF",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Patrick Vieira",
+"pos": "MID",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime"
+},
+{
+"name": "Nemanja Vidić",
+"pos": "DEF",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Rio Ferdinand",
+"pos": "DEF",
+"league": "ICON",
+"fc26": 91,
+"rating": 91,
+"pot": 91,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Yaya Touré",
+"pos": "MID",
+"league": "ICON",
+"fc26": 91,
+"rating": 91,
+"pot": 91,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Michael Essien",
+"pos": "MID",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Fernando Torres",
+"pos": "ATT",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Robin van Persie",
+"pos": "ATT",
+"league": "ICON",
+"fc26": 91,
+"rating": 91,
+"pot": 91,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Carlos Tévez",
+"pos": "ATT",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Gareth Bale",
+"pos": "ATT",
+"league": "ICON",
+"fc26": 91,
+"rating": 91,
+"pot": 91,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Edinson Cavani",
+"pos": "ATT",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Vincent Kompany",
+"pos": "DEF",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
+},
+{
+"name": "David Silva",
+"pos": "MID",
+"league": "ICON",
+"fc26": 91,
+"rating": 91,
+"pot": 91,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Cesc Fàbregas",
+"pos": "MID",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
+},
+{
+"name": "Edwin van der Sar",
+"pos": "GK",
+"league": "ICON",
+"fc26": 90,
+"rating": 90,
+"pot": 90,
+"age": "prime",
+"hero": true
 }
 ]

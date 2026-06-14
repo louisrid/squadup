@@ -204,6 +204,14 @@ class Game {
         haveWk++;
       }
     }
+    // rare hero card in the opening auction (~35% of windows, one slot)
+    if (Math.random() < 0.35) {
+      const hero = E.shuffle(ALL_PLAYERS.filter((p) => p.hero && !inPool.has(p.name) && !this.owned(p.name)))[0];
+      if (hero) {
+        const victim = E.shuffle(pool.filter((p) => !p.wonderkid && p.pos === hero.pos)) [0] || E.shuffle(pool.filter((p) => !p.wonderkid && p.pos !== 'GK'))[0];
+        if (victim) { inPool.delete(victim.name); inPool.add(hero.name); pool[pool.indexOf(victim)] = hero; }
+      }
+    }
     // first two lots: never wonderkids, rating ≤ 85
     pool.sort((a, b) => a.rating - b.rating);
     const openers = pool.filter((p) => !p.wonderkid && p.rating <= 85).slice(0, 2);
@@ -304,7 +312,7 @@ class Game {
     a.revealUntil = Date.now() + this.sp(TIMINGS.LOT_REVEAL_MS);
     this.io.emit('lotReveal', {
       index: a.index, total: a.queue.length,
-      player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
+      player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend, hero: !!a.current.hero },
       revealMs: this.sp(TIMINGS.LOT_REVEAL_MS),
     });
     setTimeout(() => {
@@ -313,7 +321,7 @@ class Game {
       a.revealUntil = 0;
       this.io.emit('lot', {
         index: a.index, total: a.queue.length,
-        player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend },
+        player: { name: a.current.name, pos: a.current.pos, hint: this.hintFor(a.current), wonderkid: !!a.current.wonderkid, legend: !!a.current.legend, hero: !!a.current.hero },
         deadline: a.deadline,
       });
       this.armLotTimer();
@@ -544,7 +552,7 @@ class Game {
     const avg = strengths.reduce((s, t) => s + (t.attack + t.defence) / 2, 0) / n;
     const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => {
       const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 1.2, defence: s.defence - 1.2 };
-      if (t.name === 'Eastvale Rovers') { t.attack += 1.2; t.defence += 1.2; t.elite = true; }
+      if (t.name === 'Eastvale Rovers') { t.attack += 0.7; t.defence += 0.7; t.elite = true; }
       return t;
     });
     this.season = {
@@ -554,6 +562,9 @@ class Game {
       w: Array(12).fill(0), d: Array(12).fill(0), l: Array(12).fill(0),
       playerStats: {},
       results: [],
+      ptsHist: this.managers.map(() => []),   // cumulative points per matchday, per team index
+      gfHist: this.managers.map(() => []),    // cumulative goals-for per matchday
+      teamCount: 0,
     };
     this.phase = 'firstHalf';
     this.io.emit('phase', { phase: 'firstHalf' });
@@ -623,10 +634,19 @@ class Game {
         detail = E.buildCommentary(r, sA || [{ name: TA.name, pos: 'ATT', rating: 80 }], sB || [{ name: TB.name, pos: 'ATT', rating: 80 }], { redA: !!sA, redB: !!sB });
         this.suspensions = this.suspensions || {};
         for (const red of detail.reds || []) {
-          if ((red.side === 'A' && sA) || (red.side === 'B' && sB)) this.suspensions[red.name] = md + 1;
+          if ((red.side === 'A' && sA) || (red.side === 'B' && sB)) { this.suspensions[red.name] = md + 1; const rs = (this.season.playerStats[red.name] ||= { goals: 0, assists: 0 }); rs.reds = (rs.reds || 0) + 1; }
         }
         for (const s of detail.scorersA) if (sA && !s.og) this.bumpStat(s.name, s.assist);
         for (const s of detail.scorersB) if (sB && !s.og) this.bumpStat(s.name, s.assist);
+        // per-player appearances + rolling rating (lineup actually fielded)
+        for (const [side, lineup] of [['A', sA], ['B', sB]]) {
+          if (!lineup) continue;
+          for (const p of lineup) {
+            const ps = (this.season.playerStats[p.name] ||= { goals: 0, assists: 0 });
+            ps.apps = (ps.apps || 0) + 1;
+            ps.rtgSum = (ps.rtgSum || 0) + (p.rating + (p.seasonMod || 0));
+          }
+        }
       }
       this.season.gf[a] += r.goalsA; this.season.ga[a] += r.goalsB;
       this.season.gf[b] += r.goalsB; this.season.ga[b] += r.goalsA;
@@ -635,6 +655,11 @@ class Game {
       else { this.season.pts[a]++; this.season.pts[b]++; this.season.d[a]++; this.season.d[b]++; }
       out.push({ md, a, b, ...r, detail, suspended, humans: (sA ? 1 : 0) + (sB ? 1 : 0) });
     }
+    // snapshot cumulative standings for every human team this matchday
+    this.managers.forEach((m, mi) => {
+      const ti = this.season.teams.findIndex((t) => t.type === 'human' && t.mIdx === mi);
+      if (ti >= 0) { this.season.ptsHist[mi].push(this.season.pts[ti]); this.season.gfHist[mi].push(this.season.gf[ti]); }
+    });
     return out;
   }
   bumpStat(name, assist) {
@@ -868,7 +893,7 @@ class Game {
         tips: this.assistantTips(m),
         validFormations: this.validFormations(m),
         players: m.squad.map((p) => ({
-          name: p.name, pos: p.pos, legend: !!p.legend, wonderkid: !!p.wonderkid, rtg: p.rating,
+          name: p.name, pos: p.pos, legend: !!p.legend, wonderkid: !!p.wonderkid, hero: !!p.hero, rtg: p.rating,
           form: p.winterForm != null ? p.winterForm : null,
           grew: p.grew || 0,
           goals: (this.season.playerStats[p.name] || {}).goals || 0,
@@ -986,11 +1011,19 @@ class Game {
     const byPos = fresh(88);
     const backup = fresh(88); // strictly 88+
     const rest = [];
+    // ~45% of winter windows include a top keeper (legend GK or 90+ hero GK)
+    if (Math.random() < 0.45) {
+      const gkPool = E.shuffle([
+        ...LEGENDS.filter((l) => l.pos === 'GK' && !this.owned(l.name)).map((l) => ({ ...l, rating: 95, pot: 95 })),
+        ...ALL_PLAYERS.filter((p) => p.pos === 'GK' && p.hero && !this.owned(p.name)),
+      ]);
+      if (gkPool[0]) rest.push(gkPool[0]);
+    }
     const order = E.shuffle(['DEF', 'MID', 'ATT']);
     const want = { DEF: 0, MID: 0, ATT: 0 };
     for (let k = 0; k < restCount; k++) want[order[k % 3]]++;
     for (const pos of order) {
-      for (let k = 0; k < want[pos]; k++) {
+      for (let k = 0; k < want[pos] && rest.length < restCount; k++) {
         const p = byPos[pos].shift() || backup[pos].find((x) => !rest.includes(x));
         if (p && !rest.includes(p)) rest.push(p);
       }
@@ -1026,8 +1059,8 @@ class Game {
       for (const t of this.season.teams) {
         if (t.type === 'ai' && !t.wasHuman) {
           const base = avg + E.gauss() * 1.1 - 1.2; // equal treatment both halves
-          t.attack = base + E.gauss() * 0.6 + (t.elite ? 1.2 : 0);
-          t.defence = base + E.gauss() * 0.6 + (t.elite ? 1.2 : 0);
+          t.attack = base + E.gauss() * 0.6 + (t.elite ? 0.7 : 0);
+          t.defence = base + E.gauss() * 0.6 + (t.elite ? 0.7 : 0);
         }
       }
     }
@@ -1072,6 +1105,28 @@ class Game {
         biggestFlop: biggestFlop ? { player: biggestFlop.player, price: biggestFlop.price, manager: biggestFlop.manager } : null,
         winterSplash: winterSplash ? { player: winterSplash.player, price: winterSplash.price, manager: winterSplash.manager } : null,
       },
+      breakdowns: this.managers.map((m, mi) => {
+        const ti = this.season.teams.findIndex((t) => t.type === 'human' && t.mIdx === mi);
+        const priceOf = {};
+        for (const s of m.signings) if (priceOf[s.player] == null || s.price > 0) priceOf[s.player] = s.price;
+        return {
+          manager: m.name, club: m.club, sacked: !!m.sacked,
+          finalPos: ti >= 0 ? (this.table().findIndex((r) => r.manager === m.name) + 1) : null,
+          ptsHist: this.season.ptsHist[mi] || [],
+          gfHist: this.season.gfHist[mi] || [],
+          squad: m.squad.map((p) => {
+            const st = this.season.playerStats[p.name] || {};
+            return {
+              name: p.name, pos: p.pos, rating: p.rating + (p.seasonMod || 0),
+              legend: !!p.legend, wonderkid: !!p.wonderkid, hero: !!p.hero,
+              goals: st.goals || 0, assists: st.assists || 0, reds: st.reds || 0,
+              apps: st.apps || 0,
+              avgRtg: st.apps ? +(st.rtgSum / st.apps).toFixed(1) : (p.rating + (p.seasonMod || 0)),
+              price: priceOf[p.name] != null ? priceOf[p.name] : null,
+            };
+          }).sort((a, b) => b.goals - a.goals || b.assists - a.assists || b.rating - a.rating),
+        };
+      }),
     });
   }
 
@@ -1205,7 +1260,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v4.8',
+      serverV: 'v5.1',
       paused: this.paused,
     };
   }

@@ -53,7 +53,7 @@ function rollSeasonEvent() {
 function teamStrength(starters, formation) {
   const eff = (p) => {
     const r = p.rating + (p.seasonMod || 0);
-    return r <= 88 ? r : 88 + (r - 88) * 0.45; // diminishing returns: a 96 plays like a 91.6
+    return r <= 90 ? r : 90 + (r - 90) * 0.85; // gentle cap: a 96 plays like 95.1 // diminishing returns: a 96 plays like a 91.6
   };
   const atkPlayers = starters.filter((p) => p.pos === 'ATT' || p.pos === 'MID');
   const defPlayers = starters.filter((p) => p.pos === 'GK' || p.pos === 'DEF');
