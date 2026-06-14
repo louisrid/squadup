@@ -113,6 +113,29 @@ class Game {
     return { ok: true, name, club };
   }
   hasBots() { return this.managers.some((m) => m.isBot); }
+  // pick a bot's starting five + formation. hard = best five by rating with a shape that
+  // suits its strongest line; easy = a decent-but-not-optimal five, always Balanced.
+  botPickStarters(m) {
+    const avail = m.squad.filter((p) => p.name !== m.injured);
+    if (m.diff === 'hard') {
+      const five = Game.legalFive(avail, (l) => [...l].sort((a, b) => (b.rating + (b.seasonMod || 0)) - (a.rating + (a.seasonMod || 0)))) || avail.slice(0, 5);
+      // shape choice: lean to its strongest available outfield line (a real, fair tactic)
+      const mean = (pos) => { const ps = avail.filter((p) => p.pos === pos); return ps.length ? ps.reduce((s, p) => s + p.rating, 0) / ps.length : 0; };
+      const atkS = mean('ATT'), defS = mean('DEF'), midS = mean('MID');
+      let shape; // [DEF,MID,ATT]
+      if (atkS >= defS + 2 && atkS >= midS) shape = [1, 1, 2];       // strong up top → Attacking
+      else if (defS >= atkS + 2 && defS >= midS) shape = [2, 1, 1];  // strong at back → Defensive
+      else shape = [1, 2, 1];                                         // otherwise control midfield
+      const shaped = Game.legalFive(avail, (l) => [...l].sort((a, b) => (b.rating + (b.seasonMod || 0)) - (a.rating + (a.seasonMod || 0))), shape) || five;
+      m.starters = shaped;
+      m.formation = Game.deriveStyle(shaped);
+    } else {
+      // easy: a workable five, never optimised, always Balanced
+      const five = Game.legalFive(avail, (l) => E.shuffle([...l])) || avail.slice(0, 5);
+      m.starters = five;
+      m.formation = 'BAL';
+    }
+  }
   setReady(id, ready) {
     const m = this.managers.find((x) => x.id === id);
     if (m) m.ready = ready;
@@ -374,54 +397,116 @@ class Game {
     return { have, target, needs: (pos) => Math.max(0, target[pos] - (have[pos] || 0)) };
   }
   botMaxBid(m, player) {
-    // value a player from his rating; harder bots value more accurately & spend more
     const r = player.rating;
-    const base = r >= 92 ? 30 : r >= 89 ? 22 : r >= 86 ? 14 : r >= 83 ? 8 : r >= 80 ? 4 : 2;
+    const hard = m.diff === 'hard';
+    // base worth by rating. HARD recognises elite talent and will stretch for 89+ stars;
+    // EASY is gun-shy on the top end, so it routinely gets outbid for the best players.
+    let base;
+    if (hard) base = r >= 92 ? 38 : r >= 89 ? 28 : r >= 86 ? 17 : r >= 83 ? 9 : r >= 80 ? 4 : 2;
+    else      base = r >= 92 ? 15 : r >= 89 ? 11 : r >= 86 ? 8 : r >= 83 ? 6 : r >= 80 ? 4 : 2;
     const n = this.botNeeds(m);
     const need = n.needs(player.pos);
     if (need <= 0 && !player.wonderkid) {
-      // already stocked here: only chase a real bargain, and only sometimes
-      if (Math.random() < (m.diff === 'hard' ? 0.25 : 0.15)) return Math.min(m.budget, Math.round(base * 0.5));
+      // already stocked here: hard bots opportunistically grab a bargain, easy rarely bother
+      if (Math.random() < (hard ? 0.30 : 0.10)) return Math.min(m.budget, Math.round(base * 0.5));
       return 0;
     }
-    const wkBonus = player.wonderkid ? (m.diff === 'hard' ? 1.25 : 1.1) : 1;
-    const noise = m.diff === 'hard' ? (0.9 + Math.random() * 0.35) : (0.7 + Math.random() * 0.7); // easy = swingier/dumber
-    // keep enough budget to fill remaining REQUIRED slots (≥£1m each)
+    // EARLY-PASS: don't panic-buy a mediocre player early when better ones are likely still coming.
+    // a = auction; estimate how much of the window is left and whether this player is worth taking now.
+    const a = this.auction;
+    if (a && a.queue && a.queue.length) {
+      const frac = a.index / a.queue.length;       // 0 = start of window, 1 = end
+      const early = frac < 0.55;                    // first ~half of the window
+      const mediocre = r < (need >= 1 ? 84 : 88);   // not a standout for what it needs
+      if (early && mediocre && !player.wonderkid) {
+        // hard passes mediocre early lots deliberately (saves money for the better ones coming);
+        // easy passes crudely/randomly (sometimes a mistake, sometimes sensible)
+        const passChance = hard ? (0.55 * (1 - frac / 0.55)) : (0.35 * Math.random());
+        if (Math.random() < passChance) return 0;   // sit this one out
+      }
+    }
+    const wkBonus = player.wonderkid ? (hard ? 1.3 : 1.05) : 1;
+    let factor;
+    if (hard) {
+      // accurate, confident valuation; tight variance
+      factor = 1.0 + Math.random() * 0.2; // 1.00–1.20
+      // prioritise its WEAKEST line: pay more to plug a gap, less to pile onto a strength
+      const lineMean = (pos) => { const ps = m.squad.filter((p) => p.pos === pos); return ps.length ? ps.reduce((s, p) => s + p.rating, 0) / ps.length : 0; };
+      const myLine = lineMean(player.pos === 'GK' ? 'GK' : player.pos);
+      if (need >= 1 && myLine < 80) factor += 0.15;      // genuinely short here → keener
+      else if (need >= 1) factor += 0.05;
+    } else {
+      // EASY: systematically values ~25% LOW so it loses the best players, low swing.
+      // plus occasional genuine blunders (rare overpay OR a shy pass).
+      factor = 0.62 + Math.random() * 0.18; // 0.62–0.80, consistently cheap → weaker squads
+      const blunder = Math.random();
+      if (blunder < 0.06) factor += 0.45;      // ~6% reckless overpay
+      else if (blunder > 0.90) factor = 0.35;  // ~10% timid lowball (loses the lot)
+    }
+    // budget: HARD aims to spend most of its £100m building a strong CORE in window one and
+    // relies on the fresh +£50m windfall for the winter market — so it does NOT hoard.
+    // it only keeps £1m per still-needed slot so it can always complete a squad.
     const slotsLeft = n.needs('GK') + n.needs('DEF') + n.needs('MID') + n.needs('ATT');
     const reserve = Math.max(0, slotsLeft - 1);
     const cap = Math.max(1, m.budget - reserve);
-    let val = Math.round(base * wkBonus * noise);
-    if (need >= 2) val = Math.round(val * 1.1); // wants two of these, slightly keener
+    let val = Math.round(base * wkBonus * factor);
+    if (need >= 2) val = Math.round(val * 1.08);
     return Math.min(cap, val);
   }
   scheduleBotBids() {
     const a = this.auction;
     if (!a || !a.current) return;
-    const lotName = a.current.name; // pin to THIS lot so a delayed timer can't bid on a later player
+    const lotName = a.current.name;
     const bots = this.activeManagers().filter((m) => m.isBot);
     for (const m of bots) {
       if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue;
       const ceiling = this.botMaxBid(m, a.current);
       if (ceiling < 1) continue;
-      // each bot makes up to ~2 bidding attempts at staggered, human-ish delays
-      const tries = 1 + (Math.random() < 0.6 ? 1 : 0);
-      for (let t = 0; t < tries; t++) {
-        // delays must fit inside the live lot window so bots actually get their bids in
-        const base = FAST ? 20 : (m.diff === 'hard' ? 600 : 1100);
-        const spread = FAST ? 40 : 2600;
-        const stagger = FAST ? 30 : 1500;
-        const delay = base + Math.random() * spread + t * stagger;
-        const to = setTimeout(() => {
-          if (!a.current || a.current.name !== lotName || this.paused || this.phase !== 'auction') return;
-          if (a.highBidder === m.id) return;            // already winning
-          if (a.highBid >= ceiling) return;             // priced out — walk away
-          const step = 1 + Math.floor(Math.random() * (m.diff === 'hard' ? 3 : 2));
-          const amount = Math.min(ceiling, a.highBid + step);
-          if (amount > m.budget || amount <= a.highBid) return;
-          this.bid(m.id, amount);
-        }, this.sp(delay));
-        (this.timers.botBids = this.timers.botBids || []).push(to);
+      // occasionally a bot SITS OUT a lot to save itself for someone better later — more
+      // likely on a modest player when lots remain and it isn't desperate for the position.
+      const lotsLeft = a.queue.length - a.index;
+      const need = this.botNeeds(m).needs(a.current.pos);
+      if (!a.current.wonderkid && a.current.rating < 88 && lotsLeft > 6 && need < 2) {
+        const skipChance = m.diff === 'hard' ? 0.10 : 0.18; // easy is flakier
+        if (Math.random() < skipChance) continue; // pass entirely on this one
       }
+      // a confident OPENING bid: jump most of the way toward what the bot thinks he's worth,
+      // so a £25m-valued star opens near there, not at £1m. hard bots open higher & tighter.
+      const openFrac = m.diff === 'hard' ? (0.78 + Math.random() * 0.17) : (0.6 + Math.random() * 0.3);
+      const open = Math.max(1, Math.min(ceiling, Math.round(ceiling * openFrac)));
+      const base = FAST ? 20 : (m.diff === 'hard' ? 500 : 900);
+      const to = setTimeout(() => {
+        if (!a.current || a.current.name !== lotName || this.paused || this.phase !== 'auction') return;
+        if (a.highBidder === m.id || a.highBid >= open) return;
+        const amount = Math.max(a.highBid + 1, Math.min(ceiling, open));
+        if (amount <= a.highBid || amount > m.budget) return;
+        this.bid(m.id, amount);
+      }, this.sp(base + Math.random() * (FAST ? 40 : 1800)));
+      (this.timers.botBids = this.timers.botBids || []).push(to);
+    }
+  }
+
+  // called after every human/bot bid: outbid bots react and fight back up to their ceiling
+  reactBotBids() {
+    const a = this.auction;
+    if (!a || !a.current || this.paused || this.phase !== 'auction') return;
+    const lotName = a.current.name;
+    for (const m of this.activeManagers().filter((x) => x.isBot)) {
+      if (m.id === a.highBidder) continue; // already winning
+      if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue;
+      const ceiling = this.botMaxBid(m, a.current);
+      if (ceiling <= a.highBid) continue; // priced out — walk away cleanly
+      // a human-ish reactive counter-bid after a short think (1-5m jumps)
+      const delay = FAST ? (15 + Math.random() * 35) : (700 + Math.random() * 2200);
+      const to = setTimeout(() => {
+        if (!a.current || a.current.name !== lotName || this.paused || this.phase !== 'auction') return;
+        if (a.highBidder === m.id || a.highBid >= ceiling) return;
+        const jump = 1 + Math.floor(Math.random() * (m.diff === 'hard' ? 5 : 4));
+        const amount = Math.min(ceiling, a.highBid + jump);
+        if (amount <= a.highBid || amount > m.budget) return;
+        this.bid(m.id, amount);
+      }, this.sp(delay));
+      (this.timers.botBids = this.timers.botBids || []).push(to);
     }
   }
 
@@ -452,6 +537,7 @@ class Game {
     this.io.emit('bid', { player: a.current.name, amount, manager: m.name, deadline: a.deadline });
     this.armLotTimer();
     this.resolveEarly();
+    if (a.current) this.reactBotBids(); // outbid bots fight back (only if the lot is still live)
     return { ok: true };
   }
 
@@ -578,10 +664,7 @@ class Game {
       const to = setTimeout(() => {
         for (const m of bots) {
           if (!this.pendingStarters || !this.pendingStarters.has(m.id)) continue;
-          const avail = m.squad.filter((p) => p.name !== m.injured);
-          const starters = Game.legalFive(avail, (l) => E.shuffle([...l])) || avail.slice(0, 5);
-          m.formation = Game.deriveStyle(starters);
-          m.starters = starters;
+          this.botPickStarters(m);
           this.pendingStarters.delete(m.id);
           this.io.emit('startersLocked', { manager: m.name, auto: false });
         }
@@ -624,10 +707,7 @@ class Game {
       const remaining = [...this.pendingStarters].map((id) => this.managers.find((x) => x.id === id));
       if (remaining.length && remaining.every((x) => x && x.isBot)) {
         for (const bm of remaining) {
-          const av = bm.squad.filter((p) => p.name !== bm.injured);
-          const five = Game.legalFive(av, (l) => E.shuffle([...l])) || av.slice(0, 5);
-          bm.formation = Game.deriveStyle(five);
-          bm.starters = five;
+          this.botPickStarters(bm);
           this.pendingStarters.delete(bm.id);
           this.io.emit('startersLocked', { manager: bm.name, auto: false });
         }
@@ -637,10 +717,22 @@ class Game {
     return { ok: true };
   }
 
-  static legalFive(avail, ranker) {
+  static legalFive(avail, ranker, shape) {
     const gk = avail.find((p) => p.pos === 'GK');
     if (!gk) return null;
     const chosen = [gk];
+    if (shape) {
+      // shape = [nDEF, nMID, nATT]; fill that exact outfield shape with the top-ranked players
+      const want = { DEF: shape[0], MID: shape[1], ATT: shape[2] };
+      for (const pos of ['DEF', 'MID', 'ATT']) {
+        const ranked = ranker(avail.filter((p) => p.pos === pos));
+        for (let i = 0; i < want[pos] && i < ranked.length; i++) chosen.push(ranked[i]);
+      }
+      // if a line was short, backfill from any remaining outfielder
+      const flex = ranker(avail.filter((p) => p.pos !== 'GK' && !chosen.includes(p)));
+      while (chosen.length < 5 && flex.length) chosen.push(flex.shift());
+      return chosen.length === 5 ? chosen : null;
+    }
     for (const pos of ['DEF', 'MID', 'ATT']) {
       const c = ranker(avail.filter((p) => p.pos === pos))[0];
       if (c) chosen.push(c);
@@ -1494,8 +1586,9 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v7.4',
+      serverV: 'v7.8',
       paused: this.paused,
+      hostPaused: !!this.hostPaused,
     };
   }
 }
