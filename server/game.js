@@ -148,7 +148,7 @@ class Game {
     this.io.emit('lobby', {
       code: this.code,
       hostId: this.hostId,
-      managers: this.managers.map((m) => ({ id: m.id, name: m.name, club: m.club, ready: m.ready, connected: m.connected })),
+      managers: this.managers.map((m) => ({ id: m.id, name: m.name, club: m.club, ready: m.ready, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null })),
     });
   }
 
@@ -1566,7 +1566,7 @@ class Game {
     return {
       code: this.code, phase: this.phase, hostId: this.hostId, speed: this.speed,
       managers: this.managers.map((m) => ({
-        id: m.id, name: m.name, club: m.club, ready: m.ready, budget: m.budget,
+        id: m.id, name: m.name, club: m.club, ready: m.ready, budget: m.budget, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null,
         squad: m.id === forId ? m.squad.map((p) => ({ name: p.name, pos: p.pos })) : { count: m.squad.length },
         sacked: m.sacked, injured: m.injured,
       })),
@@ -1599,7 +1599,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v8.9',
+      serverV: 'v9.4',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

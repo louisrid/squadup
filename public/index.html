@@ -37,6 +37,7 @@ body{max-width:500px;margin:0 auto;padding:16px 16px 150px;min-height:100vh;font
   .codetext{font-size:84px!important}
   .lotRow .pcard{width:190px!important}
   .lotRow .ringWrap{width:190px!important;height:190px!important}
+  #pauseBtn{width:190px!important}
   .score{font-size:58px}
   .blackbox .bidline{font-size:25px}
 }
@@ -72,8 +73,8 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
   padding:3px 9px;border-radius:7px;color:#0b0b10}
 .pcard.GK .posb{background:var(--gk)} .pcard.DEF .posb{background:var(--def);color:#fff}
 .pcard.MID .posb{background:var(--mid);color:#06140b} .pcard.ATT .posb{background:var(--att);color:#fff}
-.pcard .nm{position:absolute;left:0;right:0;bottom:0;padding:22px 8px 9px;text-align:center;
-  font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:17px;line-height:1;
+.pcard .nm{position:absolute;left:0;right:0;bottom:0;padding:22px 6px 9px;text-align:center;
+  font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:clamp(13px,3.6vw,17px);line-height:1.05;word-break:break-word;
   background:linear-gradient(transparent,rgba(0,0,0,.88) 45%)}
 .pcard.sm{width:104px}.pcard.sm .nm{font-size:13px;padding-bottom:7px}.pcard.sm .posb{font-size:13px;padding:2px 7px}
 /* ---------- start ready ---------- */
@@ -93,12 +94,16 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 /* ---------- lot row ---------- */
 .lotRow{display:flex;align-items:center;justify-content:center;gap:16px}
 .ringSec{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:var(--disp);font-weight:800;font-size:42px;color:var(--text)}
+  font-family:var(--disp);font-weight:800;font-size:clamp(30px,8vw,42px);color:var(--text)}
 .giveup{border-color:var(--att);color:var(--att);background:transparent;font-size:16px}
 /* ---------- back button ---------- */
 .backbtn{position:fixed;top:max(24px,env(safe-area-inset-top));left:max(24px,env(safe-area-inset-left));z-index:70;
   width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  background:var(--surface2);border:2px solid var(--line);font-size:24px;padding:0;color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.5)}
+  background:var(--surface2);border:2px solid var(--line);font-size:24px;padding:0;color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.5);
+  transition:transform .12s ease,border-color .12s ease;cursor:pointer}
+.backbtn:hover{border-color:var(--pink)}
+.backbtn:active{transform:scale(.9)}
+.topclear{height:max(80px,calc(env(safe-area-inset-top) + 64px))}
 /* ---------- lot reveal ---------- */
 .revealCard .pcard{animation:cardBob var(--fade,450ms) ease-out both}
 @keyframes cardBob{0%{opacity:0;transform:scale(.96)}100%{opacity:1;transform:scale(1)}}
@@ -233,16 +238,25 @@ tr.me td{background:rgba(255,61,138,.14)}
 /* budgets row handled by the .budgets rule above */
 .paused{position:fixed;top:0;left:0;right:0;background:var(--pink-deep);color:#fff;text-align:center;
   font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:7px;z-index:50}
+#toast{position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
+  bottom:max(26px,calc(env(safe-area-inset-bottom) + 18px));z-index:90;
+  max-width:min(440px,calc(100vw - 32px));pointer-events:none;
+  background:rgba(20,20,28,.96);color:var(--text);border:1px solid var(--line);
+  border-left:4px solid var(--pink);border-radius:12px;padding:12px 18px;
+  font-size:15px;font-weight:600;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.55);
+  opacity:0;transition:opacity .2s ease,transform .2s ease}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media (prefers-reduced-motion: reduce){.evt{animation:none;opacity:1}}
 </style>
 </head>
 <body>
 <div id="pausebar" class="paused" style="display:none"></div>
+<div id="toast"></div>
 <div id="app"></div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v8.9';
+const VERSION = 'v9.4';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -250,6 +264,12 @@ let A = null, timerInt = null, pickState = null, lastTable = null;
 
 function backBtn(inGame){
   return `<button class="backbtn" onclick="goBack(${inGame?1:0})">‹</button>`;
+}
+// back button + the standard top clearance spacer, so no screen forgets it and they all line up.
+// pass a custom onclick (e.g. "home()") or leave blank to use the default leave-game behaviour.
+function topBar(onclick){
+  const btn = onclick ? `<button class="backbtn" onclick="${onclick}">‹</button>` : backBtn(0);
+  return `${btn}<div class="topclear"></div>`;
 }
 function goBack(inGame){
   if(inGame && !confirm('Leave the game? You can rejoin with the same code and name.')) return;
@@ -296,8 +316,7 @@ function home(){
 }
 function renderWhatsNew(){
   const li=(t)=>`<div style="font-size:17px;line-height:1.5;padding:5px 0">• ${t}</div>`;
-  $(`<button class="backbtn" onclick="home()">‹</button>
-  <div style="padding-top:max(80px,calc(env(safe-area-inset-top) + 64px))"></div>
+  $(`${topBar("home()")}
   <div class="eyebrow" style="padding-left:48px">What's new</div>
   <h1 style="color:#FFD75E">⭐ The season so far</h1>
   <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">FRESH IN</h2>
@@ -319,8 +338,7 @@ function renderWhatsNew(){
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
 }
 function renderHowTo(){
-  $(`<button class="backbtn" onclick="home()">‹</button>
-  <div style="padding-top:max(80px,calc(env(safe-area-inset-top) + 64px))"></div>
+  $(`${topBar("home()")}
   <div class="eyebrow" style="padding-left:48px">How to play</div>
   <h1>SQUADUP in 60 seconds</h1>
   <div class="panel"><h2 style="margin-top:0">1 · The auction</h2>
@@ -455,6 +473,12 @@ function restoreFromSnapshot(snap){
     }
     return;
   }
+  if(snap.phase==='lobby'){
+    // tab-out reclaim while still in the lobby: rebuild the lobby view fresh with the new socket id
+    lastLobby = { code:snap.code, hostId:snap.hostId, managers:snap.managers.map(m=>({id:m.id,name:m.name,club:m.club,ready:m.ready,connected:m.connected!==false,isBot:!!m.isBot,diff:m.diff||null})) };
+    renderLobby(lastLobby);
+    return;
+  }
   if(snap.auction && snap.auction.player){
     A={ index:snap.auction.index, total:snap.auction.total, player:snap.auction.player,
         highBid:snap.auction.highBid, highBidder:snap.auction.highBidder,
@@ -490,7 +514,11 @@ s.on('lobby',(l)=>{
 function renderLobby(l){
   ME.isHost = l.hostId===ME.id;
   const meRow = l.managers.find(x=>x.id===ME.id); if(meRow) ME.club = meRow.club;
-  $(`${backBtn(0)}<div class="screen">
+  // if we're already viewing the lobby, this is an in-place update (someone readied, a bot joined) —
+  // keep the user's scroll position instead of snapping to the top.
+  const onLobby = !!document.getElementById('codetext');
+  const render = onLobby ? $k : $;
+  render(`${backBtn(0)}<div class="screen">
   <div class="eyebrow">Lobby</div>
   <div class="codebox">
     <div class="muted" style="letter-spacing:.14em;text-transform:uppercase;font-size:11px">Lobby code</div>
@@ -500,7 +528,7 @@ function renderLobby(l){
   <div class="muted center">Share the code with your mates · 2–6 managers</div>
   <div class="panel">
     ${l.managers.map(m=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)">
-      <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
+      <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.isBot?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${m.diff==='hard'?'#FF5470':'#7CE38B'};border:1px solid ${m.diff==='hard'?'#FF5470':'#7CE38B'};border-radius:5px;padding:0 5px">${m.diff==='hard'?'HARD':'EASY'} BOT</span>`:''}${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
       <span>${m.ready?'🟢':'⚪️'}</span></div>`).join('')}
   </div>
   ${l.hostId===ME.id?`<div class="panel" style="border-color:#3DDC84;padding:12px">
@@ -635,16 +663,16 @@ function renderLot(){
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
   <div class="auctionWrap" data-lock style="justify-content:flex-start;align-items:center;min-height:auto;padding-top:max(3vh,18px);padding-bottom:52vh;gap:14px">
-  <div class="lotRow" style="align-items:center;justify-content:center;gap:20px">
-    <div style="width:194px">${cardHTML(A.player)}</div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
-      <div class="ringWrap" style="width:124px;height:124px">
+  <div class="lotRow" style="align-items:center;justify-content:center;gap:min(20px,4vw);max-width:100%">
+    <div style="width:min(194px,42vw);flex-shrink:1">${cardHTML(A.player)}</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px;flex-shrink:0">
+      <div class="ringWrap" style="width:min(124px,30vw);height:min(124px,30vw)">
         <svg class="ring" viewBox="0 0 156 156"><circle cx="78" cy="78" r="${R}" fill="none" stroke="var(--line)" stroke-width="6"/>
         <circle id="ringFg" cx="78" cy="78" r="${R}" fill="none" stroke="var(--pink)" stroke-width="6" stroke-linecap="round"
           stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
         <div id="ringSec" class="ringSec">${Math.max(0,Math.ceil(((A.deadline||0)-Date.now())/1000))||'–'}</div>
       </div>
-      ${ME.isHost?`<button id="pauseBtn" onclick="togglePause()" style="width:124px;font-size:17px;padding:12px;font-weight:800">${isPaused?'Resume':'Pause'}</button>`:''}
+      ${ME.isHost?`<button id="pauseBtn" onclick="togglePause()" style="width:min(124px,30vw);font-size:16px;padding:10px;font-weight:800">${isPaused?'Resume':'Pause'}</button>`:''}
     </div>
   </div>
   ${ME.isHost?`<div class="row" style="justify-content:center;margin-top:2px">
@@ -717,9 +745,14 @@ s.on('lotSkipped',(x)=>{ toast('Skipped '+esc(x.player)+' — nobody can buy'); 
 function toggleSpeed(){ s.emit('hostSpeed',{fast:SPEED!==2},(r)=>{ if(r&&r.error) toast(r.error); }); }
 s.on('speed',(x)=>{ SPEED=x.speed; toast(SPEED===2?'⚡ 2x speed on':'Speed back to normal'); if(A) renderLot(); });
 s.on('lotSettling',()=>{});
-function toast(t){ const p=document.getElementById('pausebar'); p.textContent=t; p.style.display='block';
-  setTimeout(()=>{ if(p.textContent===t){ if(isPaused){ p.textContent = hostPausedLocal? '⏸ Paused' : '⏸ Paused'; } else p.style.display='none'; } },1700); }
-function hideToast(){ const p=document.getElementById('pausebar'); if(p && !isPaused) p.style.display='none'; }
+let toastTimer=null;
+function toast(t){
+  const el=document.getElementById('toast'); if(!el) return;
+  el.textContent=t; el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ el.classList.remove('show'); },1900);
+}
+function hideToast(){ const el=document.getElementById('toast'); if(el) el.classList.remove('show'); }
 
 /* ---------------- PICK STARTERS ---------------- */
 const FORMSETS=[[2,1,1],[1,2,1],[1,1,2]]; // every XI fields at least one of each position
@@ -823,7 +856,7 @@ function renderPick(){
         : `<div class="slot"><span class="plus">＋</span>${pos}</div>`;}).join('')}</div>`;
   }).join('');
   const filled = used.length;
-  $k(`${backBtn(1)}<div style="padding-top:max(80px,calc(env(safe-area-inset-top) + 64px))"></div>
+  $k(`${topBar('goBack(1)')}
   <div class="eyebrow">${p.half==='first'?'Pre-season':'Second half'}</div>
   <h1 style="margin-bottom:6px">Pick your five</h1>
   ${formChips(p.squad.filter(x=>!x.injured),'pickForm')}
@@ -1066,8 +1099,7 @@ function statPanels(st,mineOnly){
 function renderStats(){
   if(!W) return;
   const tierTxt={worse:'<span class="t-worse">▼ worse</span>',better:'<span class="t-better">▲ better</span>',great:'<span class="t-great">▲▲ great</span>',legend:'<span class="t-legend">👑 LEGEND</span>'};
-  $(`<button class="backbtn" onclick="renderWinterReport()">‹</button>
-  <div style="padding-top:max(80px,calc(env(safe-area-inset-top) + 64px))"></div>
+  $(`${topBar("renderWinterReport()")}
   <div class="eyebrow" style="padding-left:48px">Season so far</div>
   ${tableHTML(W.table,'Halfway table')}
   ${statPanels(W.stats,true)}
@@ -1101,7 +1133,9 @@ function renderWinterReport(){
   };
   const mine0=W.review.find(r=>r.manager===ME.name);
   const tips=(mine0&&mine0.tips)||[];
-  $(`<div style="padding-top:max(40px,calc(env(safe-area-inset-top) + 24px))"></div>
+  const onWinter = !!document.querySelector('[data-winterscr]');
+  const render = onWinter ? $k : $;
+  render(`<div data-winterscr style="padding-top:max(40px,calc(env(safe-area-inset-top) + 24px))"></div>
   <div class="eyebrow" style="padding-top:4px">Winter break</div>
   <h1 style="margin-bottom:6px">The window is open</h1>
   <div class="muted" style="font-size:13px;margin:-2px 0 6px">League standings</div>
