@@ -107,7 +107,7 @@ class Game {
     const usedClubs = new Set(this.managers.map((m) => m.club));
     const name = E.shuffle(BOT_NAMES.filter((n) => !usedNames.has(n)))[0] || ('BOT' + this.managers.length);
     const club = E.shuffle(BOT_CLUBS.filter((c) => !usedClubs.has(c)))[0] || (name + ' FC');
-    const m = { id: 'bot_' + Math.random().toString(36).slice(2, 9), name, club, ready: true, budget: 100, squad: [], starters: [], formation: 'BAL', sacked: false, injured: null, connected: true, signings: [], isBot: true, diff: difficulty === 'hard' ? 'hard' : 'easy' };
+    const m = { id: 'bot_' + Math.random().toString(36).slice(2, 9), name, club, ready: true, budget: 100, squad: [], starters: [], formation: 'BAL', sacked: false, injured: null, connected: true, signings: [], isBot: true, diff: difficulty === 'hard' ? 'hard' : 'easy', aggro: 0.85 + Math.random() * 0.3 };
     this.managers.push(m);
     this.broadcastLobby();
     return { ok: true, name, club };
@@ -396,56 +396,37 @@ class Game {
     const target = { GK: 1, DEF: 2, MID: 2, ATT: 2 };
     return { have, target, needs: (pos) => Math.max(0, target[pos] - (have[pos] || 0)) };
   }
+  // a small stable pseudo-random in [0,1) seeded by bot+player, so a bot values a given
+  // player CONSISTENTLY across repeated reaction checks (no jitter mid-lot), while different
+  // bots land on different numbers. mixed with the bot's persistent 'aggro' personality.
+  botSeed(m, player) {
+    const s = (m.id + '|' + player.name);
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return ((h >>> 0) % 10000) / 10000;
+  }
   botMaxBid(m, player) {
     const r = player.rating;
     const hard = m.diff === 'hard';
-    // base worth by rating. HARD recognises elite talent and will stretch for 89+ stars;
-    // EASY is gun-shy on the top end, so it routinely gets outbid for the best players.
     let base;
     if (hard) base = r >= 92 ? 38 : r >= 89 ? 28 : r >= 86 ? 17 : r >= 83 ? 9 : r >= 80 ? 4 : 2;
     else      base = r >= 92 ? 15 : r >= 89 ? 11 : r >= 86 ? 8 : r >= 83 ? 6 : r >= 80 ? 4 : 2;
     const n = this.botNeeds(m);
     const need = n.needs(player.pos);
-    if (need <= 0 && !player.wonderkid) {
-      // already stocked here: hard bots opportunistically grab a bargain, easy rarely bother
-      if (Math.random() < (hard ? 0.30 : 0.10)) return Math.min(m.budget, Math.round(base * 0.5));
-      return 0;
-    }
-    // EARLY-PASS: don't panic-buy a mediocre player early when better ones are likely still coming.
-    // a = auction; estimate how much of the window is left and whether this player is worth taking now.
-    const a = this.auction;
-    if (a && a.queue && a.queue.length) {
-      const frac = a.index / a.queue.length;       // 0 = start of window, 1 = end
-      const early = frac < 0.55;                    // first ~half of the window
-      const mediocre = r < (need >= 1 ? 84 : 88);   // not a standout for what it needs
-      if (early && mediocre && !player.wonderkid) {
-        // hard passes mediocre early lots deliberately (saves money for the better ones coming);
-        // easy passes crudely/randomly (sometimes a mistake, sometimes sensible)
-        const passChance = hard ? (0.55 * (1 - frac / 0.55)) : (0.35 * Math.random());
-        if (Math.random() < passChance) return 0;   // sit this one out
-      }
-    }
+    if (need <= 0 && !player.wonderkid) return 0; // bargain-chasing handled in scheduleBotBids
+    const seed = this.botSeed(m, player);          // stable per bot+player
+    const aggro = m.aggro || 1;                    // persistent personality (0.85–1.15)
     const wkBonus = player.wonderkid ? (hard ? 1.3 : 1.05) : 1;
     let factor;
     if (hard) {
-      // accurate, confident valuation; tight variance
-      factor = 1.0 + Math.random() * 0.2; // 1.00–1.20
-      // prioritise its WEAKEST line: pay more to plug a gap, less to pile onto a strength
+      factor = (1.0 + seed * 0.2) * aggro;         // ~1.00–1.20, scaled by personality
       const lineMean = (pos) => { const ps = m.squad.filter((p) => p.pos === pos); return ps.length ? ps.reduce((s, p) => s + p.rating, 0) / ps.length : 0; };
       const myLine = lineMean(player.pos === 'GK' ? 'GK' : player.pos);
-      if (need >= 1 && myLine < 80) factor += 0.15;      // genuinely short here → keener
+      if (need >= 1 && myLine < 80) factor += 0.15;
       else if (need >= 1) factor += 0.05;
     } else {
-      // EASY: systematically values ~25% LOW so it loses the best players, low swing.
-      // plus occasional genuine blunders (rare overpay OR a shy pass).
-      factor = 0.62 + Math.random() * 0.18; // 0.62–0.80, consistently cheap → weaker squads
-      const blunder = Math.random();
-      if (blunder < 0.06) factor += 0.45;      // ~6% reckless overpay
-      else if (blunder > 0.90) factor = 0.35;  // ~10% timid lowball (loses the lot)
+      factor = (0.62 + seed * 0.18) * aggro;       // consistently cheap, personality-scaled
     }
-    // budget: HARD aims to spend most of its £100m building a strong CORE in window one and
-    // relies on the fresh +£50m windfall for the winter market — so it does NOT hoard.
-    // it only keeps £1m per still-needed slot so it can always complete a squad.
     const slotsLeft = n.needs('GK') + n.needs('DEF') + n.needs('MID') + n.needs('ATT');
     const reserve = Math.max(0, slotsLeft - 1);
     const cap = Math.max(1, m.budget - reserve);
@@ -457,31 +438,41 @@ class Game {
     const a = this.auction;
     if (!a || !a.current) return;
     const lotName = a.current.name;
-    const bots = this.activeManagers().filter((m) => m.isBot);
+    // randomise order every lot so no single bot has a permanent first-mover advantage
+    const bots = E.shuffle(this.activeManagers().filter((m) => m.isBot));
     for (const m of bots) {
       if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue;
-      const ceiling = this.botMaxBid(m, a.current);
-      if (ceiling < 1) continue;
-      // occasionally a bot SITS OUT a lot to save itself for someone better later — more
-      // likely on a modest player when lots remain and it isn't desperate for the position.
-      const lotsLeft = a.queue.length - a.index;
       const need = this.botNeeds(m).needs(a.current.pos);
-      if (!a.current.wonderkid && a.current.rating < 88 && lotsLeft > 6 && need < 2) {
-        const skipChance = m.diff === 'hard' ? 0.10 : 0.18; // easy is flakier
-        if (Math.random() < skipChance) continue; // pass entirely on this one
+      const hard = m.diff === 'hard';
+      // already stocked at this position: only sometimes chase a bargain
+      if (need <= 0 && !a.current.wonderkid) {
+        if (Math.random() >= (hard ? 0.30 : 0.10)) continue;
       }
-      // a confident OPENING bid: jump most of the way toward what the bot thinks he's worth,
-      // so a £25m-valued star opens near there, not at £1m. hard bots open higher & tighter.
-      const openFrac = m.diff === 'hard' ? (0.78 + Math.random() * 0.17) : (0.6 + Math.random() * 0.3);
+      let ceiling = this.botMaxBid(m, a.current);
+      // EASY blunders, rolled ONCE per lot: rare overpay or a timid lowball
+      if (!hard && ceiling > 0) {
+        const bl = Math.random();
+        if (bl < 0.06) ceiling = Math.round(ceiling * 1.6);
+        else if (bl > 0.90) ceiling = Math.max(1, Math.round(ceiling * 0.5));
+      }
+      if (ceiling < 1) continue;
+      // EARLY-PASS: sit out a modest player early when better ones are still coming
+      const lotsLeft = a.queue.length - a.index;
+      if (!a.current.wonderkid && a.current.rating < 88 && lotsLeft > 6 && need < 2) {
+        const skipChance = hard ? 0.12 : 0.20;
+        if (Math.random() < skipChance) continue;
+      }
+      // confident OPENING bid toward its valuation (hard opens higher & tighter)
+      const openFrac = hard ? (0.78 + Math.random() * 0.17) : (0.6 + Math.random() * 0.3);
       const open = Math.max(1, Math.min(ceiling, Math.round(ceiling * openFrac)));
-      const base = FAST ? 20 : (m.diff === 'hard' ? 500 : 900);
+      const base = FAST ? 20 : (hard ? 500 : 900);
       const to = setTimeout(() => {
         if (!a.current || a.current.name !== lotName || this.paused || this.phase !== 'auction') return;
         if (a.highBidder === m.id || a.highBid >= open) return;
         const amount = Math.max(a.highBid + 1, Math.min(ceiling, open));
         if (amount <= a.highBid || amount > m.budget) return;
         this.bid(m.id, amount);
-      }, this.sp(base + Math.random() * (FAST ? 40 : 1800)));
+      }, this.sp(base + Math.random() * (FAST ? 60 : 2400)));
       (this.timers.botBids = this.timers.botBids || []).push(to);
     }
   }
@@ -491,7 +482,7 @@ class Game {
     const a = this.auction;
     if (!a || !a.current || this.paused || this.phase !== 'auction') return;
     const lotName = a.current.name;
-    for (const m of this.activeManagers().filter((x) => x.isBot)) {
+    for (const m of E.shuffle(this.activeManagers().filter((x) => x.isBot))) {
       if (m.id === a.highBidder) continue; // already winning
       if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue;
       const ceiling = this.botMaxBid(m, a.current);
@@ -1478,7 +1469,7 @@ class Game {
           const still = this.managers.find((x) => x.id === id);
           if (!still || still.connected) return;
           this.managers = this.managers.filter((x) => x.id !== id);
-          if (this.hostId === id && this.managers.length) this.hostId = this.managers[0].id;
+          if (this.hostId === id && this.managers.length) { const h = this.managers.find((x) => !x.isBot) || this.managers[0]; this.hostId = h.id; }
           this.broadcastLobby();
         }, FAST ? 50 : 25000);
       } else {
@@ -1488,8 +1479,15 @@ class Game {
       return;
     }
     if (!connected && m.id === this.hostId) {
-      const next = this.managers.find((x) => x.connected && !x.sacked && x.id !== m.id);
-      if (next) {
+      // DON'T migrate the host on a brief drop/tab-out — the host reclaims their seat on reconnect.
+      // Only hand off as a last resort if a HUMAN host is still gone after a long grace, and never
+      // to a bot (a bot can't run the controls). Single player therefore never migrates at all.
+      clearTimeout(this.timers.hostHandoff);
+      this.timers.hostHandoff = setTimeout(() => {
+        const host = this.managers.find((x) => x.id === this.hostId);
+        if (host && host.connected) return;             // they came back — keep them as host
+        const next = this.managers.find((x) => x.connected && !x.sacked && !x.isBot && x.id !== this.hostId);
+        if (!next) return;                               // nobody human to hand to → leave it
         this.hostId = next.id;
         this.io.emit('hostChanged', { hostId: next.id, name: next.name });
         if (this.phase === 'auction' && this.auction && !this.auction.current && !this.paused) {
@@ -1499,8 +1497,9 @@ class Game {
           this.reveal.last.hostName = next.name;
           this.io.emit('matchReveal', this.reveal.last);
         }
-      }
+      }, FAST ? 300 : 120000); // 2 minutes — well beyond any normal tab-out
     }
+    if (connected && m.id === this.hostId) clearTimeout(this.timers.hostHandoff); // host is back
     if (!connected && (this.phase === 'setup' || this.phase === 'winter')) this.autoPickIfOnlyGhosts();
     if (!connected && this.phase === 'spin') this.autoSpinIfOnlyGhosts();
     const inAuction = this.phase === 'auction';
@@ -1586,7 +1585,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v7.8',
+      serverV: 'v8.0',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
