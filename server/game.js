@@ -1599,7 +1599,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v8.8',
+      serverV: 'v8.9',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
