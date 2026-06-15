@@ -24,7 +24,7 @@ html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body
 .muted{color:var(--muted)!important;font-weight:700;font-size:16px}
 button{font-weight:700;touch-action:manipulation}
 @media (max-width:768px){ body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0} }
-@media (min-width:769px){ .backbtn{top:30px;left:30px;width:46px;height:46px;font-size:22px} .mdscreen{padding-top:16vh !important} }
+@media (min-width:769px){ .backbtn{top:40px;left:34px;width:50px;height:50px;font-size:24px} .mdscreen{padding-top:16vh !important} }
 .wheelWrap{position:relative;width:min(380px,90vw);aspect-ratio:1;margin:12px auto}
 .wheelWrap svg{width:100%;height:100%;display:block;shape-rendering:geometricPrecision}
 #wheelRot{width:100%;height:100%;transform:rotate(0deg);transition:transform 3.4s cubic-bezier(.12,.8,.13,1);will-change:transform}
@@ -35,7 +35,7 @@ button{font-weight:700;touch-action:manipulation}
 th{font-weight:800}
 input,td{font-weight:700}
 body{max-width:500px;margin:0 auto;padding:16px 16px 40px;min-height:100dvh;font-size:16px;font-weight:700}
-.screen{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;justify-content:flex-start;padding-top:max(84px,calc(env(safe-area-inset-top) + 68px))}
+.screen{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;justify-content:flex-start;padding-top:max(96px,calc(env(safe-area-inset-top) + 80px))}
 @media (min-width:700px){
   body{max-width:600px;font-size:17px}
   h1:not(.logoBounce){font-size:64px!important}
@@ -47,9 +47,9 @@ body{max-width:500px;margin:0 auto;padding:16px 16px 40px;min-height:100dvh;font
   .blackbox .bidline{font-size:25px}
 }
 h1,h2,.disp{font-family:var(--disp);text-transform:uppercase;letter-spacing:.02em}
-h1{font-size:34px;font-weight:800;margin:10px 0 2px;line-height:.95}
-h2{font-size:24px;font-weight:700;margin:16px 0 8px}
-.eyebrow{font-family:var(--disp);text-transform:uppercase;font-weight:700;font-size:16px;letter-spacing:.14em;color:var(--pink)}
+h1{font-size:34px;font-weight:800;margin:10px 0 14px;line-height:1.0}
+h2{font-size:24px;font-weight:700;margin:16px 0 10px}
+.eyebrow{font-family:var(--disp);text-transform:uppercase;font-weight:700;font-size:16px;letter-spacing:.14em;color:var(--pink);margin-bottom:6px}
 .muted{font-size:16px}
 .flabel{display:block;font-family:var(--disp);text-transform:uppercase;font-weight:800;font-size:15px;letter-spacing:.1em;color:var(--text);margin:16px 0 7px}
 .bigbtn{width:100%;font-size:21px;padding:17px}
@@ -107,13 +107,13 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
   font-family:var(--disp);font-weight:800;font-size:clamp(30px,8vw,42px);color:var(--text)}
 .giveup{border-color:var(--att);color:var(--att);background:transparent;font-size:16px}
 /* ---------- back button ---------- */
-.backbtn{position:fixed;top:max(20px,env(safe-area-inset-top));left:max(20px,env(safe-area-inset-left));z-index:70;
-  width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  background:var(--surface2);border:2px solid var(--line);font-size:20px;padding:0;color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.5);
+.backbtn{position:fixed;top:max(32px,calc(env(safe-area-inset-top) + 12px));left:max(20px,env(safe-area-inset-left));z-index:70;
+  width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--surface2);border:2px solid var(--line);font-size:22px;padding:0;color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.5);
   transition:transform .12s ease,border-color .12s ease;cursor:pointer}
 .backbtn:hover{border-color:var(--pink)}
 .backbtn:active{transform:scale(.9)}
-.topclear{height:max(80px,calc(env(safe-area-inset-top) + 64px))}
+.topclear{height:max(92px,calc(env(safe-area-inset-top) + 76px))}
 /* ---------- lot reveal ---------- */
 .revealCard .pcard{animation:cardBob var(--fade,450ms) ease-out both}
 @keyframes cardBob{0%{opacity:0;transform:scale(.96)}100%{opacity:1;transform:scale(1)}}
@@ -157,7 +157,7 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 .score .gl{color:var(--pink)}
 .featuredTag{display:inline-block;background:var(--pink);color:#fff;font-family:var(--disp);font-weight:800;
   font-size:12px;letter-spacing:.16em;padding:3px 10px;border-radius:6px;text-transform:uppercase}
-.evt{font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line);opacity:0;animation:pop .4s forwards}
+.evt{font-size:13.5px;padding:8px 2px;line-height:1.4;border-bottom:1px solid var(--line);opacity:0;animation:pop .4s forwards}
 @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes mFade{from{opacity:0}to{opacity:1}}
 .tick{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
@@ -244,12 +244,12 @@ tr.me td{background:rgba(255,61,138,.14)}
 .trophy{font-size:54px;line-height:1}
 .award{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px;align-items:baseline}
 .award b{flex:0 0 auto;white-space:nowrap}
-.award span{text-align:right;min-width:0;word-break:break-word;color:#C9D2E0}
+.award span{text-align:right;min-width:0;word-break:break-word;color:#fff}
 .award b{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em}
 .auctionWrap{align-items:center!important;width:100%;max-width:620px;margin-left:auto!important;margin-right:auto!important}
 /* budgets row handled by the .budgets rule above */
-.paused{position:fixed;top:env(safe-area-inset-top);left:0;right:0;background:var(--pink-deep);color:#fff;text-align:center;
-  font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:7px;z-index:50}
+.paused{position:fixed;top:0;left:0;right:0;background:var(--pink-deep);color:#fff;text-align:center;
+  font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:7px;padding-top:max(7px,calc(env(safe-area-inset-top) + 7px));z-index:50}
 #toast{position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
   bottom:max(26px,calc(env(safe-area-inset-bottom) + 18px));z-index:90;
   max-width:min(440px,calc(100vw - 32px));pointer-events:none;
@@ -264,7 +264,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <body>
 <div id="pausebar" class="paused" style="display:none"></div>
 <div id="toast"></div>
-<button id="sndBtn" onclick="toggleSnd()" style="position:fixed;top:max(20px,env(safe-area-inset-top));right:max(20px,env(safe-area-inset-right));width:42px;height:42px;border-radius:50%;font-size:18px;padding:0;z-index:71;background:var(--surface2);border:2px solid var(--line);color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.5)">🔊</button>
+<button id="sndBtn" onclick="toggleSnd()" style="position:fixed;top:max(32px,calc(env(safe-area-inset-top) + 12px));right:max(20px,env(safe-area-inset-right));width:46px;height:46px;border-radius:50%;font-size:20px;padding:0;z-index:71;background:var(--surface2);border:2px solid var(--line);color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.5)">🔊</button>
 <div id="app"></div>
 <div id="reconnstate" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);align-items:center;justify-content:center;flex-direction:column;gap:16px">
   <div class="reconnspin"></div>
@@ -273,7 +273,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v12.9';
+const VERSION = 'v13.1';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -352,7 +352,7 @@ function home(){
 function renderWhatsNew(){
   const li=(t)=>`<div style="font-size:17px;line-height:1.5;padding:5px 0">• ${t}</div>`;
   $(`${topBar("home()")}
-  <div class="eyebrow" style="padding-left:48px">What's new</div>
+  <div class="eyebrow">What's new</div>
   <h1 style="color:#FFD75E">⭐ The season so far</h1>
   <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">FRESH IN</h2>
     ${li(`🎮 <b>SINGLE PLAYER</b> — take on a field of AI clubs solo, on Easy or Hard`)}
@@ -374,7 +374,7 @@ function renderWhatsNew(){
 }
 function renderHowTo(){
   $(`${topBar("home()")}
-  <div class="eyebrow" style="padding-left:48px">How to play</div>
+  <div class="eyebrow">How to play</div>
   <h1>SQUADUP in 60 seconds</h1>
   <div class="panel"><h2 style="margin-top:0">1 · The auction</h2>
   <div style="font-size:16px;line-height:1.5">Everyone starts with the same budget. Players come up one at a time and you bid against your mates — the host runs the room. Snap up stars, sneaky bargains and rainbow-carded <b>wonderkids</b>, and build the deepest squad you can afford.</div></div>
@@ -641,10 +641,10 @@ function renderLobby(l){
     <div class="codetext" id="codetext">${l.code}</div>
     <button class="copybtn" onclick="copyCode('${l.code}')">Copy code</button>
   </div>
-  <div class="muted center">Share the code with your mates · 2–6 managers</div>
+  <div class="muted center" style="margin:8px 0 4px">Share the code with your mates · 2–6 managers</div>
   <div class="panel">
-    ${l.managers.map(m=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)">
-      <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.isBot?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${m.diff==='hard'?'var(--red)':'var(--green)'};border:1px solid ${m.diff==='hard'?'var(--red)':'var(--green)'};border-radius:5px;padding:0 5px">${m.diff==='hard'?'HARD':'EASY'} BOT</span>`:''}${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
+    ${l.managers.map(m=>`<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)">
+      <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.isBot?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${m.diff==='hard'?'var(--red)':'var(--green)'};border:1px solid ${m.diff==='hard'?'var(--red)':'var(--green)'};border-radius:5px;padding:1px 6px;margin-left:2px">${m.diff==='hard'?'HARD':'EASY'} BOT</span>`:''}${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
       <span>${m.ready?'🟢':'⚪️'}</span></div>`).join('')}
   </div>
   ${iAmHost?(()=>{
@@ -815,7 +815,7 @@ function renderLot(){
   const R=70, C=2*Math.PI*R;
   A.out = A.out||false;
   const minBid=A.highBid+1, canAfford=ME.budget>=minBid, maxBid=Math.max(minBid, ME.budget);
-  $(`${backBtn(1)}<div class="row" style="padding-left:60px;padding-top:max(74px,calc(env(safe-area-inset-top) + 58px));padding-right:60px">
+  $(`${backBtn(1)}<div class="row" style="padding-left:66px;padding-top:max(88px,calc(env(safe-area-inset-top) + 72px));padding-right:66px">
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
@@ -975,10 +975,10 @@ function unitBars(slots, avail){
   if(fi.key==='ATT'&&atk!=null&&def!=null){ atk+=7; def-=7; }
   else if(fi.key==='DEF'&&atk!=null&&def!=null){ def+=7; atk-=7; }
   const cell=(lbl,v,col)=>`<div style="flex:1;text-align:center"><div class="muted" style="font-size:12px">${lbl}</div>
-    <div style="font-family:var(--disp);font-weight:800;font-size:25px;color:${v!=null?col:'#FF5470'}">${v!=null?v.toFixed(1):'—'}</div></div>`;
-  const fbox=`<div class="blackbox" style="padding:9px 12px;margin-bottom:8px;text-align:center">
+    <div style="font-family:var(--disp);font-weight:800;font-size:25px;color:${v!=null?col:'var(--red)'}">${v!=null?v.toFixed(1):'—'}</div></div>`;
+  const fbox=`<div class="blackbox" style="padding:11px 12px;margin-bottom:8px;text-align:center">
     <div style="font-family:var(--disp);font-weight:800;font-size:17px;color:${fi.col}">${fi.name} <span class="muted" style="font-size:13px">${fi.shape}</span></div>
-    <div class="muted" style="font-size:12.5px;margin-top:2px">${fi.blurb.map(b=>'• '+b).join('&nbsp;&nbsp;')}</div></div>`;
+    <div class="muted" style="font-size:12.5px;margin-top:5px;line-height:1.4">${fi.blurb.map(b=>'• '+b).join('&nbsp;&nbsp;')}</div></div>`;
   // overall = simple mean of the 3 (display only, never influences anything)
   const vals=[atk,mid,def].filter(v=>v!=null);
   const overall=vals.length===3?((atk+mid+def)/3):null;
@@ -1099,7 +1099,7 @@ function renderMatch(m, instant){
     ${pos?`<div class="muted" style="font-size:13px;letter-spacing:.12em">#${pos} IN THE LEAGUE</div>`:''}
     <div class="score" style="font-size:clamp(22px,6vw,34px);word-break:break-word">${esc(name)}${mgr?` <span style="font-size:.6em;color:var(--muted)">(${esc(mgr)})</span>`:''}${mgr?fbadge(formKey):''}</div>
   </div>`;
-  $(`<div class="screen mdscreen" style="justify-content:flex-start;padding-top:max(12vh,84px)">
+  $(`<div class="screen mdscreen" style="justify-content:flex-start;padding-top:max(12vh,96px)">
     <div class="center">
       <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
@@ -1252,7 +1252,7 @@ function renderStats(){
   if(!W) return;
   const tierTxt={worse:'<span class="t-worse">▼ worse</span>',better:'<span class="t-better">▲ better</span>',great:'<span class="t-great">▲▲ great</span>',legend:'<span class="t-legend">👑 LEGEND</span>'};
   $(`${topBar("renderWinterReport()")}
-  <div class="eyebrow" style="padding-left:48px">Season so far</div>
+  <div class="eyebrow">Season so far</div>
   ${tableHTML(W.table,'Halfway table')}
   ${statPanels(W.stats,true)}
   <button class="primary bigbtn" style="margin-top:14px" onclick="renderWinterReport()">‹ Back</button>`);
@@ -1287,7 +1287,7 @@ function renderWinterReport(){
   const tips=(mine0&&mine0.tips)||[];
   const onWinter = !!document.querySelector('[data-winterscr]');
   const render = onWinter ? $k : $;
-  render(`<div data-winterscr style="padding-top:max(40px,calc(env(safe-area-inset-top) + 24px))"></div>
+  render(`<div data-winterscr style="padding-top:max(92px,calc(env(safe-area-inset-top) + 76px))"></div>
   <div class="eyebrow" style="padding-top:4px">Winter break</div>
   <h1 style="margin-bottom:6px">The window is open</h1>
   <div class="muted" style="font-size:13px;margin:-2px 0 6px">League standings</div>
