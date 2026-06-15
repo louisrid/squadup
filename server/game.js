@@ -159,10 +159,12 @@ class Game {
     return this.managers.length >= 2 && this.managers.every((m) => m.ready);
   }
   broadcastLobby() {
+    const host = this.managers.find((m) => m.id === this.hostId);
     this.io.emit('lobby', {
       code: this.code,
       hostId: this.hostId,
-      managers: this.managers.map((m) => ({ id: m.id, name: m.name, club: m.club, ready: m.ready, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null })),
+      hostUid: host ? host.uid : null,
+      managers: this.managers.map((m) => ({ id: m.id, uid: m.uid || null, name: m.name, club: m.club, ready: m.ready, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null })),
     });
   }
 
@@ -305,7 +307,8 @@ class Game {
 
   // ---------- auction flow ----------
   startGame() {
-    if (!this.canStart()) return;
+    if (this.phase !== 'lobby') return { error: 'Already started' };
+    if (!this.canStart()) return { error: this.managers.filter((m) => !m.isBot && !m.ready).length ? 'Everyone must be ready' : 'Need at least 2 managers' };
     this.phase = 'auction';
     const pool = this.buildAuctionPool();
     this.auction = {
@@ -718,7 +721,7 @@ class Game {
       half,
       deadlineMs: null, // no time limit on squad assembly
       perManager: this.activeManagers().map((m) => ({
-        id: m.id,
+        id: m.id, uid: m.uid || null,
         squad: m.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === m.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
       })),
     });
@@ -1094,7 +1097,7 @@ class Game {
       this.wheels[m.id] = this.buildWheel(m, pos, reserved);
     }
     this.io.emit('spinWheel', {
-      perManager: this.activeManagers().map((m) => ({ id: m.id, name: m.name, segments: this.wheels[m.id].segments })),
+      perManager: this.activeManagers().map((m) => ({ id: m.id, uid: m.uid || null, name: m.name, segments: this.wheels[m.id].segments })),
     });
   }
 
@@ -1564,7 +1567,7 @@ class Game {
         const next = this.managers.find((x) => x.connected && !x.sacked && !x.isBot && x.id !== this.hostId);
         if (!next) return;                               // nobody human to hand to → leave it
         this.hostId = next.id;
-        this.io.emit('hostChanged', { hostId: next.id, name: next.name });
+        this.io.emit('hostChanged', { hostId: next.id, hostUid: next.uid || null, name: next.name });
         if (this.phase === 'auction' && this.auction && !this.auction.current && !this.paused) {
           this.io.emit('awaitNext', { hostName: next.name });
         }
@@ -1641,7 +1644,7 @@ class Game {
 
   snapshot(forId) {
     return {
-      code: this.code, phase: this.phase, hostId: this.hostId, speed: this.speed,
+      code: this.code, phase: this.phase, hostId: this.hostId, hostUid: (this.managers.find((m) => m.id === this.hostId) || {}).uid || null, speed: this.speed,
       managers: this.managers.map((m) => ({
         id: m.id, uid: m.uid || null, name: m.name, club: m.club, ready: m.ready, budget: m.budget, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null,
         squad: m.id === forId ? m.squad.map((p) => ({ name: p.name, pos: p.pos })) : { count: m.squad.length },
@@ -1678,7 +1681,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v10.6',
+      serverV: 'v10.9',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

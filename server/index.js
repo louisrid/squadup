@@ -103,22 +103,44 @@ io.on('connection', (socket) => {
     if (g) g.setReady(joined.managerId, !!ready);
   });
 
-  socket.on('startGame', () => {
+  socket.on('startGame', (cb) => {
     const g = current();
-    if (g && g.hostId === joined.managerId) g.startGame();
+    if (!g) return cb && cb({ error: 'No game' });
+    if (!isHost(g)) return cb && cb({ error: 'Only the host can start' });
+    const r = g.startGame();
+    cb && cb(r || { ok: true });
+  });
+
+  socket.on('leaveLobby', (cb) => {
+    const g = current();
+    if (!g) { joined = null; return cb && cb({ ok: true }); }
+    if (g.phase === 'lobby') {
+      const wasHost = isHost(g);
+      g.managers = g.managers.filter((m) => m.id !== socket.id && m.id !== joined.managerId);
+      socket.leave(g.code);
+      const humansLeft = g.managers.filter((m) => !m.isBot).length;
+      if (wasHost || humansLeft === 0) {
+        games.delete(g.code);
+        io.to(g.code).emit('lobbyClosed', { reason: wasHost ? 'Host left' : 'Lobby empty' });
+      } else {
+        g.broadcastLobby();
+      }
+    }
+    joined = null;
+    cb && cb({ ok: true });
   });
 
   socket.on('addBot', ({ difficulty }, cb) => {
     const g = current();
     if (!g) return cb && cb({ error: 'No game' });
-    if (g.hostId !== joined.managerId) return cb && cb({ error: 'Only the host can add bots' });
+    if (!isHost(g)) return cb && cb({ error: 'Only the host can add bots' });
     cb && cb(g.addBot(difficulty));
   });
 
   socket.on('setBotsDiff', ({ difficulty }, cb) => {
     const g = current();
     if (!g) return cb && cb({ error: 'No game' });
-    if (g.hostId !== joined.managerId) return cb && cb({ error: 'Only the host can change difficulty' });
+    if (!isHost(g)) return cb && cb({ error: 'Only the host can change difficulty' });
     cb && cb(g.setBotsDiff(difficulty));
   });
 
@@ -202,6 +224,14 @@ io.on('connection', (socket) => {
       }
     }
     return null;
+  }
+  // robust host check: matches by current socket, the stored join id, OR the stable uid
+  function isHost(g) {
+    if (!g) return false;
+    if (g.hostId === socket.id) return true;
+    if (joined && g.hostId === joined.managerId) return true;
+    if (joined && joined.uid) { const h = g.managers.find((m) => m.id === g.hostId); if (h && h.uid === joined.uid) return true; }
+    return false;
   }
 });
 

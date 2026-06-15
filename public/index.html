@@ -263,7 +263,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v10.6';
+const VERSION = 'v10.9';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -280,6 +280,15 @@ function topBar(onclick){
 }
 function goBack(inGame){
   if(inGame && !confirm('Leave the game? You can rejoin with the same code and name.')) return;
+  if(!inGame){
+    if(lastLobby && ME.code){ s.emit('leaveLobby',()=>{}); }
+    try{ localStorage.removeItem('squp'); }catch(e){}
+    ME.code=null; ME.uid=null; lastLobby=null;
+  } else {
+    // in-progress game: drop to home but keep the saved session so the home rejoin button works.
+    // suppress the immediate auto-rejoin so the leave actually takes effect.
+    try{ sessionStorage.setItem('squp_noauto','1'); }catch(e){}
+  }
   location.reload();
 }
 const esc = (t) => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -397,10 +406,10 @@ function addBot(){
   // add at whatever the current global difficulty is (read from the toggle, default easy)
   const t=document.getElementById('diffToggle');
   const difficulty=(t && t.textContent.trim()==='HARD')?'hard':'easy';
-  s.emit('addBot',{difficulty},(r)=>{ if(r&&r.error) return toast(r.error); });
+  s.emit('addBot',{difficulty},(r)=>{ if(r&&r.error) return toast(r.error); if(lastLobby) renderLobby(lastLobby); });
 }
 function setBotsDiff(diff){
-  s.emit('setBotsDiff',{difficulty:diff},(r)=>{ if(r&&r.error) toast(r.error); });
+  s.emit('setBotsDiff',{difficulty:diff},(r)=>{ if(r&&r.error) return toast(r.error); if(lastLobby) renderLobby(lastLobby); });
 }
 function createL(){ const {name,club}=getNC(); if(!name) return toast('Enter a name');
   const tgl=document.getElementById('hintsTgl');
@@ -413,6 +422,7 @@ function onJoined(r,name){ ME.id=r.managerId; ME.code=r.code; ME.name=name; if(r
   if(lastLobby && lastLobby.code===ME.code) renderLobby(lastLobby);
   if(r.snapshot) restoreFromSnapshot(r.snapshot); }
 function resyncSession(){
+  try{ if(sessionStorage.getItem('squp_noauto')){ sessionStorage.removeItem('squp_noauto'); return; } }catch(e){}
   let code=ME.code, name=ME.name, uid=ME.uid;
   if(!code || !name){ // after a hard refresh ME is empty — pull the saved session
     try{ const sv=JSON.parse(localStorage.getItem('squp')||'null'); if(sv&&sv.code&&sv.name){ code=sv.code; name=sv.name; uid=sv.uid; } }catch(e){}
@@ -461,7 +471,7 @@ document.addEventListener('click',(e)=>{ if(e.target && e.target.closest && e.ta
 function toggleSnd(){ SND=!SND; localStorage.setItem('squp_snd',SND?'1':'0'); const b=document.getElementById('sndBtn'); if(b) b.textContent=SND?'🔊':'🔇'; if(SND){ sndInit(); sfx('bid'); } }
 function restoreFromSnapshot(snap){
   if(!snap) return;
-  ME.isHost = snap.hostId===ME.id;
+  ME.isHost = (snap.hostUid && ME.uid) ? (snap.hostUid===ME.uid) : (snap.hostId===ME.id);
   if(snap.serverV && snap.serverV!==VERSION) toast('⚠️ Server '+snap.serverV+' / client '+VERSION+' — redeploy ALL files');
   // re-apply pause state FIRST so whatever view renders shows the pause bar + Resume button
   isPaused = !!snap.paused;
@@ -540,12 +550,20 @@ function fallbackCopy(c,done){
 let lastLobby=null;
 s.on('lobby',(l)=>{
   lastLobby=l;
-  if(!ME.code) return;
+  if(!ME.code && !document.getElementById('codetext')) return;
+  if(!ME.code) ME.code=l.code;
   renderLobby(l);
 });
+s.on('lobbyClosed',(x)=>{
+  try{ localStorage.removeItem('squp'); }catch(e){}
+  ME.code=null; ME.uid=null; lastLobby=null;
+  toast((x&&x.reason)||'Lobby closed');
+  home();
+});
 function renderLobby(l){
-  ME.isHost = l.hostId===ME.id;
-  const meRow = l.managers.find(x=>x.id===ME.id); if(meRow) ME.club = meRow.club;
+  const iAmHost = (l.hostUid && ME.uid) ? (l.hostUid===ME.uid) : (l.hostId===ME.id);
+  ME.isHost = iAmHost;
+  const meRow = l.managers.find(x=> (x.uid&&ME.uid)?x.uid===ME.uid:x.id===ME.id); if(meRow){ ME.club = meRow.club; ME.id = meRow.id; }
   // if we're already viewing the lobby, this is an in-place update (someone readied, a bot joined) —
   // keep the user's scroll position instead of snapping to the top.
   const onLobby = !!document.getElementById('codetext');
@@ -563,7 +581,7 @@ function renderLobby(l){
       <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.isBot?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${m.diff==='hard'?'#FF5470':'#7CE38B'};border:1px solid ${m.diff==='hard'?'#FF5470':'#7CE38B'};border-radius:5px;padding:0 5px">${m.diff==='hard'?'HARD':'EASY'} BOT</span>`:''}${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
       <span>${m.ready?'🟢':'⚪️'}</span></div>`).join('')}
   </div>
-  ${l.hostId===ME.id?(()=>{
+  ${iAmHost?(()=>{
     const botCount=l.managers.filter(m=>m.isBot).length;
     const allHard=botCount>0 && l.managers.filter(m=>m.isBot).every(m=>m.diff==='hard');
     const diff=allHard?'hard':'easy';
@@ -577,10 +595,10 @@ function renderLobby(l){
     <div class="muted" style="font-size:13px;margin-top:8px">Bots draft, bid & play like rival managers. Tap the difficulty to switch every bot between Easy and Hard.</div>
   </div>`;})():''}
   <button class="primary" style="width:100%" onclick="s.emit('ready',{ready:true})">I'm ready</button>
-  ${l.hostId===ME.id?(()=>{
+  ${iAmHost?(()=>{
     const allReady = l.managers.length>=2 && l.managers.every(m=>m.ready);
     return `<button class="${allReady?'startready':''}" style="width:100%;margin-top:8px" ${allReady?'':'disabled'}
-      onclick="s.emit('startGame')">Start game</button>
+      onclick="s.emit('startGame',(r)=>{if(r&&r.error)toast(r.error)})">Start game</button>
     <div class="muted center" style="margin-top:6px">${allReady?'Everyone is ready — go!':'Starts when everyone\'s ready (2+ players)'}</div>`;
   })():''}
   </div>`);
@@ -901,7 +919,7 @@ function unitBars(slots, avail){
 let lockedManagers=[];
 s.on('pickStarters',(p)=>{
   lockedManagers=[]; W=null; MATCHLIVE=false;
-  const mine=p.perManager.find(x=>x.id===ME.id); if(!mine) return;
+  const mine=p.perManager.find(x=>(x.uid&&ME.uid)?x.uid===ME.uid:x.id===ME.id); if(!mine) return;
   pickState={half:p.half, squad:mine.squad, slots:null};
   initSlots();
   renderPick();
@@ -1058,7 +1076,7 @@ function tableHTML(table, title){
 let SPIN=null;
 s.on('spinWheel',(p)=>{
   SPINNAMES=(p.perManager||[]).map(x=>x.name).filter(Boolean);
-  const mine=p.perManager.find(x=>x.id===ME.id);
+  const mine=p.perManager.find(x=>(x.uid&&ME.uid)?x.uid===ME.uid:x.id===ME.id);
   if(!mine){ renderSpinWait(); return; }
   SPIN={segments:mine.segments, spun:false};
   renderSpinReady();
@@ -1357,7 +1375,7 @@ s.on('paused',(p)=>{ sfx('pause'); isPaused=true; syncPauseBtn(); const b=docume
   b.style.display='block'; });
 let isPaused=false;
 s.on('hostChanged',(x)=>{
-  ME.isHost = x.hostId===ME.id;
+  ME.isHost = (x.hostUid && ME.uid) ? (x.hostUid===ME.uid) : (x.hostId===ME.id);
   toast(esc(x.name)+' is now host');
 });
 s.on('resumed',(r)=>{ isPaused=false; hostPausedLocal=false; syncPauseBtn();
