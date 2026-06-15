@@ -13,8 +13,8 @@
 :root{
   --bg:#000000; --surface:#0f0f0f; --surface2:#0f0f0f; --line:rgba(255,255,255,0.14); --panel:#0f0f0f;
   --pink:#FF3D8A; --pink-deep:#C2186B; --you:#FFE21F; --assist:#2BB8FF;
-  --gk:#FFC21A; --def:#3D8BFF; --mid:#2EC96E; --att:#FF5247;
-  --blue:#1FA8FF; --green:#22C55E; --red:#FF3B47;
+  --gk:#FFC21A; --def:#3D8BFF; --mid:#15E07A; --att:#FF5247;
+  --blue:#1FB6FF; --green:#1FE060; --red:#FF3B47;
   --text:#FFFFFF; --muted:#FFFFFF; --muted-dim:#9A9AA8;
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
@@ -100,7 +100,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 @keyframes bidPulse{0%{transform:scale(1);color:var(--text)}30%{transform:scale(1.14);color:var(--pink)}100%{transform:scale(1)}}
 /* ---------- confetti ---------- */
 .cf{position:fixed;top:0;left:0;width:10px;height:14px;z-index:40;pointer-events:none;animation:cfFall linear forwards;will-change:transform}
-@keyframes cfFall{from{transform:translateY(-5vh) rotate(0deg)}to{transform:translateY(105dvh) rotate(720deg)}}
+@keyframes cfFall{0%{transform:translateY(-10vh) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:1}}
 /* ---------- my squad mini ---------- */
 .minirow{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;justify-content:flex-start;margin-bottom:10px;padding-bottom:2px}
 .minirow::-webkit-scrollbar{display:none}
@@ -179,7 +179,7 @@ th{font-family:var(--disp);text-transform:uppercase;font-size:12px;letter-spacin
 tr.hu td{background:rgba(255,61,138,.06)}
 tr.me td{background:rgba(255,61,138,.14)}
 .formchip{display:inline-block;min-width:30px;text-align:center;font-family:var(--disp);font-weight:800;border-radius:8px;padding:2px 6px;color:#0b0b10;border:1px solid rgba(255,255,255,.35)}
-.f-g{background:#39d97c}.f-y{background:#ffd23d}.f-o{background:#ff9838}.f-r{background:#ff5247;color:#fff}
+.f-g{background:#1FE060}.f-y{background:#ffd23d}.f-o{background:#ff9838}.f-r{background:#ff5247;color:#fff}
 .pos{display:inline-block;flex-shrink:0;font-family:var(--disp);font-weight:800;font-size:11px;letter-spacing:.08em;padding:2px 6px;border-radius:5px;margin-right:7px;color:#0b0b10;border:1px solid rgba(255,255,255,.35)}
 .pos.GK{background:var(--gk)}.pos.DEF{background:var(--def);color:#fff}.pos.MID{background:var(--mid)}.pos.ATT{background:var(--att);color:#fff}
 /* ---------- pick ---------- */
@@ -206,7 +206,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 .pcard.legend .posb{background:#C9A227!important;color:#fff!important}
 .hintchip{position:absolute;top:8px;right:8px;font-family:var(--disp);font-weight:800;font-size:19px;letter-spacing:.04em;
   background:rgba(0,0,0,.62);border:1px solid var(--line);border-radius:8px;padding:3px 9px;color:#fff}
-.pcard.wonder .bgGrad{background:linear-gradient(165deg,#FF3D8A 0%,#FF9F45 22%,#FFE34D 42%,#3DDC84 62%,var(--blue) 80%,#9B5CFF 100%)}
+.pcard.wonder .bgGrad{background:linear-gradient(165deg,#FF3D8A 0%,#FF9F45 22%,#FFE34D 42%,#1FE060 62%,var(--blue) 80%,#9B5CFF 100%)}
 
 .pcard.wonder .hintchip{background:rgba(0,0,0,.78)}}
 
@@ -216,7 +216,7 @@ tr.me td{background:rgba(255,61,138,.14)}
   font-family:var(--disp);font-weight:700;text-transform:uppercase;font-size:17px;letter-spacing:.05em;color:var(--muted)}
 .tab.sel{border-color:var(--pink);color:var(--text);background:var(--surface)}
 .formchip{font-family:var(--disp);font-weight:800;font-size:17px;padding:4px 10px;border-radius:8px;min-width:52px;text-align:center}
-.f-g{background:#123d24;color:#5BE08A}.f-y{background:#3d3712;color:#F2D24B}.f-o{background:#3d2712;color:#F0A24B}.f-r{background:#3d1212;color:#F06B6B}.f-n{background:var(--surface2);color:var(--muted)}
+.f-g{background:#123d24;color:#4DF08A}.f-y{background:#3d3712;color:#F2D24B}.f-o{background:#3d2712;color:#F0A24B}.f-r{background:#3d1212;color:#F06B6B}.f-n{background:var(--surface2);color:var(--muted)}
 .unitbox{flex:1;background:#000;border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
 .unitbox .uv{font-family:var(--disp);font-weight:800;font-size:36px}
 .spinbtn{border-color:#C9A227;color:#C9A227;background:transparent;font-size:17px;padding:10px 13px;min-width:50px}
@@ -233,7 +233,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 .legendGlow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 45% at 50% 52%,rgba(201,162,39,.28),transparent 70%)}
 .tabwrap{position:sticky;top:0;z-index:30;background:linear-gradient(#0B0B10 78%,transparent);padding:8px 0 4px;margin:0 -2px}
 .tab.sel{border-color:var(--pink);color:#fff;background:var(--pink)}
-.t-worse{color:var(--att)}.t-better{color:#5BE08A}.t-great{color:var(--blue)}.t-legend{color:#C9A227}
+.t-worse{color:var(--att)}.t-better{color:#4DF08A}.t-great{color:var(--blue)}.t-legend{color:#C9A227}
 /* ---------- pitch squad selection ---------- */
 .pitch{background:linear-gradient(180deg,#0B2415,#07180D);border:1px solid rgba(46,201,110,.3);
   border-radius:18px;padding:18px 8px;margin:14px 0;position:relative;box-shadow:inset 0 0 50px rgba(0,0,0,.45)}
@@ -281,7 +281,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v15.8';
+const VERSION = 'v16.0';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -341,7 +341,7 @@ function home(){
   <button class="bigbtn homebtn" style="background:#fff;border-color:#fff;color:#000;font-weight:800" onclick="showSetup('solo')">🎮 Single player</button>
   <button class="primary bigbtn homebtn" style="margin-top:12px" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn homebtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
-  <button class="bigbtn homebtn" style="margin-top:12px;background:#FFD23D;border-color:#FFD23D;color:#000;font-weight:800" onclick="renderWhatsNew()">⭐ What's new!</button>
+  <button class="bigbtn homebtn" style="margin-top:12px;background:var(--you);border-color:var(--you);color:#000;font-weight:800" onclick="renderWhatsNew()">⭐ What's new!</button>
   <div id="rejoinSlot" style="width:100%;max-width:300px;display:flex;flex-direction:column;align-items:center"></div>
   <button style="margin-top:18px;font-size:16px;padding:11px 18px;font-weight:800;color:#fff" onclick="renderHowTo()">📖 How to play</button>
   <div style="margin-top:18px;font-size:13px;color:var(--muted-dim);font-weight:700">${VERSION}</div>
@@ -362,7 +362,7 @@ function renderWhatsNew(){
   $(`${topBar("home()")}
   <div class="eyebrow">What's new</div>
   <h1 style="color:#FFD75E">⭐ The season so far</h1>
-  <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">FRESH IN</h2>
+  <div class="panel" style="border-color:#1FE060"><h2 style="margin-top:0;color:#1FE060">FRESH IN</h2>
     ${li(`🎮 <b>SINGLE PLAYER</b> — take on a full field of AI clubs solo, on Easy or Hard`)}
     ${li(`📊 <b>LIVE STANDINGS</b> — open the league table any time, with top scorers &amp; top assists, updating every matchweek`)}
     ${li(`❄️ <b>VISUAL WINTER BREAK</b> — set your lineup on a full squad screen showing every player's updated rating, change, season goals &amp; assists and form`)}
@@ -671,7 +671,7 @@ function renderLobby(l){
     const botCount=l.managers.filter(m=>m.isBot).length;
     const allHard=botCount>0 && l.managers.filter(m=>m.isBot).every(m=>m.diff==='hard');
     const diff=allHard?'hard':'easy';
-    return `<div class="panel" style="border-color:#3DDC84;padding:16px">
+    return `<div class="panel" style="border-color:#1FE060;padding:16px">
     <div class="row" style="margin-bottom:12px"><b class="grow" style="color:#7CE38B">🤖 ${solo?'AI opponents':'Bots'}</b><span class="muted" style="font-size:13px">${botCount}/5</span></div>
     <button style="width:100%" ${l.managers.length>=6?'disabled':''} onclick="addBot()">+ Add an AI opponent${l.managers.length>=6?' (full)':''}</button>
     ${botCount?`<div class="row" style="margin-top:12px;gap:8px">
@@ -744,18 +744,17 @@ s.on('lotSold',(x)=>{ sfx('sold');
 });
 s.on('lotUnsold',(x)=>{ sfx('unsold'); A=null; hideToast(); flashResult('UNSOLD', esc(x.player)); });
 function confetti(){
-  const colors=['#FF3D8A','var(--blue)','#FFD23D','#2EC96E','#fff'];
-  for(let i=0;i<70;i++){
+  const colors=['var(--pink)','var(--blue)','var(--you)','var(--green)','#fff'];
+  for(let i=0;i<80;i++){
     const d=document.createElement('div');
     d.className='cf';
     d.style.left=(Math.random()*100)+'vw';
-    d.style.top=(-2 - Math.random()*8)+'vh'; // slight stagger just above the top edge
     d.style.background=colors[i%colors.length];
-    d.style.animationDuration=(1.4+Math.random()*1.6)+'s';
-    d.style.animationDelay=(Math.random()*0.4)+'s';
+    d.style.animationDuration=(1.8+Math.random()*1.8)+'s';
+    d.style.animationDelay=(Math.random()*1.2)+'s';
     d.style.borderRadius=Math.random()<.4?'50%':'2px';
     document.body.appendChild(d);
-    setTimeout(()=>d.remove(),4200);
+    setTimeout(()=>d.remove(),5400);
   }
 }
 let BUDG=null;
@@ -769,7 +768,7 @@ function showManagerInfo(encName){
   const r=BUDG&&BUDG.find(x=>x.name===name); if(!r) return;
   closeManagerInfo();
   const sigs=(r.signings||[]).filter(s=>s.window!=='freebie');
-  const dotColor=(s)=>{ if(s.legend) return '#FFC21A'; if(s.wonderkid) return 'conic-gradient(from 0deg,#FF3D8A,#FF9F45,#FFE34D,#3DDC84,var(--blue),#9B5CFF,#FF3D8A)'; const c={GK:'#FFC21A',DEF:'#3D8BFF',MID:'#2EC96E',ATT:'#FF5247'}; return c[s.pos]||'#888'; };
+  const dotColor=(s)=>{ if(s.legend) return '#FFC21A'; if(s.wonderkid) return 'conic-gradient(from 0deg,#FF3D8A,#FF9F45,#FFE34D,#1FE060,var(--blue),#9B5CFF,#FF3D8A)'; const c={GK:'#FFC21A',DEF:'#3D8BFF',MID:'#15E07A',ATT:'#FF5247'}; return c[s.pos]||'#888'; };
   const rows = sigs.length
     ? sigs.map(s=>{ const col=dotColor(s); const isGrad=col.indexOf('gradient')>=0;
       return `<div style="display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:15px">
@@ -1061,11 +1060,11 @@ function initSlots(){
 function pickTags(pl){
   // compact rating-change + goals + assists + form tags, matching the winter lineup card style
   const grew=pl.grew||0;
-  const grewCol=grew>0?'#39d97c':grew<0?'#FF5247':'#9A9AA8';
+  const grewCol=grew>0?'#1FE060':grew<0?'#FF5247':'#9A9AA8';
   const grewBit=grew?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${grewCol}">${grew>0?'+'+grew:grew}</span>`:'';
   const hasStats=((pl.goals||0)>0||(pl.assists||0)>0||pl.form!=null);
   if(!hasStats) return grewBit;
-  const formCol=pl.form==null?'#9A9AA8':pl.form>=8?'#39d97c':pl.form>=6?'#FFD23D':pl.form>=4?'#FF9838':'#FF5247';
+  const formCol=pl.form==null?'#9A9AA8':pl.form>=8?'#1FE060':pl.form>=6?'#FFD23D':pl.form>=4?'#FF9838':'#FF5247';
   const formTxt=pl.form==null?'NEW':pl.form.toFixed(1);
   return `${grewBit} <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#fff;background:var(--red);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:1px 4px">${pl.goals||0}G</span> <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:var(--assist);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:1px 4px">${pl.assists||0}A</span> <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:${formCol};border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:1px 4px">${formTxt}</span>`;
 }
@@ -1073,11 +1072,11 @@ function slotCardInner(pl,pos){
   // full tag-box card used for placed starters on the pitch — mirrors the winter card spec:
   // rating + change TOP-LEFT, form TOP-RIGHT, goals BOTTOM-LEFT, assists BOTTOM-RIGHT, name+pos centred.
   const grew=pl.grew||0;
-  const grewCol=grew>0?'#39d97c':grew<0?'#FF5247':'#9A9AA8';
+  const grewCol=grew>0?'#1FE060':grew<0?'#FF5247':'#9A9AA8';
   const grewBit=grew?`<span style="font-family:var(--disp);font-weight:800;font-size:10px;color:${grewCol};line-height:1.3;margin-left:1px">${grew>0?'+'+grew:grew}</span>`:'';
   // only surface the goals/assists/form tags once there's real season data — pre-season they'd all be 0/NEW (noise)
   const hasStats=(pl.form!=null||(pl.goals||0)>0||(pl.assists||0)>0);
-  const formCol=pl.form==null?'#9A9AA8':pl.form>=8?'#39d97c':pl.form>=6?'#FFD23D':pl.form>=4?'#FF9838':'#FF5247';
+  const formCol=pl.form==null?'#9A9AA8':pl.form>=8?'#1FE060':pl.form>=6?'#FFD23D':pl.form>=4?'#FF9838':'#FF5247';
   const formTxt=pl.form==null?'NEW':pl.form.toFixed(1);
   return `<div style="position:absolute;top:5px;left:6px;display:flex;align-items:flex-start"><span style="font-family:var(--disp);font-weight:900;font-size:18px;line-height:1">${pl.rtg||''}</span>${grewBit}</div>
     ${hasStats?`<div style="position:absolute;top:5px;right:6px;font-family:var(--disp);font-weight:800;font-size:10px;color:#000;background:${formCol};border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:1px 4px">${formTxt}</div>`:''}
@@ -1411,7 +1410,7 @@ function runCeremony(f){
 function runLeagueRace(f){
   const teams=f.race.filter(t=>t.pts&&t.pts.length);
   const MD=Math.max(...teams.map(t=>t.pts.length));
-  const palette=['#FF2E7E','var(--blue)','#3DDC84','#F4FF00','#9B5CFF','#FF8A3D','#FF5470','#56E0C8','#C9A227','#B7B7C4'];
+  const palette=['#FF2E7E','var(--blue)','#1FE060','#F4FF00','#9B5CFF','#FF8A3D','#FF5470','#56E0C8','#C9A227','#B7B7C4'];
   teams.forEach((t,i)=>t._c=t.human?palette[i%palette.length]:'#555');
   const maxPts=Math.max(1,...teams.map(t=>t.pts[t.pts.length-1]));
   $(`<div class="screen center" style="justify-content:center;min-height:100dvh">

@@ -273,13 +273,15 @@ class Game {
         haveWk++;
       }
     }
-    // rare hero card in the opening auction (~18% of windows, one slot)
-    if (Math.random() < 0.18) {
+    // heroes in the main auction: 25% chance one appears, 2.5% chance two (still rare, but possible)
+    const heroRoll = Math.random();
+    const mainHeroes = heroRoll < 0.025 ? 2 : heroRoll < 0.25 ? 1 : 0;
+    for (let hk = 0; hk < mainHeroes; hk++) {
       const hero = E.shuffle(ALL_PLAYERS.filter((p) => p.hero && !inPool.has(p.name) && !this.owned(p.name)))[0];
-      if (hero) {
-        const victim = E.shuffle(pool.filter((p) => !p.wonderkid && p.pos === hero.pos)) [0] || E.shuffle(pool.filter((p) => !p.wonderkid && p.pos !== 'GK'))[0];
-        if (victim) { inPool.delete(victim.name); inPool.add(hero.name); pool[pool.indexOf(victim)] = hero; }
-      }
+      if (!hero) break;
+      const victim = E.shuffle(pool.filter((p) => !p.wonderkid && !p.hero && p.pos === hero.pos))[0]
+        || E.shuffle(pool.filter((p) => !p.wonderkid && !p.hero && p.pos !== 'GK'))[0];
+      if (victim) { inPool.delete(victim.name); inPool.add(hero.name); pool[pool.indexOf(victim)] = hero; }
     }
     // first lot is always a gentle opener (no wonderkid, ≤85). then DISTRIBUTE the strong
     // players across the whole auction so lot 2 isn't instantly a 90+ headliner.
@@ -1825,7 +1827,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v15.8',
+      serverV: 'v16.0',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
