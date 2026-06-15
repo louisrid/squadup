@@ -11,16 +11,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#000000; --surface:#12121A; --surface2:#191924; --line:#2A2A38;
+  --bg:#000000; --surface:#0C0C12; --surface2:#121218; --line:#22222C;
   --pink:#FF3D8A; --pink-deep:#C2186B;
   --gk:#E8B931; --def:#3D7BFF; --mid:#2EC96E; --att:#FF5247;
-  --text:#F2F2F7; --muted:#9A9AA8;
+  --text:#F2F2F7; --muted:#AEAEBC; --muted-dim:#6E6E7C;
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
 *{box-sizing:border-box}
 html{background:#000}
-html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:500;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
-.muted{color:var(--muted)!important;font-weight:600}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:700;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+.muted{color:var(--muted)!important;font-weight:700;font-size:16px}
 button{font-weight:700;touch-action:manipulation}
 @media (max-width:768px){ body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0} }
 @media (min-width:769px){ .backbtn{top:30px;left:30px;width:46px;height:46px;font-size:22px} .mdscreen{padding-top:16vh !important} }
@@ -32,8 +32,8 @@ button{font-weight:700;touch-action:manipulation}
 .segLegend{fill:#C9A227}.segWonder{fill:url(#wgrad)}
 .segDEF{fill:#16306b}.segMID{fill:#0e4d2a}.segATT{fill:#62211c}.segGK{fill:#5a4710}
 th{font-weight:800}
-input,td{font-weight:600}
-body{max-width:500px;margin:0 auto;padding:16px 16px 40px;min-height:100dvh;font-size:16px;font-weight:600}
+input,td{font-weight:700}
+body{max-width:500px;margin:0 auto;padding:16px 16px 40px;min-height:100dvh;font-size:16px;font-weight:700}
 .screen{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;justify-content:flex-start;padding-top:max(84px,calc(env(safe-area-inset-top) + 68px))}
 @media (min-width:700px){
   body{max-width:600px;font-size:17px}
@@ -49,8 +49,8 @@ h1,h2,.disp{font-family:var(--disp);text-transform:uppercase;letter-spacing:.02e
 h1{font-size:34px;font-weight:800;margin:10px 0 2px;line-height:.95}
 h2{font-size:24px;font-weight:700;margin:16px 0 8px}
 .eyebrow{font-family:var(--disp);text-transform:uppercase;font-weight:700;font-size:16px;letter-spacing:.14em;color:var(--pink)}
-.muted{color:var(--muted);font-size:16px;font-weight:500}
-.flabel{display:block;font-family:var(--disp);text-transform:uppercase;font-weight:700;font-size:15px;letter-spacing:.1em;color:var(--muted);margin:12px 0 4px}
+.muted{font-size:16px}
+.flabel{display:block;font-family:var(--disp);text-transform:uppercase;font-weight:800;font-size:15px;letter-spacing:.1em;color:var(--text);margin:12px 0 4px}
 .bigbtn{width:100%;font-size:21px;padding:17px}
 .blackbox{background:#000;border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:14px 0;text-align:center}
 button{font-family:var(--disp);text-transform:uppercase;font-weight:700;letter-spacing:.04em;font-size:19px;
@@ -58,7 +58,7 @@ button{font-family:var(--disp);text-transform:uppercase;font-weight:700;letter-s
 button:active{transform:scale(.97)}
 button.primary{background:var(--pink);border-color:var(--pink);color:#fff;box-shadow:0 4px 24px rgba(255,61,138,.35)}
 button:disabled{opacity:.35;pointer-events:none}
-input{padding:15px 15px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:18px;width:100%;margin:5px 0;font-family:var(--body);font-weight:600;scroll-margin-top:96px;scroll-margin-bottom:96px}
+input{padding:15px 15px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:18px;width:100%;margin:5px 0;font-family:var(--body);font-weight:700;scroll-margin-top:96px;scroll-margin-bottom:96px}
 input:focus{outline:2px solid var(--pink);border-color:transparent}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -84,6 +84,8 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 /* ---------- start ready ---------- */
 .startready{background:#4FC3F7;border-color:#4FC3F7;color:#06222e;box-shadow:0 4px 24px rgba(79,195,247,.4);animation:readyPulse 1.6s ease infinite}
 @keyframes readyPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+.reconnspin{width:46px;height:46px;border-radius:50%;border:4px solid rgba(255,255,255,.18);border-top-color:var(--pink);animation:reconnSpin .8s linear infinite}
+@keyframes reconnSpin{to{transform:rotate(360deg)}}
 /* ---------- bid flash ---------- */
 .bidflash{animation:bidPulse .55s ease}
 @keyframes bidPulse{0%{transform:scale(1);color:var(--text)}30%{transform:scale(1.14);color:var(--pink)}100%{transform:scale(1)}}
@@ -93,7 +95,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 /* ---------- my squad mini ---------- */
 .minirow{flex-wrap:wrap;max-height:76px;overflow-y:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
 .mini{display:flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--line);
-  border-radius:8px;padding:4px 8px;font-size:13px;font-weight:600}
+  border-radius:8px;padding:4px 8px;font-size:13px;font-weight:700}
 @media (prefers-reduced-motion: reduce){.cf{display:none}.startready{animation:none}.bidflash{animation:none}}
 /* ---------- lot row ---------- */
 .lotRow{display:flex;align-items:center;justify-content:center;gap:16px}
@@ -130,7 +132,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .bidbar #budgets{margin:0 0 6px}.bidbar .bchip{font-size:11px;padding:5px 7px}
 .bidbar{position:fixed;left:16px;right:16px;bottom:max(12px,env(safe-area-inset-bottom));
   max-width:468px;margin:0 auto;display:flex;flex-direction:column;max-height:40vh;overflow:hidden;
-  background:rgba(20,20,28,.97);border:1px solid var(--line);border-radius:18px;
+  background:rgba(12,12,17,.97);border:1px solid var(--line);border-radius:18px;
   padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
 .bidbar .bidline,.bidbar #bidderEl{flex:0 0 auto}
 .bidbar-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-height:0;max-height:20vh}
@@ -161,7 +163,7 @@ td,th{padding:9px 3px;border-bottom:1px solid var(--line);text-align:center;font
 td:nth-child(2),th:nth-child(2){text-align:left;width:auto}
 td:first-child,th:first-child{width:22px}
 td:not(:nth-child(2)),th:not(:nth-child(2)){width:26px}
-th{font-family:var(--disp);text-transform:uppercase;font-size:12px;letter-spacing:.1em;color:var(--muted)}
+th{font-family:var(--disp);text-transform:uppercase;font-size:12px;letter-spacing:.1em;color:var(--text);font-weight:800}
 tr.hu td{background:rgba(255,61,138,.06)}
 tr.me td{background:rgba(255,61,138,.14)}
 .formchip{display:inline-block;min-width:30px;text-align:center;font-family:var(--disp);font-weight:800;border-radius:8px;padding:2px 6px;color:#0b0b10}
@@ -171,12 +173,12 @@ tr.me td{background:rgba(255,61,138,.14)}
 /* ---------- pick ---------- */
 .pickgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .pbtn{display:flex;align-items:center;gap:5px;padding:13px 11px;border-radius:12px;border:1px solid var(--line);
-  background:var(--surface2);color:var(--text);font-family:var(--body);font-size:15px;font-weight:600;text-transform:none;letter-spacing:0;text-align:left}
+  background:var(--surface2);color:var(--text);font-family:var(--body);font-size:15px;font-weight:700;text-transform:none;letter-spacing:0;text-align:left}
 .pbtn.sel{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink),0 4px 18px rgba(255,61,138,.25)}
 .pbtn.inj{opacity:.4}
 .fbtn{font-size:16px;padding:10px 14px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);border-radius:11px}
 .fbtn.sel{background:var(--pink);border-color:var(--pink);color:#fff}
-.slot .plus{font-size:24px;line-height:1;color:var(--muted);opacity:.7;margin-bottom:3px}
+.slot .plus{font-size:24px;line-height:1;color:var(--muted-dim);margin-bottom:3px}
 .autobtn{width:100%;margin-top:10px;border-color:#4FC3F7;color:#4FC3F7;background:transparent;font-size:17px}
 .stepbtn{font-family:var(--disp);font-weight:800;font-size:20px;min-width:54px;padding:12px 0;background:var(--surface2);border:1px solid var(--line);border-radius:12px;color:#fff}
 .stepbtn:active{background:var(--pink);border-color:var(--pink)}
@@ -226,12 +228,12 @@ tr.me td{background:rgba(255,61,138,.14)}
 .pitch:before{content:'';position:absolute;inset:10px;border:1px solid rgba(255,255,255,.07);border-radius:12px;pointer-events:none}
 .prow{display:flex;justify-content:center;gap:10px;margin:9px 0}
 .slot{width:100px;min-height:116px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  border:2px dashed var(--line);color:var(--muted);font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.08em;cursor:pointer}
+  border:2px dashed var(--line);color:var(--muted-dim);font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.08em;cursor:pointer}
 .slot.filled{border:2px solid var(--pink);background:var(--surface2);color:var(--text);padding:6px 4px}
 .slot .sname{font-size:14px;line-height:1.05;text-align:center;text-transform:uppercase;margin-top:4px}
 .benchrow{display:flex;gap:8px;flex-wrap:wrap}
 .bp{display:flex;align-items:center;gap:6px;padding:12px;border-radius:12px;border:1px solid var(--line);
-  background:var(--surface2);font-size:16px;font-weight:600;cursor:pointer;font-family:var(--body);text-transform:none;letter-spacing:0;color:var(--text)}
+  background:var(--surface2);font-size:16px;font-weight:700;cursor:pointer;font-family:var(--body);text-transform:none;letter-spacing:0;color:var(--text)}
 .bp.used{opacity:.3;pointer-events:none}
 .bp.inj{opacity:.35;pointer-events:none}
 /* ---------- awards ---------- */
@@ -247,9 +249,9 @@ tr.me td{background:rgba(255,61,138,.14)}
 #toast{position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
   bottom:max(26px,calc(env(safe-area-inset-bottom) + 18px));z-index:90;
   max-width:min(440px,calc(100vw - 32px));pointer-events:none;
-  background:rgba(20,20,28,.96);color:var(--text);border:1px solid var(--line);
+  background:rgba(12,12,17,.97);color:var(--text);border:1px solid var(--line);
   border-left:4px solid var(--pink);border-radius:12px;padding:12px 18px;
-  font-size:15px;font-weight:600;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.55);
+  font-size:15px;font-weight:700;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.55);
   opacity:0;transition:opacity .2s ease,transform .2s ease}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media (prefers-reduced-motion: reduce){.evt{animation:none;opacity:1}}
@@ -260,10 +262,14 @@ tr.me td{background:rgba(255,61,138,.14)}
 <div id="toast"></div>
 <button id="sndBtn" onclick="toggleSnd()" style="position:fixed;top:max(20px,env(safe-area-inset-top));right:max(20px,env(safe-area-inset-right));width:42px;height:42px;border-radius:50%;font-size:18px;padding:0;z-index:71;background:var(--surface2);border:2px solid var(--line);color:var(--text);box-shadow:0 4px 14px rgba(0,0,0,.5)">🔊</button>
 <div id="app"></div>
+<div id="reconnstate" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <div class="reconnspin"></div>
+  <div style="font-family:var(--disp);font-weight:800;letter-spacing:.08em;font-size:15px;color:#fff;text-transform:uppercase">Reconnecting…</div>
+</div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v11.0';
+const VERSION = 'v11.5';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -279,16 +285,25 @@ function topBar(onclick){
   return `${btn}<div class="topclear"></div>`;
 }
 function goBack(inGame){
-  if(inGame && !confirm('Leave the game? You can rejoin with the same code and name.')) return;
-  if(!inGame){
-    if(lastLobby && ME.code){ s.emit('leaveLobby',()=>{}); }
-    try{ localStorage.removeItem('squp'); }catch(e){}
-    ME.code=null; ME.uid=null; lastLobby=null;
-  } else {
-    // in-progress game: drop to home but keep the saved session so the home rejoin button works.
-    // suppress the immediate auto-rejoin so the leave actually takes effect.
+  if(inGame){
+    if(ME.isHost){
+      if(!confirm('You are the host. Leaving will END the game for everyone. Are you sure?')) return;
+      s.emit('endGame',()=>{});
+      try{ localStorage.removeItem('squp'); }catch(e){}
+      ME.code=null; ME.uid=null; lastLobby=null;
+      location.reload();
+      return;
+    }
+    if(!confirm('Leave the game? You can rejoin with the same code and name.')) return;
+    // non-host player leaves: drop to home, keep session so they can rejoin, suppress one auto-rejoin
     try{ sessionStorage.setItem('squp_noauto','1'); }catch(e){}
+    location.reload();
+    return;
   }
+  // lobby (not started): leave server-side and forget it
+  if(lastLobby && ME.code){ s.emit('leaveLobby',()=>{}); }
+  try{ localStorage.removeItem('squp'); }catch(e){}
+  ME.code=null; ME.uid=null; lastLobby=null;
   location.reload();
 }
 const esc = (t) => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -306,17 +321,18 @@ function cardHTML(p, sm){
 
 /* ---------------- HOME ---------------- */
 function home(){
+  if(typeof hideReconn==='function') hideReconn();
   $(`<div class="screen center" id="homeScr" style="position:relative;overflow:hidden;min-height:100dvh;justify-content:center;padding-top:4vh;padding-bottom:6vh">
   <div style="position:relative;z-index:1;width:100%;display:flex;flex-direction:column;align-items:center">
   <h1 style="font-size:clamp(78px,13vw,236px);font-style:italic;font-weight:900;letter-spacing:-.01em;line-height:.95"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
-  <div style="margin:24px 0 30px;font-size:15px;font-weight:600;color:#A7A7B6">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
-  <button class="bigbtn" style="border-color:#FF4D4D;color:#FF6B6B;font-weight:800" onclick="showSetup('solo')">🎮 Single player</button>
+  <div style="margin:24px 0 30px;font-size:15px;font-weight:700;color:var(--muted)">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
+  <button class="bigbtn" style="background:#fff;border-color:#fff;color:#000;font-weight:800" onclick="showSetup('solo')">🎮 Single player</button>
   <button class="primary bigbtn" style="margin-top:12px" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
   <button class="bigbtn" style="margin-top:12px;border-color:#C9A227;color:#FFD75E" onclick="renderWhatsNew()">⭐ What's new!</button>
   <div id="rejoinSlot" style="width:100%"></div>
   <button style="margin-top:18px;font-size:16px;padding:11px 18px;font-weight:800;color:#fff" onclick="renderHowTo()">📖 How to play</button>
-  <div class="muted" style="margin-top:18px;font-size:13px;opacity:.6">${VERSION}</div>
+  <div style="margin-top:18px;font-size:13px;color:var(--muted-dim);font-weight:700">${VERSION}</div>
   </div>
   </div>`);
   try{
@@ -392,7 +408,7 @@ function showSetup(mode){
     <input id="club" placeholder="Louis FC" maxlength="18">
     ${mode==='create'?`<label class="flabel" style="margin-top:14px">Rating hints</label>
     <button id="hintsTgl" data-on="1" class="startready" style="width:100%;font-size:16px" onclick="this.dataset.on=this.dataset.on==='1'?'0':'1';this.textContent=this.dataset.on==='1'?'Rating ranges: ON':'Rating ranges: OFF';this.classList.toggle('startready',this.dataset.on==='1')">Rating ranges: ON</button>
-    <div class="muted" style="font-size:14px;margin-top:4px">Shows a rough range on every auction card, e.g. 84–91. The exact rating stays secret until he's signed.</div>`:''}
+    <div style="font-size:14px;margin-top:4px;color:var(--muted-dim);font-weight:700">Shows a rough range on every auction card, e.g. 84–91. The exact rating stays secret until he's signed.</div>`:''}
     <button class="primary bigbtn" style="margin-top:16px" onclick="${mode==='create'?'createL()':'joinL()'}">${mode==='create'?'Create lobby':'Join lobby'}</button>
   </div>
   </div>`);
@@ -421,26 +437,58 @@ function onJoined(r,name){ ME.id=r.managerId; ME.code=r.code; ME.name=name; if(r
   try{ localStorage.setItem('squp', JSON.stringify({name, code:r.code, uid:ME.uid})); }catch(e){}
   if(lastLobby && lastLobby.code===ME.code) renderLobby(lastLobby);
   if(r.snapshot) restoreFromSnapshot(r.snapshot); }
-function resyncSession(){
-  try{ if(sessionStorage.getItem('squp_noauto')){ sessionStorage.removeItem('squp_noauto'); return; } }catch(e){}
+let reconnTimer=null, reconnPending=false;
+function showReconn(){
+  // only block when we're actually in a game/lobby — never on the home screen
+  if(!ME.code){ return; }
+  const el=document.getElementById('reconnstate'); if(el) el.style.display='flex';
+  reconnPending=true;
+}
+function hideReconn(){
+  reconnPending=false;
+  clearTimeout(reconnTimer); reconnTimer=null;
+  const el=document.getElementById('reconnstate'); if(el) el.style.display='none';
+}
+// force a fresh, confirmed reconnect. Keeps the overlay up until resyncSession's ack lands.
+function ensureLive(){
+  if(!ME.code) return; // not in a game — nothing to guard
+  showReconn();
+  clearTimeout(reconnTimer);
+  if(!s.connected){
+    try{ s.connect(); }catch(e){}      // 'connect' handler will resync + hide
+  } else {
+    // socket *says* it's connected, but after a tab-out it may be a stale/frozen socket whose
+    // emits silently go nowhere. Try a resync; if no ack comes back fast, force a real reconnect.
+    let acked=false;
+    const probe=setTimeout(()=>{ if(!acked && reconnPending){ try{ s.disconnect(); s.connect(); }catch(e){} } }, 2500);
+    resyncSessionAck(()=>{ acked=true; clearTimeout(probe); });
+  }
+  // absolute safety: never let the overlay hang forever.
+  reconnTimer=setTimeout(()=>{ if(reconnPending){ if(!s.connected){ try{s.connect();}catch(e){} } hideReconn(); } }, 12000);
+}
+function resyncSessionAck(onAck){ resyncSession(onAck); }
+function resyncSession(onAck){
+  try{ if(sessionStorage.getItem('squp_noauto')){ sessionStorage.removeItem('squp_noauto'); hideReconn(); return; } }catch(e){}
   let code=ME.code, name=ME.name, uid=ME.uid;
   if(!code || !name){ // after a hard refresh ME is empty — pull the saved session
     try{ const sv=JSON.parse(localStorage.getItem('squp')||'null'); if(sv&&sv.code&&sv.name){ code=sv.code; name=sv.name; uid=sv.uid; } }catch(e){}
   }
-  if(!code || !name) return;
+  if(!code || !name){ hideReconn(); return; }
   s.emit('joinLobby',{code,name,club:'',uid},(r)=>{
+    if(typeof onAck==='function') onAck();
     if(r && r.ok){ ME.id=r.managerId; ME.code=code; ME.name=name; if(r.uid) ME.uid=r.uid;
       try{ localStorage.setItem('squp', JSON.stringify({name:ME.name, code:ME.code, uid:ME.uid})); }catch(e){}
       if(r.snapshot) restoreFromSnapshot(r.snapshot);
-    } else if(r && r.error && /not found/i.test(r.error)){ ME.code=null; }
+      hideReconn(); // confirmed live + re-synced: input is safe again
+    } else if(r && r.error && /not found/i.test(r.error)){ ME.code=null; hideReconn(); }
+    else { hideReconn(); }
   });
 }
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState!=='visible') return;
   if(AC && AC.state==='suspended') AC.resume(); // restore sound after tab-out suspended the audio context
   if(!s){ return; }
-  if(!s.connected){ s.connect(); return; } // reconnect → 'connect' handler re-joins & restores
-  resyncSession(); // tab back: always re-sync from a fresh snapshot
+  ensureLive(); // tab back: blur+spinner until the socket is confirmed live and re-synced
 });
 /* ---------------- SOUND ---------------- */
 let AC=null, SND=(localStorage.getItem('squp_snd')??'1')==='1';
@@ -571,7 +619,7 @@ function renderLobby(l){
   render(`${backBtn(0)}<div class="screen">
   <div class="eyebrow">Lobby</div>
   <div class="codebox">
-    <div class="muted" style="letter-spacing:.14em;text-transform:uppercase;font-size:11px">Lobby code</div>
+    <div style="letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:800;color:var(--text)">Lobby code</div>
     <div class="codetext" id="codetext">${l.code}</div>
     <button class="copybtn" onclick="copyCode('${l.code}')">Copy code</button>
   </div>
@@ -1389,6 +1437,10 @@ s.on('startersLocked',(x)=>{
 s.on('connect',()=>{
   // socket (re)connected: reclaim seat deterministically by uid via the shared resync path
   resyncSession();
+});
+s.on('disconnect',()=>{
+  // socket dropped mid-session: block input behind the blur until we're confirmed live again
+  if(ME.code) showReconn();
 });
 home();
 (function(){ const b=document.getElementById('sndBtn'); if(b) b.textContent=SND?'🔊':'🔇'; })();

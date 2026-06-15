@@ -192,14 +192,12 @@ class Game {
   // ---------- auction pool (FC26 ONLY) ----------
   buildAuctionPool() {
     const n = this.managers.length;
-    // 5 lots per manager (was 6). Base outfield per manager: 2 DEF + 2 MID + 1 ATT, then
-    // randomly drop ONE outfield slot per manager (spread across DEF/MID/ATT) so squads are leaner.
-    const posQuota = { GK: n, DEF: 2 * n, MID: 2 * n, ATT: 1 * n };
+    // base per manager: 1 GK + 2 DEF + 2 MID + 2 ATT (=7), then randomly drop ONE of DEF/MID/ATT
+    // per manager so each manager ends up with 6 lots' worth.
+    const posQuota = { GK: n, DEF: 2 * n, MID: 2 * n, ATT: 2 * n };
     for (let k = 0; k < n; k++) {
-      // drop one of the doubled outfield lines (DEF or MID) — never ATT (already only 1 per mgr),
-      // so every manager can still assemble a legal five.
-      const dropPos = E.pick(['DEF', 'MID']);
-      posQuota[dropPos] = Math.max(n, posQuota[dropPos] - 1);
+      const dropPos = E.pick(['DEF', 'MID', 'ATT']);
+      posQuota[dropPos] = Math.max(n, posQuota[dropPos] - 1); // never below 1 per manager
     }
     const stars = Math.max(2, n - 1); // always at least two 90+ headliners, scales with lobby size
     const S = posQuota.GK + posQuota.DEF + posQuota.MID + posQuota.ATT;
@@ -1565,28 +1563,8 @@ class Game {
       this.broadcastLobby();
       return;
     }
-    if (!connected && m.id === this.hostId) {
-      // DON'T migrate the host on a brief drop/tab-out — the host reclaims their seat on reconnect.
-      // Only hand off as a last resort if a HUMAN host is still gone after a long grace, and never
-      // to a bot (a bot can't run the controls). Single player therefore never migrates at all.
-      clearTimeout(this.timers.hostHandoff);
-      this.timers.hostHandoff = setTimeout(() => {
-        const host = this.managers.find((x) => x.id === this.hostId);
-        if (host && host.connected) return;             // they came back — keep them as host
-        const next = this.managers.find((x) => x.connected && !x.sacked && !x.isBot && x.id !== this.hostId);
-        if (!next) return;                               // nobody human to hand to → leave it
-        this.hostId = next.id;
-        this.io.emit('hostChanged', { hostId: next.id, hostUid: next.uid || null, name: next.name });
-        if (this.phase === 'auction' && this.auction && !this.auction.current && !this.paused) {
-          this.io.emit('awaitNext', { hostName: next.name });
-        }
-        if (this.reveal && this.reveal.waiting && this.reveal.last) {
-          this.reveal.last.hostName = next.name;
-          this.io.emit('matchReveal', this.reveal.last);
-        }
-      }, FAST ? 300 : 120000); // 2 minutes — well beyond any normal tab-out
-    }
-    if (connected && m.id === this.hostId) clearTimeout(this.timers.hostHandoff); // host is back
+    // Host migration is disabled entirely: the host always keeps their seat and reclaims it on
+    // reconnect via their stable uid. We never hand the host role to anyone else.
     if (!connected && (this.phase === 'setup' || this.phase === 'winter')) this.autoPickIfOnlyGhosts();
     if (!connected && this.phase === 'spin') this.autoSpinIfOnlyGhosts();
     const inAuction = this.phase === 'auction';
@@ -1599,8 +1577,15 @@ class Game {
       clearTimeout(this.timers.lot);
       clearTimeout(this.timers.autoNext);
       clearTimeout(this.timers.pause);
+    } else if (!connected && inAuction && m.id === this.hostId && humanCount <= 1) {
+      // SINGLE-PLAYER host tabbed out: pause indefinitely, NO timeout. Resumes the moment they return.
+      if (!this.paused) { this.paused = true; this.pausedAt = Date.now(); }
+      this.io.emit('paused', { manager: m.name });
+      clearTimeout(this.timers.lot);
+      clearTimeout(this.timers.autoNext);
+      clearTimeout(this.timers.pause);
     } else if (!connected && inAuction && !m.sacked && !this.hostPaused) {
-      // single-player host, or a non-host player dropped: soft-pause with auto-resume so nobody gets stuck
+      // a non-host player dropped: soft-pause with an auto-resume safety timer
       if (!this.paused) { this.paused = true; this.pausedAt = Date.now(); }
       this.io.emit('paused', { manager: m.name, maxMs: TIMINGS.DISCONNECT_PAUSE_MS });
       clearTimeout(this.timers.lot);
@@ -1691,7 +1676,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v11.0',
+      serverV: 'v11.5',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

@@ -6,7 +6,7 @@ const { Game, mid } = require('./game');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: '*' }, pingTimeout: 60000, pingInterval: 20000 });
+const io = new Server(server, { cors: { origin: '*' }, pingTimeout: 20000, pingInterval: 10000 });
 
 app.use(express.static(path.join(__dirname, '..', 'public'), {
   setHeaders: (res, p) => { if (p.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache, must-revalidate'); },
@@ -109,6 +109,16 @@ io.on('connection', (socket) => {
     if (!isHost(g)) return cb && cb({ error: 'Only the host can start' });
     const r = g.startGame();
     cb && cb(r || { ok: true });
+  });
+
+  socket.on('endGame', (cb) => {
+    const g = current();
+    if (!g) { joined = null; return cb && cb({ ok: true }); }
+    if (!isHost(g)) return cb && cb({ error: 'Only the host can end the game' });
+    games.delete(g.code);
+    io.to(g.code).emit('lobbyClosed', { reason: 'Host ended the game' });
+    joined = null;
+    cb && cb({ ok: true });
   });
 
   socket.on('leaveLobby', (cb) => {
