@@ -281,7 +281,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v14.6';
+const VERSION = 'v14.7';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -365,14 +365,14 @@ function renderWhatsNew(){
   <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">FRESH IN</h2>
     ${li(`🎮 <b>SINGLE PLAYER</b> — take on a full field of AI clubs solo, on Easy or Hard`)}
     ${li(`📊 <b>LIVE STANDINGS</b> — open the league table any time, with top scorers &amp; top assists, updating every matchweek`)}
-    ${li(`❄️ <b>VISUAL WINTER BREAK</b> — see your whole squad on one screen: updated ratings, rating changes, season goals &amp; assists and form on every card`)}
+    ${li(`❄️ <b>VISUAL WINTER BREAK</b> — set your lineup on a full squad screen showing every player's updated rating, change, season goals &amp; assists and form`)}
     ${li(`🟡⚪ <b>COLOUR-CODED MATCHES</b> — home events in yellow, away in white, so you can read the action at a glance`)}
     ${li(`🧠 <b>REAL TACTICS</b> — Attacking (red), Balanced (green) &amp; Defensive (blue) shapes that genuinely change your games`)}
     ${li(`👑 <b>LEGENDS &amp; WONDERKIDS</b> — all-time greats and rainbow-card prospects light up the winter market`)}
   </div>
   <div class="panel" style="border-color:var(--blue)"><h2 style="margin-top:0;color:var(--blue)">SHARPER THAN EVER</h2>
     ${li(`📈 Squads that grow, fade and surprise you across the year`)}
-    ${li(`🟥 Red cards, suspensions, own goals &amp; last-minute drama`)}
+    ${li(`🟥 Red cards &amp; suspensions — a sent-off player misses the next game and your best sub steps in automatically`)}
     ${li(`🤖 Smarter rivals — the AI clubs will push you all the way`)}
     ${li(`⚡ In solo, give up on a player and the lot settles instantly — no waiting on the bots`)}
     ${li(`🏁 A live animated title race, trophy lift &amp; end-of-season awards`)}
@@ -388,7 +388,7 @@ function renderHowTo(){
   <div class="panel"><h2 style="margin-top:0">2 · Pick your team</h2>
   <div style="font-size:16px;line-height:1.5">Choose your shape — <b style="color:var(--red)">Attacking</b>, <b style="color:var(--green)">Balanced</b> or <b style="color:var(--blue)">Defensive</b> — and it genuinely shapes your matches. Attacking scores more but leaks more, Defensive grinds out clean sheets, Balanced sits between — none is stronger, they just play differently. Your live <b>⚔️ Attack · 🎯 Midfield · 🛡️ Defence</b> ratings move as you pick. Take all the time you want; the game waits for everyone.</div></div>
   <div class="panel"><h2 style="margin-top:0">3 · The season</h2>
-  <div style="font-size:16px;line-height:1.5">Battle through the campaign with full match commentary and plenty of drama — <b style="color:#FFD23D">home events show in yellow</b>, away in white. Open the <b>📊 standings</b> any time to see the live table, top scorers and top assists. Better teams tend to win, but upsets and last-gasp moments are always on the cards.</div></div>
+  <div style="font-size:16px;line-height:1.5">Battle through the campaign with full match commentary and plenty of drama — <b style="color:#FFD23D">home events show in yellow</b>, away in white. A red card means a one-game ban, and your best available sub fills in for that match. Open the <b>📊 standings</b> any time to see the live table, top scorers and top assists. Better teams tend to win, but upsets and last-gasp moments are always on the cards.</div></div>
   <div class="panel"><h2 style="margin-top:0">4 · The winter break</h2>
   <div style="font-size:16px;line-height:1.5">At halfway you get a full visual look at your squad — every card shows its <b>updated rating</b> and how it moved, plus the player's <b>season goals, assists and form</b>. Set your lineup, then the winter market opens: a fresh war chest, marquee names and <b>LEGENDS 👑</b> up for grabs. Re-jig your team and chase the second half.</div></div>
   <div class="panel"><h2 style="margin-top:0">5 · Glory</h2>
