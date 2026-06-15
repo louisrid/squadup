@@ -313,6 +313,7 @@ class Game {
       current: null, highBid: 0, highBidder: null, deadline: 0, unsold: [], outs: new Set(),
     };
     this.io.emit('phase', { phase: 'auction', window: 'main', poolSize: pool.length, managerCount: this.managers.length });
+    this.broadcastBudgets(); // so budgets/squad counts show on the very first lot
     this.nextLot();
   }
 
@@ -341,9 +342,11 @@ class Game {
         m.budget -= a.highBid;
         m.squad.push({ ...a.current, seasonMod: 0, freshSigning: a.window === 'winter' });
         m.signings.push({ player: a.current.name, price: a.highBid, window: a.window });
+        this.lastResult = { sold: true, player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name, rtg: a.current.rating, wonderkid: !!a.current.wonderkid };
         this.io.emit('lotSold', { player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name, rtg: a.current.rating, wonderkid: !!a.current.wonderkid });
       } else {
         a.unsold.push(a.current);
+        this.lastResult = { sold: false, player: a.current.name };
         this.io.emit('lotUnsold', { player: a.current.name });
       }
       this.broadcastBudgets();
@@ -362,11 +365,8 @@ class Game {
     a.highBidder = null;
     if (a.index === 0) return void setTimeout(() => this.presentLot(), FAST ? 25 : 3400);
     const host = this.managers.find((m) => m.id === this.hostId);
-    this.io.emit('awaitNext', { hostName: host ? host.name : 'Host', auto: true });
-    // auto-advance to the next lot after a short beat so the auction flows without a manual tap each time.
-    // (host can still press "Next player" to skip the wait — hostNextLot cancels this and presents immediately.)
-    clearTimeout(this.timers.autoNext);
-    this.timers.autoNext = setTimeout(() => { if (this.phase === 'auction' && this.auction && !this.auction.current && !this.paused) this.presentLot(); }, this.sp(FAST ? 25 : 2600));
+    this.io.emit('awaitNext', { hostName: host ? host.name : 'Host' });
+    if (FAST) setTimeout(() => this.presentLot(), 25); // sim/test mode only — real game waits for the host
   }
 
   canBuyPlayer(m, p) {
@@ -389,6 +389,7 @@ class Game {
     const a = this.auction;
     clearTimeout(this.timers.autoNext);
     if (!a || a.current) return; // already presenting (guards against auto + manual racing)
+    this.lastResult = null; // new lot live — the previous sale ceremony no longer applies
     a.current = a.queue[a.index];
     a.highBid = 0;
     a.highBidder = null;
@@ -1628,10 +1629,10 @@ class Game {
       this.io.emit('resumed', { deadline: this.auction.deadline });
       this.armLotTimer();
     } else if (this.phase === 'auction' && this.auction && this.auction.index < this.auction.queue.length) {
-      // was paused between lots — resume the flow by presenting the next lot shortly
+      // was paused between lots — restore the "Next player" prompt; host advances manually
       this.io.emit('resumed', {});
-      clearTimeout(this.timers.autoNext);
-      this.timers.autoNext = setTimeout(() => { if (this.phase === 'auction' && this.auction && !this.auction.current && !this.paused) this.presentLot(); }, this.sp(FAST ? 25 : 1200));
+      const host = this.managers.find((m) => m.id === this.hostId);
+      this.io.emit('awaitNext', { hostName: host ? host.name : 'Host' });
     } else {
       this.io.emit('resumed', {});
     }
@@ -1660,6 +1661,7 @@ class Game {
       awaitingNext: (this.phase === 'auction' && this.auction && !this.auction.current && this.auction.index < this.auction.queue.length) ? {
         index: this.auction.index, total: this.auction.queue.length,
         hostName: (this.managers.find((x) => x.id === this.hostId) || {}).name || 'Host',
+        result: this.lastResult || null,
       } : null,
       spin: (this.phase === 'spin' && this.wheels && this.wheels[forId]) ? {
         segments: this.wheels[forId].segments.map((s) => ({ name: s.name, pos: s.pos, rating: s.rating, kind: s.kind })),
@@ -1674,7 +1676,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v9.7',
+      serverV: 'v10.0',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

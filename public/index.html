@@ -257,7 +257,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v9.7';
+const VERSION = 'v10.0';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -463,12 +463,24 @@ function restoreFromSnapshot(snap){
   };
   if(snap.reveal){ renderMatch(snap.reveal); setTimeout(applyPauseUI,0); return; }
   if(snap.winter && !snap.auction){ applyWinter(snap.winter); setTimeout(applyPauseUI,0); return; }
+  // rebuild the budget/squad-count strip from the snapshot so it's correct right after a reconnect
+  if(Array.isArray(snap.managers)){
+    BUDG = snap.managers.map(m=>({ name:m.name, budget:m.budget, squadCount:(m.squad&&typeof m.squad.count==='number')?m.squad.count:(Array.isArray(m.squad)?m.squad.length:0), done:!!m.sacked }));
+    const me=BUDG.find(r=>r.name===ME.name); if(me) ME.budget=me.budget;
+  }
   if(typeof paintBudgets==='function') setTimeout(paintBudgets,0);
   if(snap.awaitingNext){
-    flashResult(`Lot ${snap.awaitingNext.index}/${snap.awaitingNext.total} done`,'Ready for the next player');
+    const r=snap.awaitingNext.result;
+    if(r && r.sold){
+      flashResult(`<span style="color:var(--pink)">SOLD</span> £${r.price}m`, `<b>${esc(r.player)}</b> → ${esc(r.manager)}`);
+    } else if(r){
+      flashResult('UNSOLD', esc(r.player));
+    } else {
+      flashResult('Ready', 'Bring up the next player');
+    }
     const el=document.getElementById('nextslot');
     if(el) el.innerHTML = ME.isHost
-      ? `<button class="primary" style="width:80%" onclick="s.emit('hostNext',(r)=>{if(r&&r.error)toast(r.error)})">Next player</button>`
+      ? `<button class="primary" style="width:80%" onclick="s.emit('hostNext',(r)=>{if(r&&r.error)toast(r.error)})">Next player ▸</button>`
       : `<div class="muted">Waiting for ${esc(snap.awaitingNext.hostName)} to bring up the next player…</div>`;
     return;
   }
@@ -644,11 +656,9 @@ function flashResult(big, small){
 }
 s.on('awaitNext',(x)=>{
   const el=document.getElementById('nextslot');
-  const inner = (x && x.auto)
-    ? `<div class="muted" style="font-size:15px">Next player coming up…</div>${ME.isHost?`<button class="primary" style="width:70%;margin-top:10px;opacity:.9" onclick="s.emit('hostNext',(r)=>{if(r&&r.error&&!/already live/i.test(r.error))toast(r.error)})">Skip ▸</button>`:''}`
-    : (ME.isHost
-      ? `<button class="primary" style="width:80%" onclick="s.emit('hostNext',(r)=>{if(r&&r.error)toast(r.error)})">Next player</button>`
-      : `<div class="muted">Waiting for ${esc(x.hostName)} to bring up the next player…</div>`);
+  const inner = ME.isHost
+    ? `<button class="primary" style="width:80%" onclick="s.emit('hostNext',(r)=>{if(r&&r.error)toast(r.error)})">Next player ▸</button>`
+    : `<div class="muted">Waiting for ${esc(x.hostName)} to bring up the next player…</div>`;
   if(el) el.innerHTML=inner;
   else $(`<div class="screen center" style="justify-content:center">${inner}<div id="budgets" class="budgets" style="margin-top:18px"></div></div>`);
 });
