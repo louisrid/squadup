@@ -1827,7 +1827,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v16.0',
+      serverV: 'v16.1',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

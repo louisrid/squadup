@@ -281,7 +281,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v16.0';
+const VERSION = 'v16.1';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -361,7 +361,7 @@ function renderWhatsNew(){
   const li=(t)=>`<div style="font-size:17px;line-height:1.55;padding:6px 0;color:#fff">• ${t}</div>`;
   $(`${topBar("home()")}
   <div class="eyebrow">What's new</div>
-  <h1 style="color:#FFD75E">⭐ The season so far</h1>
+  <h1 style="color:var(--you)">⭐ The season so far</h1>
   <div class="panel" style="border-color:#1FE060"><h2 style="margin-top:0;color:#1FE060">FRESH IN</h2>
     ${li(`🎮 <b>SINGLE PLAYER</b> — take on a full field of AI clubs solo, on Easy or Hard`)}
     ${li(`📊 <b>LIVE STANDINGS</b> — open the league table any time, with top scorers &amp; top assists, updating every matchweek`)}
@@ -672,7 +672,7 @@ function renderLobby(l){
     const allHard=botCount>0 && l.managers.filter(m=>m.isBot).every(m=>m.diff==='hard');
     const diff=allHard?'hard':'easy';
     return `<div class="panel" style="border-color:#1FE060;padding:16px">
-    <div class="row" style="margin-bottom:12px"><b class="grow" style="color:#7CE38B">🤖 ${solo?'AI opponents':'Bots'}</b><span class="muted" style="font-size:13px">${botCount}/5</span></div>
+    <div class="row" style="margin-bottom:12px"><b class="grow" style="color:var(--green)">🤖 ${solo?'AI opponents':'Bots'}</b><span class="muted" style="font-size:13px">${botCount}/5</span></div>
     <button style="width:100%" ${l.managers.length>=6?'disabled':''} onclick="addBot()">+ Add an AI opponent${l.managers.length>=6?' (full)':''}</button>
     ${botCount?`<div class="row" style="margin-top:12px;gap:8px">
       <span class="muted grow" style="font-size:14px">Difficulty (all opponents)</span>
@@ -768,7 +768,7 @@ function showManagerInfo(encName){
   const r=BUDG&&BUDG.find(x=>x.name===name); if(!r) return;
   closeManagerInfo();
   const sigs=(r.signings||[]).filter(s=>s.window!=='freebie');
-  const dotColor=(s)=>{ if(s.legend) return '#FFC21A'; if(s.wonderkid) return 'conic-gradient(from 0deg,#FF3D8A,#FF9F45,#FFE34D,#1FE060,var(--blue),#9B5CFF,#FF3D8A)'; const c={GK:'#FFC21A',DEF:'#3D8BFF',MID:'#15E07A',ATT:'#FF5247'}; return c[s.pos]||'#888'; };
+  const dotColor=(s)=>{ if(s.legend) return 'var(--gk)'; if(s.wonderkid) return 'conic-gradient(from 0deg,var(--pink),#FF9F45,#FFE34D,var(--green),var(--blue),#9B5CFF,var(--pink))'; const c={GK:'var(--gk)',DEF:'var(--def)',MID:'var(--mid)',ATT:'var(--att)'}; return c[s.pos]||'#888'; };
   const rows = sigs.length
     ? sigs.map(s=>{ const col=dotColor(s); const isGrad=col.indexOf('gradient')>=0;
       return `<div style="display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:15px">
