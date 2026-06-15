@@ -53,6 +53,9 @@ h2{font-size:24px;font-weight:700;margin:16px 0 8px}
 .muted{font-size:16px}
 .flabel{display:block;font-family:var(--disp);text-transform:uppercase;font-weight:800;font-size:15px;letter-spacing:.1em;color:var(--text);margin:12px 0 4px}
 .bigbtn{width:100%;font-size:21px;padding:17px}
+.homebtn{font-size:18px;padding:14px;width:100%;max-width:300px}
+@keyframes logoBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.logoBounce{animation:logoBounce 1.8s ease-in-out infinite;will-change:transform}
 .blackbox{background:#000;border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:14px 0;text-align:center}
 button{font-family:var(--disp);text-transform:uppercase;font-weight:700;letter-spacing:.04em;font-size:19px;
   padding:14px 19px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--text);cursor:pointer}
@@ -269,7 +272,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v12.5';
+const VERSION = 'v12.6';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -322,15 +325,15 @@ function cardHTML(p, sm){
 /* ---------------- HOME ---------------- */
 function home(){
   if(typeof hideReconn==='function') hideReconn();
-  $(`<div class="screen center" id="homeScr" style="position:relative;overflow:hidden;min-height:100dvh;justify-content:center;padding-top:4vh;padding-bottom:6vh">
-  <div style="position:relative;z-index:1;width:100%;display:flex;flex-direction:column;align-items:center">
-  <h1 style="font-size:clamp(78px,13vw,236px);font-style:italic;font-weight:900;letter-spacing:-.01em;line-height:.95"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
-  <div style="margin:24px 0 30px;font-size:15px;font-weight:700;color:var(--muted)">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
-  <button class="bigbtn" style="background:#fff;border-color:#fff;color:#000;font-weight:800" onclick="showSetup('solo')">🎮 Single player</button>
-  <button class="primary bigbtn" style="margin-top:12px" onclick="showSetup('create')">Create a lobby</button>
-  <button class="bigbtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
-  <button class="bigbtn" style="margin-top:12px;border-color:#C9A227;color:#FFD75E" onclick="renderWhatsNew()">⭐ What's new!</button>
-  <div id="rejoinSlot" style="width:100%"></div>
+  $(`<div class="screen center" id="homeScr" style="position:relative;overflow:hidden;min-height:100dvh;justify-content:flex-start;padding-top:10vh;padding-bottom:6vh">
+  <div style="position:relative;z-index:1;width:100%;max-width:340px;margin:0 auto;display:flex;flex-direction:column;align-items:center;padding:0 12px">
+  <h1 class="logoBounce" style="font-size:clamp(104px,17vw,300px);font-style:italic;font-weight:900;letter-spacing:-.01em;line-height:.95;margin:0"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
+  <div style="margin:22px 0 28px;font-size:15px;font-weight:700;color:var(--muted)">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
+  <button class="bigbtn homebtn" style="background:#fff;border-color:#fff;color:#000;font-weight:800" onclick="showSetup('solo')">🎮 Single player</button>
+  <button class="primary bigbtn homebtn" style="margin-top:12px" onclick="showSetup('create')">Create a lobby</button>
+  <button class="bigbtn homebtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
+  <button class="bigbtn homebtn" style="margin-top:12px;border-color:#C9A227;color:#FFD75E" onclick="renderWhatsNew()">⭐ What's new!</button>
+  <div id="rejoinSlot" style="width:100%;max-width:300px;display:flex;flex-direction:column;align-items:center"></div>
   <button style="margin-top:18px;font-size:16px;padding:11px 18px;font-weight:800;color:#fff" onclick="renderHowTo()">📖 How to play</button>
   <div style="margin-top:18px;font-size:13px;color:var(--muted-dim);font-weight:700">${VERSION}</div>
   </div>
@@ -340,7 +343,7 @@ function home(){
     if(sv&&sv.name) s.emit('findMyGames',{name:sv.name},(r)=>{
       const el=document.getElementById('rejoinSlot');
       if(!el||!r||!r.games||!r.games.length) return;
-      el.innerHTML = r.games.map(gm=>`<button class="bigbtn" style="margin-top:12px;border-color:var(--blue);color:var(--blue)"
+      el.innerHTML = r.games.map(gm=>`<button class="bigbtn homebtn" style="margin-top:12px;border-color:var(--blue);color:var(--blue)"
         onclick="rejoinAs('${gm.code}')">↻ Rejoin game ${gm.code} as ${esc(sv.name)}</button>`).join('');
     });
   }catch(e){}
