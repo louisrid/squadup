@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#000000; --surface:#0a062d; --surface2:#0a062d; --line:#22222C; --panel:#0a062d;
+  --bg:#000000; --surface:#101010; --surface2:#101010; --line:#22222C; --panel:#101010;
   --pink:#FF3D8A; --pink-deep:#C2186B;
   --gk:#E8B931; --def:#3D7BFF; --mid:#2EC96E; --att:#FF5247;
   --text:#F2F2F7; --muted:#AEAEBC; --muted-dim:#6E6E7C;
@@ -132,7 +132,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .bidbar #budgets{margin:0 0 6px}.bidbar .bchip{font-size:11px;padding:5px 7px}
 .bidbar{position:fixed;left:16px;right:16px;bottom:max(12px,env(safe-area-inset-bottom));
   max-width:468px;margin:0 auto;display:flex;flex-direction:column;max-height:40vh;overflow:hidden;
-  background:rgba(10,6,45,.97);border:1px solid var(--line);border-radius:18px;
+  background:rgba(16,16,16,.97);border:1px solid var(--line);border-radius:18px;
   padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
 .bidbar .bidline,.bidbar #bidderEl{flex:0 0 auto}
 .bidbar-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-height:0;max-height:20vh}
@@ -249,7 +249,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 #toast{position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
   bottom:max(26px,calc(env(safe-area-inset-bottom) + 18px));z-index:90;
   max-width:min(440px,calc(100vw - 32px));pointer-events:none;
-  background:rgba(10,6,45,.97);color:var(--text);border:1px solid var(--line);
+  background:rgba(16,16,16,.97);color:var(--text);border:1px solid var(--line);
   border-left:4px solid var(--pink);border-radius:12px;padding:12px 18px;
   font-size:15px;font-weight:700;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.55);
   opacity:0;transition:opacity .2s ease,transform .2s ease}
@@ -269,7 +269,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v11.8';
+const VERSION = 'v11.9';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
