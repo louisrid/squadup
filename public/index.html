@@ -281,7 +281,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v16.1';
+const VERSION = 'v16.3';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -361,8 +361,8 @@ function renderWhatsNew(){
   const li=(t)=>`<div style="font-size:17px;line-height:1.55;padding:6px 0;color:#fff">• ${t}</div>`;
   $(`${topBar("home()")}
   <div class="eyebrow">What's new</div>
-  <h1 style="color:var(--you)">⭐ The season so far</h1>
-  <div class="panel" style="border-color:#1FE060"><h2 style="margin-top:0;color:#1FE060">FRESH IN</h2>
+  <h1 style="color:var(--you)">⭐ What's changed</h1>
+  <div class="panel" style="border-color:#1FE060"><h2 style="margin-top:0;color:#1FE060">NEW</h2>
     ${li(`🎮 <b>SINGLE PLAYER</b> — take on a full field of AI clubs solo, on Easy or Hard`)}
     ${li(`📊 <b>LIVE STANDINGS</b> — open the league table any time, with top scorers &amp; top assists, updating every matchweek`)}
     ${li(`❄️ <b>VISUAL WINTER BREAK</b> — set your lineup on a full squad screen showing every player's updated rating, change, season goals &amp; assists and form`)}
@@ -370,11 +370,12 @@ function renderWhatsNew(){
     ${li(`🧠 <b>REAL TACTICS</b> — Attacking (red), Balanced (green) &amp; Defensive (blue) shapes that genuinely change your games`)}
     ${li(`👑 <b>LEGENDS &amp; WONDERKIDS</b> — all-time greats and rainbow-card prospects light up the winter market`)}
   </div>
-  <div class="panel" style="border-color:var(--blue)"><h2 style="margin-top:0;color:var(--blue)">SHARPER THAN EVER</h2>
+  <div class="panel" style="border-color:var(--blue)"><h2 style="margin-top:0;color:var(--blue)">IMPROVED &amp; REMOVED</h2>
     ${li(`📈 Squads that grow, fade and surprise you across the year`)}
     ${li(`🟥 Red cards &amp; suspensions — a sent-off player misses the next game and your best sub steps in automatically`)}
     ${li(`🤖 Smarter rivals — the AI clubs will push you all the way`)}
     ${li(`⚡ In solo, give up on a player and the lot settles instantly — no waiting on the bots`)}
+    ${li(`🚫 Removed the spin / reroll step — cleaner flow straight into the winter market`)}
     ${li(`🏁 A live animated title race, trophy lift &amp; end-of-season awards`)}
   </div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
@@ -1022,7 +1023,7 @@ function unitBars(slots, avail){
   const overall=vals.length===3?((atk+mid+def)/3):null;
   const obox=`<div class="blackbox" style="padding:8px 12px;margin-bottom:8px;text-align:center">
     <div class="muted" style="font-size:12px">⭐ OVERALL TEAM RATING</div>
-    <div style="font-family:var(--disp);font-weight:800;font-size:30px;color:${overall!=null?'#FFE08A':'#FF5470'}">${overall!=null?overall.toFixed(1):'—'}</div></div>`;
+    <div style="font-family:var(--disp);font-weight:800;font-size:30px;color:${overall!=null?'var(--you)':'#9A9AA8'}">${overall!=null?overall.toFixed(1):'—'}</div></div>`;
   return fbox+obox+`<div class="blackbox" style="display:flex;gap:4px;padding:11px 6px;margin-bottom:8px">${cell('⚔️ ATT',atk,'var(--att)')}${cell('🎯 MID',mid,'var(--mid)')}${cell('🛡️ DEF',def,'var(--def)')}</div>`;
 }
 let lockedManagers=[];
