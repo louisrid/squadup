@@ -15,9 +15,9 @@
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:500;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;touch-action:manipulation}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:500;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 .muted{color:var(--muted)!important;font-weight:600}
-button{font-weight:700}
+button{font-weight:700;touch-action:manipulation}
 @media (max-width:768px){ body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0} }
 @media (min-width:769px){ .backbtn{top:30px;left:30px;width:46px;height:46px;font-size:22px} .mdscreen{padding-top:16vh !important} }
 .wheelWrap{position:relative;width:min(380px,90vw);aspect-ratio:1;margin:12px auto}
@@ -29,7 +29,7 @@ button{font-weight:700}
 .segDEF{fill:#16306b}.segMID{fill:#0e4d2a}.segATT{fill:#62211c}.segGK{fill:#5a4710}
 th{font-weight:800}
 input,td{font-weight:600}
-body{max-width:500px;margin:0 auto;padding:16px 16px 150px;min-height:100vh;font-size:16px;font-weight:600}
+body{max-width:500px;margin:0 auto;padding:16px 16px 40px;min-height:100dvh;font-size:16px;font-weight:600}
 .screen{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;justify-content:flex-start;padding-top:max(84px,calc(env(safe-area-inset-top) + 68px))}
 @media (min-width:700px){
   body{max-width:600px;font-size:17px}
@@ -257,7 +257,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v10.0';
+const VERSION = 'v10.2';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -1223,7 +1223,6 @@ function runLeagueRace(f){
     <div id="raceMd" class="disp" style="font-size:22px;margin-bottom:18px">Matchday 1</div>
     <div id="raceRows" style="width:100%;max-width:460px;display:flex;flex-direction:column;gap:7px"></div>
     <div id="raceNext" style="margin-top:22px;min-height:48px"></div>
-    <button onclick="ceremonyPodium(window.__finalData)" style="position:fixed;bottom:18px;right:18px;font-size:14px;padding:9px 13px;opacity:.6">Skip ›</button>
   </div>`);
   let md=0;
   const draw=()=>{
@@ -1263,8 +1262,7 @@ function ceremonyPodium(f){
   CTIMERS.forEach(clearTimeout); CTIMERS=[];
   const podium=f.table.slice(0,3);
   const nm=(t)=>esc(t.name)+(t.manager?` <span class="muted" style="font-size:18px">(${esc(t.manager)})</span>`:'');
-  const stage=(html2)=>$(`<div class="screen center" style="justify-content:center">${html2}
-    <button onclick="showFinal()" style="position:fixed;bottom:18px;right:18px;font-size:14px;padding:9px 13px;opacity:.6">Skip</button>`);
+  const stage=(html2)=>$(`<div class="screen center" style="justify-content:center">${html2}</div>`);
   stage(`<div class="ceremonyTxt">The season is over</div>`);
   CTIMERS.push(setTimeout(()=>stage(`<div class="eyebrow" style="margin-bottom:14px">The podium</div>
     <div class="podiumRow"><span class="podiumPos">3rd</span><span class="podiumName">${nm(podium[2])}</span></div>`),1800));

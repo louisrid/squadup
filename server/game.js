@@ -1676,7 +1676,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v10.0',
+      serverV: 'v10.2',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
