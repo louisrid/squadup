@@ -38,7 +38,7 @@ body{max-width:500px;margin:0 auto;padding:16px 16px 40px;min-height:100dvh;font
 .screen{min-height:calc(100dvh - 90px);display:flex;flex-direction:column;justify-content:flex-start;padding-top:max(84px,calc(env(safe-area-inset-top) + 68px))}
 @media (min-width:700px){
   body{max-width:600px;font-size:17px}
-  h1{font-size:64px!important}
+  h1:not(.logoBounce){font-size:64px!important}
   .codetext{font-size:84px!important}
   .lotRow .pcard{width:190px!important}
   .lotRow .ringWrap{width:190px!important;height:190px!important}
@@ -273,7 +273,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v12.8';
+const VERSION = 'v12.9';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -328,12 +328,12 @@ function home(){
   if(typeof hideReconn==='function') hideReconn();
   $(`<div class="screen center" id="homeScr" style="position:relative;overflow:hidden;min-height:100dvh;justify-content:flex-start;padding-top:10vh;padding-bottom:6vh">
   <div style="position:relative;z-index:1;width:100%;max-width:460px;margin:0 auto;display:flex;flex-direction:column;align-items:center;padding:0 16px">
-  <h1 class="logoBounce" style="font-size:clamp(76px,13vw,220px);font-style:italic;font-weight:900;letter-spacing:-.02em;line-height:1.15;margin:0;padding:6px 10px;white-space:nowrap;overflow:visible"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
+  <h1 class="logoBounce" style="font-size:clamp(74px,21vw,104px);font-style:italic;font-weight:900;letter-spacing:-.03em;line-height:1.18;margin:0;padding:8px 12px;white-space:nowrap;overflow:visible;max-width:100%"><span style="color:var(--pink)">SQUAD</span><span style="color:#fff">UP</span></h1>
   <div style="margin:22px 0 28px;font-size:15px;font-weight:700;color:var(--muted)">Outbid your mates. Sign wonderkids & legends.<br>Win the league.</div>
   <button class="bigbtn homebtn" style="background:#fff;border-color:#fff;color:#000;font-weight:800" onclick="showSetup('solo')">🎮 Single player</button>
   <button class="primary bigbtn homebtn" style="margin-top:12px" onclick="showSetup('create')">Create a lobby</button>
   <button class="bigbtn homebtn" style="margin-top:12px" onclick="showSetup('join')">Join a lobby</button>
-  <button class="bigbtn homebtn" style="margin-top:12px;border-color:#C9A227;color:#FFD75E" onclick="renderWhatsNew()">⭐ What's new!</button>
+  <button class="bigbtn homebtn" style="margin-top:12px;background:#FFD23D;border-color:#FFD23D;color:#000;font-weight:800" onclick="renderWhatsNew()">⭐ What's new!</button>
   <div id="rejoinSlot" style="width:100%;max-width:300px;display:flex;flex-direction:column;align-items:center"></div>
   <button style="margin-top:18px;font-size:16px;padding:11px 18px;font-weight:800;color:#fff" onclick="renderHowTo()">📖 How to play</button>
   <div style="margin-top:18px;font-size:13px;color:var(--muted-dim);font-weight:700">${VERSION}</div>
@@ -1353,7 +1353,7 @@ function runLeagueRace(f){
     const el=document.getElementById('raceRows'); if(!el) return;
     el.innerHTML=rows.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;transition:all .5s ease">
       <span style="width:18px;text-align:right;font-weight:800;color:var(--muted);font-size:13px">${i+1}</span>
-      <span style="width:96px;font-size:13px;font-weight:${r.human?800:600};color:${r.human?'#fff':'var(--muted)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.manager||r.name)}</span>
+      <span style="width:96px;font-size:13px;font-weight:${r.human?800:700};color:${r.human?'#fff':'var(--muted)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.manager||r.name)}</span>
       <span style="flex:1;height:16px;background:var(--surface2);border-radius:8px;overflow:hidden"><span style="display:block;height:100%;width:${(r.p/maxPts*100).toFixed(1)}%;background:${r.c};border-radius:8px;transition:width .5s ease"></span></span>
       <span class="disp" style="width:30px;text-align:right;font-size:15px;font-weight:800">${r.p}</span></div>`).join('');
     const mdEl=document.getElementById('raceMd'); if(mdEl) mdEl.textContent='Matchday '+(md+1);
