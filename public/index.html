@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#000000; --surface:#0f0f0f; --surface2:#0f0f0f; --line:rgba(255,255,255,0.14); --panel:#0f0f0f;
+  --bg:#000000; --surface:#1a1a1c; --surface2:#1a1a1c; --line:rgba(255,255,255,0.14); --panel:#1a1a1c;
   --pink:#FF3D8A; --pink-deep:#C2186B; --you:#FFE21F; --assist:#2BB8FF;
   --gk:#FFC21A; --def:#3D8BFF; --mid:#15E07A; --att:#FF5247;
   --blue:#1FB6FF; --green:#1FE060; --red:#FF3B47;
@@ -61,7 +61,7 @@ h2{font-size:24px;font-weight:700;margin:16px 0 10px}
 .homebtn{font-size:19px;padding:18px 16px;width:100%;max-width:480px}
 @keyframes logoBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
 .logoBounce{animation:logoBounce 1.8s ease-in-out infinite;will-change:transform}
-.blackbox{background:#000;border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:14px 0;text-align:center}
+.blackbox{background:var(--surface2);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:14px 0;text-align:center}
 button{font-family:var(--disp);text-transform:uppercase;font-weight:700;letter-spacing:.04em;font-size:19px;
   padding:14px 19px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--text);cursor:pointer}
 button:active{transform:scale(.97)}
@@ -128,7 +128,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 @keyframes cdPop{0%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}25%{opacity:1;transform:translate(-50%,-50%) scale(1)}85%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(.9)}}
 @media (prefers-reduced-motion: reduce){.revealCard .pcard{animation:none;opacity:1;filter:none}.cd{animation:none}}
 /* ---------- lobby code ---------- */
-.codebox{background:#000;border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:12px 0;text-align:center}
+.codebox{background:var(--surface2);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:12px 0;text-align:center}
 .codetext{font-family:var(--disp);font-weight:800;font-size:58px;line-height:1;letter-spacing:.12em;margin:8px 0 12px;color:var(--text)}
 .copybtn{background:var(--pink);border-color:var(--pink);color:#fff;width:100%;font-size:16px}
 /* ---------- auction ---------- */
@@ -217,7 +217,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 .tab.sel{border-color:var(--pink);color:var(--text);background:var(--surface)}
 .formchip{font-family:var(--disp);font-weight:800;font-size:17px;padding:4px 10px;border-radius:8px;min-width:52px;text-align:center}
 .f-g{background:#123d24;color:#4DF08A}.f-y{background:#3d3712;color:#F2D24B}.f-o{background:#3d2712;color:#F0A24B}.f-r{background:#3d1212;color:#F06B6B}.f-n{background:var(--surface2);color:var(--muted)}
-.unitbox{flex:1;background:#000;border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
+.unitbox{flex:1;background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:14px 8px;text-align:center}
 .unitbox .uv{font-family:var(--disp);font-weight:800;font-size:36px}
 .spinbtn{border-color:#C9A227;color:#C9A227;background:transparent;font-size:17px;padding:10px 13px;min-width:50px}
 .tierbanner{font-family:var(--disp);font-weight:800;text-transform:uppercase;font-size:42px;letter-spacing:.04em}
@@ -283,7 +283,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v16.9';
+const VERSION = 'v17.4';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -1234,12 +1234,12 @@ function renderLockWait(){
 let MATCHLIVE=false;
 function evLine(e, m){
   const t=(e.text||'').replace(/\(?\d+\+?\d*'\)?/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s+/g,' ').replace(/\s+([,.!])/g,'$1').trim();
-  // yellow is reserved for YOUR club only. work out which side (if any) is mine in this match.
+  // which side (if any) is mine in this match?
   const mySide = ME.club ? (m.home===ME.club ? 'A' : m.away===ME.club ? 'B' : null) : null;
-  const mine = mySide && e.side===mySide;
-  // for my own events: minute is yellow, the rest of the text white. everyone else: all white.
   const min = e.minute!=null ? e.minute+"'" : '';
-  return `<span style="color:#FFFFFF">${min?`<b style="color:${mine?'var(--you)':'#FFFFFF'}">${min}</b> `:''}${esc(t)}</span>`;
+  // my own team's minute = yellow. opponent in my match = light grey. any team in a match I'm not in = light grey.
+  const minCol = (mySide && e.side===mySide) ? 'var(--you)' : 'var(--muted-dim)';
+  return `<span style="color:#FFFFFF">${min?`<b style="color:${minCol}">${min}</b> `:''}${esc(t)}</span>`;
 }
 let MATCH_SFXT=[];
 function clearMatchSfx(){ MATCH_SFXT.forEach(clearTimeout); MATCH_SFXT=[]; }
@@ -1251,20 +1251,20 @@ function renderMatch(m, instant){
   const yours = ME.club && (m.home===ME.club || m.away===ME.club);
   const fbadge=(key)=>{ if(!key) return ''; const m={ATT:['ATTACKING','var(--red)'],DEF:['DEFENSIVE','var(--blue)'],BAL:['BALANCED','var(--green)']}[key]||['',''];
     return ` <span style="font-family:var(--disp);font-weight:800;font-size:13px;color:${m[1]};border:1px solid ${m[1]};border-radius:6px;padding:1px 6px;vertical-align:middle">${m[0]}</span>`; };
-  const teamLine=(name,mgr,pos,delay,formKey,nameCol)=>`<div style="opacity:0;animation:cerIn .5s ${delay}s forwards;max-width:440px;margin:0 auto">
+  const teamLine=(name,mgr,pos,delay,formKey,nameCol,mineTeam)=>`<div style="opacity:0;animation:cerIn .5s ${delay}s forwards;max-width:440px;margin:0 auto">
     ${pos?`<div class="muted" style="font-size:13px;letter-spacing:.12em">#${pos} IN THE LEAGUE</div>`:''}
-    <div class="score" style="font-size:clamp(22px,6vw,34px);word-break:break-word;color:${nameCol}">${esc(name)}${mgr?` <span style="font-size:.6em;color:var(--muted)">(${esc(mgr)})</span>`:''}${mgr?fbadge(formKey):''}</div>
+    <div class="score" style="font-size:clamp(22px,6vw,34px);word-break:break-word;color:${nameCol}">${esc(name)}${mgr?` <span style="font-size:.6em;color:${mineTeam?'var(--you)':'var(--muted)'}">(${esc(mgr)})</span>`:''}${mgr?fbadge(formKey):''}</div>
   </div>`;
   $(`<div class="screen mdscreen" style="justify-content:flex-start;padding-top:max(12vh,96px)">
     <div class="center">
       <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
-      ${yours?`<div style="font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.1em;color:var(--you);margin-bottom:8px">YOUR MATCH</div>`:''}
+      ${yours?`<div style="font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.1em;color:#FFFFFF;margin-bottom:8px">YOUR MATCH</div>`:''}
       ${(m.replacements&&m.replacements.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:14px;color:var(--you);margin-bottom:8px;line-height:1.5">${m.replacements.map(rp=>`⛔ Suspended: ${esc(rp.suspended)}${rp.replacement?`<br>↳ Replacement: ${esc(rp.replacement)}`:'<br>↳ No replacement available'}`).join('<br>')}</div>`:''}
-      ${teamLine(m.home,m.homeMgr,m.homePos,0.1,m.homeForm,(ME.club&&m.home===ME.club)?'var(--you)':'#FFFFFF')}
+      ${teamLine(m.home,m.homeMgr,m.homePos,0.1,m.homeForm,(ME.club&&m.home===ME.club)?'var(--you)':'#FFFFFF',(ME.club&&m.home===ME.club))}
       <div class="muted" style="font-size:16px;margin:4px 0;opacity:0;animation:cerIn .4s .5s forwards">vs</div>
-      ${teamLine(m.away,m.awayMgr,m.awayPos,0.8,m.awayForm,(ME.club&&m.away===ME.club)?'var(--you)':'#FFFFFF')}
-      <div class="blackbox" style="margin:16px auto;width:min(260px,90%);opacity:0;animation:cerIn .5s 1.5s forwards">
+      ${teamLine(m.away,m.awayMgr,m.awayPos,0.8,m.awayForm,(ME.club&&m.away===ME.club)?'var(--you)':'#FFFFFF',(ME.club&&m.away===ME.club))}
+      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:16px auto;width:min(260px,90%);text-align:center;opacity:0;animation:cerIn .5s 1.5s forwards">
         <div class="score" style="font-size:44px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div>
       </div>
       <div style="text-align:left;max-width:340px;margin:0 auto">
@@ -1275,6 +1275,7 @@ function renderMatch(m, instant){
         ?`<button class="primary bigbtn" style="margin-top:22px;max-width:340px" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
         :`<div class="muted" style="margin-top:22px">${esc(m.hostName)} controls the remote…</div>`}
       ${standingsBtnHTML()}
+      <div style="height:200px;flex-shrink:0"></div>
     </div>
   </div>`);
   // Standings button: hide its result-spoiling power until the match events have finished revealing.
@@ -1288,30 +1289,22 @@ function renderMatch(m, instant){
       window.__standReveal=setTimeout(()=>setStandingsRevealed(true), revealMs);
     }
   }
-  // Single player: only the user's OWN match should cheer/boo (bot results shouldn't trigger it).
-  // Multiplayer: keep the original behaviour (any human-involved revealed match plays its result).
+  // Play a result sound on EVERY revealed match now. If it's MY match: win→cheer, draw or loss→boo.
+  // If it's not my match: cheer on a home win, boo on an away win or draw (just so every match has a beat).
   if(!instant){
-    let outcomeKey=null;
-    if(ME.solo){
-      if(yours){
-        const iAmHome=(m.home===ME.club);
-        const myScore=iAmHome?m.score[0]:m.score[1], oppScore=iAmHome?m.score[1]:m.score[0];
-        outcomeKey=myScore>oppScore?'cheer':(myScore===oppScore?null:'boo');
-      }
+    let outcomeKey;
+    if(yours){
+      const iAmHome=(m.home===ME.club);
+      const myScore=iAmHome?m.score[0]:m.score[1], oppScore=iAmHome?m.score[1]:m.score[0];
+      outcomeKey = myScore>oppScore ? 'cheer' : 'boo'; // draw counts as a loss sound
     } else {
-      const hHome=!!m.homeMgr, hAway=!!m.awayMgr;
-      if(hHome||hAway){
-        const humanWon=(hHome&&m.score[0]>m.score[1])||(hAway&&m.score[1]>m.score[0]);
-        outcomeKey=(hHome&&hAway)?'cheer':(humanWon?'cheer':(m.score[0]===m.score[1]?null:'boo'));
-      }
+      outcomeKey = m.score[0]>m.score[1] ? 'cheer' : 'boo'; // home win cheers, otherwise boo
     }
-    if(outcomeKey){
-      // wait until the first 2 events (or all, if fewer) have animated in before the result sound.
-      const evN=(m.events&&m.events.length)||0;
-      const shown=Math.min(2,evN);
-      const delayMs=(2.1 + shown*0.5 + 0.4)*1000; // matches the per-event stagger used below
-      MATCH_SFXT.push(setTimeout(()=>sfx(outcomeKey), delayMs));
-    }
+    // wait until the first 2 events (or all, if fewer) have animated in before the result sound.
+    const evN=(m.events&&m.events.length)||0;
+    const shown=Math.min(2,evN);
+    const delayMs=(2.1 + shown*0.5 + 0.4)*1000;
+    MATCH_SFXT.push(setTimeout(()=>sfx(outcomeKey), delayMs));
   }
 }
 s.on('matchReveal',renderMatch);
@@ -1364,7 +1357,7 @@ function openStandings(){
     : `<div class="muted" style="padding:12px 2px;font-size:13px">None yet</div>`;
   const ov=document.createElement('div');
   ov.id='standOv';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);z-index:120;display:flex;align-items:center;justify-content:center;padding:20px;animation:mFade .15s ease';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);z-index:120;display:flex;align-items:center;justify-content:center;padding:20px;animation:mFade .15s ease;touch-action:none';
   ov.onclick=closeStandings;
   ov.innerHTML=`<div onclick="event.stopPropagation()" style="position:relative;width:100%;max-width:380px;max-height:66vh;display:flex;flex-direction:column;background:var(--surface);border:2px solid var(--line);border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.6);overflow:hidden">
     <button onclick="closeStandings()" aria-label="Close" style="position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;font-size:16px;line-height:1;padding:0;background:var(--surface2);border:1px solid var(--line);color:var(--text);z-index:2">✕</button>
@@ -1372,8 +1365,10 @@ function openStandings(){
       <div style="font-family:var(--disp);font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.03em;padding-right:34px">📊 League table</div>
       <div class="muted" style="font-size:11px;margin-top:2px">W-D-L · points</div>
     </div>
-    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 14px 14px;flex:1;min-height:0">${tableRows}</div>
+    <div id="standScroll" style="overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding:6px 14px 14px;flex:1;min-height:0">${tableRows}</div>
   </div>`;
+  // isolate scroll: only the inner table list scrolls; the page behind never moves on touch.
+  ov.addEventListener('touchmove',(ev)=>{ const sc=document.getElementById('standScroll'); if(!sc||!sc.contains(ev.target)) ev.preventDefault(); },{passive:false});
   document.body.appendChild(ov);
 }
 function closeStandings(){ const o=document.getElementById('standOv'); if(o) o.remove(); }
