@@ -283,7 +283,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v16.8';
+const VERSION = 'v16.9';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -1172,7 +1172,7 @@ function renderPick(){
   ${(p.half==='second'||isWinter)?standingsBtnHTML():''}
   ${submitBtn}
   ${isWinter?statPanels(W.stats,true):''}
-  <div style="height:300px;flex-shrink:0"></div>`);
+  <div style="height:200px;flex-shrink:0"></div>`);
 }
 function submitWinterPick(){
   const starters=pickState.slots.map(x=>x.player).filter(Boolean);
@@ -1267,7 +1267,7 @@ function renderMatch(m, instant){
       <div class="blackbox" style="margin:16px auto;width:min(260px,90%);opacity:0;animation:cerIn .5s 1.5s forwards">
         <div class="score" style="font-size:44px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div>
       </div>
-      <div style="text-align:left;max-width:420px;margin:0 auto">
+      <div style="text-align:left;max-width:340px;margin:0 auto">
         ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${instant?0:(2.1+i*0.5).toFixed(1)}s${instant?';opacity:1':''}">${evLine(e,m)}</div>`).join('')||'<div class="muted center">No goals. Grim.</div>'}
 
       </div>
