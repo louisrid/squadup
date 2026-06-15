@@ -131,9 +131,13 @@ function attributeGoals(goals, starters) {
   return scorers.sort((a, b) => a.minute - b.minute);
 }
 
-// assists: 60% of goals get one, midfielders supply most; GK can very rarely assist; never the scorer
+// assists: 60% of goals get one, midfielders supply most; GK can very rarely assist; never the scorer.
+// Higher-rated players within a position get credited more (same rating tilt as goalscorer attribution).
 function attributeAssists(scorers, starters, sentOff) {
-  const w = (p) => (p.pos === 'MID' ? 8 : p.pos === 'ATT' ? 3 : p.pos === 'DEF' ? 3 : 0.15); // GK 0.15 = rare; DEF assist > DEF goal
+  const w = (p) => {
+    const base = (p.pos === 'MID' ? 8 : p.pos === 'ATT' ? 3 : p.pos === 'DEF' ? 3 : 0.15); // GK 0.15 = rare; DEF assist > DEF goal
+    return base * (1 + ((p.rating + (p.seasonMod || 0)) - 75) / 50);
+  };
   const off = new Set(sentOff || []);
   return scorers.map((s) => {
     if (Math.random() > 0.6) return { ...s, assist: null };

@@ -215,6 +215,10 @@ io.on('connection', (socket) => {
     const g = current();
     cb && cb(g ? g.setWinterReady(joined.managerId, !!ready) : { error: 'No game' });
   });
+  socket.on('submitWinterStarters', ({ starters }, cb) => {
+    const g = current();
+    cb && cb(g ? g.submitWinterStarters(joined.managerId, starters) : { error: 'No game' });
+  });
   socket.on('getStandings', (cb) => {
     const g = current();
     if (!g) return cb && cb({ error: 'No game' });

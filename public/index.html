@@ -281,7 +281,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v13.8';
+const VERSION = 'v14.6';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -363,20 +363,19 @@ function renderWhatsNew(){
   <div class="eyebrow">What's new</div>
   <h1 style="color:#FFD75E">⭐ The season so far</h1>
   <div class="panel" style="border-color:#3DDC84"><h2 style="margin-top:0;color:#3DDC84">FRESH IN</h2>
-    ${li(`🎮 <b>SINGLE PLAYER</b> — take on a field of AI clubs solo, on Easy or Hard`)}
-    ${li(`🧠 <b>REAL TACTICS</b> — Attacking, Balanced & Defensive shapes that genuinely change how your games play out`)}
-    ${li(`⚔️🎯🛡️ <b>ATTACK · MIDFIELD · DEFENCE</b> — build a complete team, watch your live ratings move as you pick`)}
-    ${li(`👑 <b>LEGENDS & ICONS</b> — the all-time greats turn up in the winter market`)}
-    ${li(`⭐ <b>WONDERKIDS</b> — rainbow cards that level up into superstars at the break`)}
-    ${li(`❄️ <b>THE WINTER MARKET</b> — a fresh war chest, bigger names and a second run at glory`)}
-    ${li(`📊 <b>LIVE STANDINGS</b> — track the league table as it updates every matchweek`)}
-    ${li(`🏁 <b>THE TITLE RACE</b> — a live animated run through the season before the trophy lift`)}
+    ${li(`🎮 <b>SINGLE PLAYER</b> — take on a full field of AI clubs solo, on Easy or Hard`)}
+    ${li(`📊 <b>LIVE STANDINGS</b> — open the league table any time, with top scorers &amp; top assists, updating every matchweek`)}
+    ${li(`❄️ <b>VISUAL WINTER BREAK</b> — see your whole squad on one screen: updated ratings, rating changes, season goals &amp; assists and form on every card`)}
+    ${li(`🟡⚪ <b>COLOUR-CODED MATCHES</b> — home events in yellow, away in white, so you can read the action at a glance`)}
+    ${li(`🧠 <b>REAL TACTICS</b> — Attacking (red), Balanced (green) &amp; Defensive (blue) shapes that genuinely change your games`)}
+    ${li(`👑 <b>LEGENDS &amp; WONDERKIDS</b> — all-time greats and rainbow-card prospects light up the winter market`)}
   </div>
   <div class="panel" style="border-color:var(--blue)"><h2 style="margin-top:0;color:var(--blue)">SHARPER THAN EVER</h2>
     ${li(`📈 Squads that grow, fade and surprise you across the year`)}
-    ${li(`🟥 Red cards, suspensions, own goals & last-minute drama`)}
+    ${li(`🟥 Red cards, suspensions, own goals &amp; last-minute drama`)}
     ${li(`🤖 Smarter rivals — the AI clubs will push you all the way`)}
-    ${li(`⚡ Faster auctions, slicker screens, no waiting around`)}
+    ${li(`⚡ In solo, give up on a player and the lot settles instantly — no waiting on the bots`)}
+    ${li(`🏁 A live animated title race, trophy lift &amp; end-of-season awards`)}
   </div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
 }
@@ -385,13 +384,13 @@ function renderHowTo(){
   <div class="eyebrow">How to play</div>
   <h1>SQUADUP in 60 seconds</h1>
   <div class="panel"><h2 style="margin-top:0">1 · The auction</h2>
-  <div style="font-size:16px;line-height:1.5">Everyone starts with the same budget. Players come up one at a time and you bid against your mates — the host runs the room. Snap up stars, sneaky bargains and rainbow-carded <b>wonderkids</b>, and build the deepest squad you can afford.</div></div>
+  <div style="font-size:16px;line-height:1.5">Everyone starts with the same budget. Players come up one at a time and you bid against your rivals — the host runs the room. Snap up stars, sneaky bargains and rainbow-carded <b>wonderkids</b>, and build the deepest squad you can afford. Playing solo? When you give up on a player, the lot settles straight away.</div></div>
   <div class="panel"><h2 style="margin-top:0">2 · Pick your team</h2>
-  <div style="font-size:16px;line-height:1.5">Choose your shape — <b>Attacking, Balanced or Defensive</b> — and your formation actually shapes your matches. <b>Attacking</b> scores more but leaks more, <b>Defensive</b> grinds out tight clean sheets, <b>Balanced</b> sits in between — none is stronger, they just play differently. Your live <b>⚔️ Attack · 🎯 Midfield · 🛡️ Defence</b> ratings update as you pick, so you always know how your side stacks up. Take all the time you want; the game waits for everyone.</div></div>
+  <div style="font-size:16px;line-height:1.5">Choose your shape — <b style="color:var(--red)">Attacking</b>, <b style="color:var(--green)">Balanced</b> or <b style="color:var(--blue)">Defensive</b> — and it genuinely shapes your matches. Attacking scores more but leaks more, Defensive grinds out clean sheets, Balanced sits between — none is stronger, they just play differently. Your live <b>⚔️ Attack · 🎯 Midfield · 🛡️ Defence</b> ratings move as you pick. Take all the time you want; the game waits for everyone.</div></div>
   <div class="panel"><h2 style="margin-top:0">3 · The season</h2>
-  <div style="font-size:16px;line-height:1.5">Battle through the campaign against your friends and a field of AI clubs, with full match commentary, goals, assists and plenty of drama. Better teams tend to win — but upsets, thrashings and last-gasp moments are always on the cards.</div></div>
-  <div class="panel"><h2 style="margin-top:0">4 · The winter market</h2>
-  <div style="font-size:16px;line-height:1.5">At the break your squad develops — youngsters rise, veterans fade, wonderkids break out. You get a full visual look at every player's updated rating, season goals &amp; assists and form. Then the big window opens: a fresh budget, marquee names and <b>LEGENDS 👑</b> up for grabs. Re-pick your team and chase the title.</div></div>
+  <div style="font-size:16px;line-height:1.5">Battle through the campaign with full match commentary and plenty of drama — <b style="color:#FFD23D">home events show in yellow</b>, away in white. Open the <b>📊 standings</b> any time to see the live table, top scorers and top assists. Better teams tend to win, but upsets and last-gasp moments are always on the cards.</div></div>
+  <div class="panel"><h2 style="margin-top:0">4 · The winter break</h2>
+  <div style="font-size:16px;line-height:1.5">At halfway you get a full visual look at your squad — every card shows its <b>updated rating</b> and how it moved, plus the player's <b>season goals, assists and form</b>. Set your lineup, then the winter market opens: a fresh war chest, marquee names and <b>LEGENDS 👑</b> up for grabs. Re-jig your team and chase the second half.</div></div>
   <div class="panel"><h2 style="margin-top:0">5 · Glory</h2>
   <div style="font-size:16px;line-height:1.5">Most points takes the crown. Sit back for the animated title race, the trophy lift and the end-of-season awards — Golden Boot, top playmaker, best bargain and more.</div></div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
@@ -565,7 +564,7 @@ function restoreFromSnapshot(snap){
     syncPauseBtn();
   };
   if(snap.reveal){ renderMatch(snap.reveal, true); setTimeout(applyPauseUI,0); return; }
-  if(snap.winter && !snap.auction){ applyWinter(snap.winter); setTimeout(applyPauseUI,0); return; }
+  if(snap.winter && !snap.auction){ WINTER_IAMREADY=!!snap.winterReadyMine; applyWinter(snap.winter); setTimeout(applyPauseUI,0); return; }
   // rebuild the budget/squad-count strip from the snapshot so it's correct right after a reconnect
   if(Array.isArray(snap.managers)){
     BUDG = snap.managers.map(m=>({ name:m.name, budget:m.budget, squadCount:(m.squad&&typeof m.squad.count==='number')?m.squad.count:(Array.isArray(m.squad)?m.squad.length:0), done:!!m.sacked, signings:m.signings||[] }));
@@ -592,7 +591,7 @@ function restoreFromSnapshot(snap){
       $(`<div class="screen center" style="justify-content:center"><div class="blackbox" style="width:100%"><div class="score">Locked in</div>
       <div class="muted" style="margin-top:8px">Waiting for the other managers…</div></div></div>`);
     } else {
-      pickState={half:snap.pick.half, squad:snap.pick.squad, slots:null};
+      pickState={half:snap.pick.half, squad:snap.pick.squad, slots:null, prevStarters:snap.pick.prevStarters||[]};
       initSlots(); renderPick();
     }
     return;
@@ -1025,8 +1024,9 @@ s.on('pickStarters',(p)=>{
   if(typeof p.showStandings==='boolean'){ STANDINGS_ON=p.showStandings; ME.standings=p.showStandings; }
   if(p.standings) STANDINGS=p.standings;
   STANDINGS_REVEALED=true; // setup screens: results already in, table safe to view
+  clearTimeout(window.__standReveal);
   const mine=p.perManager.find(x=>(x.uid&&ME.uid)?x.uid===ME.uid:x.id===ME.id); if(!mine) return;
-  pickState={half:p.half, squad:mine.squad, slots:null};
+  pickState={half:p.half, squad:mine.squad, slots:null, prevStarters:mine.prevStarters||[]};
   initSlots();
   renderPick();
 });
@@ -1034,6 +1034,19 @@ function initSlots(){
   const av=pickState.squad.filter(x=>!x.injured);
   const ok=feasibleForms(av);
   if(!ok.length){ CURFORM=[0,0,0]; pickState.slots=makeshiftSlots(av); return; }
+  // If we have a previous XI (re-pick after the winter break), mirror that shape + players where still valid.
+  const prev=(pickState.prevStarters||[]).map(n=>pickState.squad.find(q=>q.name===n)).filter(p=>p&&!p.injured);
+  if(prev.length===5){
+    const c={DEF:0,MID:0,ATT:0}; prev.forEach(p=>{ if(c[p.pos]!==undefined)c[p.pos]++; });
+    const shape=[c.DEF,c.MID,c.ATT];
+    if(ok.some(f=>f[0]===shape[0]&&f[1]===shape[1]&&f[2]===shape[2])){
+      CURFORM=shape;
+      pickState.slots=slotsFor(...CURFORM);
+      // drop each prior starter into the first matching empty slot
+      for(const pl of prev){ const slot=pickState.slots.find(s=>s.pos===pl.pos&&!s.player); if(slot) slot.player=pl.name; }
+      return;
+    }
+  }
   CURFORM = ok.some(f=>f[0]===1&&f[1]===2&&f[2]===1)?[1,2,1]:(ok[0]||[1,2,1]);
   pickState.slots = slotsFor(...CURFORM);
 }
@@ -1042,11 +1055,28 @@ function pickTags(pl){
   const grew=pl.grew||0;
   const grewCol=grew>0?'#39d97c':grew<0?'#FF5247':'#9A9AA8';
   const grewBit=grew?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${grewCol}">${grew>0?'+'+grew:grew}</span>`:'';
-  const hasStats=(pl.goals!=null||pl.assists!=null||pl.form!=null);
+  const hasStats=((pl.goals||0)>0||(pl.assists||0)>0||pl.form!=null);
   if(!hasStats) return grewBit;
   const formCol=pl.form==null?'#9A9AA8':pl.form>=8?'#39d97c':pl.form>=6?'#FFD23D':pl.form>=4?'#FF9838':'#FF5247';
   const formTxt=pl.form==null?'NEW':pl.form.toFixed(1);
   return `${grewBit} <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:#FFD23D;border-radius:5px;padding:1px 4px">${pl.goals||0}G</span> <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:#5BC8FF;border-radius:5px;padding:1px 4px">${pl.assists||0}A</span> <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:${formCol};border-radius:5px;padding:1px 4px">${formTxt}</span>`;
+}
+function slotCardInner(pl,pos){
+  // full tag-box card used for placed starters on the pitch — mirrors the winter card spec:
+  // rating + change TOP-LEFT, form TOP-RIGHT, goals BOTTOM-LEFT, assists BOTTOM-RIGHT, name+pos centred.
+  const grew=pl.grew||0;
+  const grewCol=grew>0?'#39d97c':grew<0?'#FF5247':'#9A9AA8';
+  const grewBit=grew?`<span style="font-family:var(--disp);font-weight:800;font-size:10px;color:${grewCol};line-height:1.3;margin-left:1px">${grew>0?'+'+grew:grew}</span>`:'';
+  // only surface the goals/assists/form tags once there's real season data — pre-season they'd all be 0/NEW (noise)
+  const hasStats=(pl.form!=null||(pl.goals||0)>0||(pl.assists||0)>0);
+  const formCol=pl.form==null?'#9A9AA8':pl.form>=8?'#39d97c':pl.form>=6?'#FFD23D':pl.form>=4?'#FF9838':'#FF5247';
+  const formTxt=pl.form==null?'NEW':pl.form.toFixed(1);
+  return `<div style="position:absolute;top:5px;left:6px;display:flex;align-items:flex-start"><span style="font-family:var(--disp);font-weight:900;font-size:18px;line-height:1">${pl.rtg||''}</span>${grewBit}</div>
+    ${hasStats?`<div style="position:absolute;top:5px;right:6px;font-family:var(--disp);font-weight:800;font-size:10px;color:#000;background:${formCol};border-radius:5px;padding:1px 4px">${formTxt}</div>`:''}
+    <span class="sname" style="margin:0;padding:0 2px;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px">${esc(pl.name)}${pl.wonderkid?' ⭐':''}${pl.legend?' 👑':''}${pl.injured?' 🤕':''}</span>
+    <span class="pos ${pos}" style="margin-top:4px">${pos}</span>
+    ${hasStats?`<div style="position:absolute;bottom:5px;left:6px;font-family:var(--disp);font-weight:800;font-size:9px;color:#000;background:#FFD23D;border-radius:4px;padding:1px 3px">${pl.goals||0}G</div>
+    <div style="position:absolute;bottom:5px;right:6px;font-family:var(--disp);font-weight:800;font-size:9px;color:#000;background:#5BC8FF;border-radius:4px;padding:1px 3px">${pl.assists||0}A</div>`:''}`;
 }
 function renderPick(){
   const p=pickState;
@@ -1055,14 +1085,41 @@ function renderPick(){
     const idxs=p.slots.map((x,i)=>x.pos===pos?i:-1).filter(i=>i>=0);
     if(!idxs.length) return '';
     return `<div class="prow">${idxs.map(i=>{const x=p.slots[i];
-      return x.player
-        ? `<div class="slot filled" onclick="clearSlot(${i})"><span class="pos ${pos}">${pos}</span><span class="sname">${esc(x.player)}</span><span style="font-family:var(--disp);font-weight:800;font-size:16px;opacity:.9">${(p.squad.find(q=>q.name===x.player)||{}).rtg||''}</span></div>`
+      const pl=p.squad.find(q=>q.name===x.player);
+      return x.player && pl
+        ? `<div class="slot filled" style="position:relative;justify-content:center;padding:18px 4px 16px" onclick="clearSlot(${i})">${slotCardInner(pl,pos)}</div>`
         : `<div class="slot"><span class="plus">＋</span>${pos}</div>`;}).join('')}</div>`;
   }).join('');
   const filled = used.length;
+  const isWinter = p.half==='winter';
+  const eyebrow = p.half==='first'?'Pre-season':p.half==='winter'?'Winter break':'Second half';
+  const heading = isWinter?'Set your winter lineup':'Pick your five';
+  // winter-only context header: war chest + injuries (growth/goals/form already show on every card)
+  let winterHead='';
+  if(isWinter && W){
+    const myBudget=(W.budgets||[]).find(b=>b.manager===ME.name);
+    winterHead=`<div class="muted" style="font-size:14px;margin:0 0 8px;line-height:1.45">Your squad has grown and faded over the first half — updated ratings, goals, assists &amp; form are on every card. ${myBudget?`War chest: <b style="color:#fff">£${myBudget.budget}m</b> (+£50m) for the winter market.`:''}</div>
+    ${W.injuries && W.injuries.length?`<div class="panel" style="border-color:var(--att);padding:10px 12px;margin:8px 0">${W.injuries.map(i=>`<div style="padding:3px 0">🤕 <b>${esc(i.player)}</b> (${esc(i.manager)}) — out for the season</div>`).join('')}</div>`:''}
+    ${W.sackings && W.sackings.length?`<div class="panel" style="border-color:var(--att);padding:10px 12px;margin:8px 0">${W.sackings.map(x=>`<div style="padding:3px 0">🪓 <b>${esc(x.manager)}</b> sacked — ${esc(x.club)} carry on without him</div>`).join('')}</div>`:''}`;
+  }
+  // submit control differs per screen
+  let submitBtn;
+  if(isWinter){
+    const solo=!!ME.solo;
+    const humans=WINTER_READY?WINTER_READY.total:null, readyCount=WINTER_READY?WINTER_READY.ready.length:0;
+    if(WINTER_IAMREADY){
+      submitBtn=`<button class="primary" style="width:100%;margin-top:14px;opacity:.6" disabled>Lineup locked ✓ — waiting for others</button>
+        ${humans!=null?`<div class="muted center" style="margin-top:8px">${readyCount}/${humans} managers ready</div>`:''}`;
+    } else {
+      submitBtn=`<button class="primary" style="width:100%;margin-top:14px" ${filled===5?'':'disabled'} onclick="submitWinterPick()">${solo?`Confirm lineup &amp; open market ▸ (${filled}/5)`:`Lock lineup &amp; ready up (${filled}/5)`}</button>`;
+    }
+  } else {
+    submitBtn=`<button class="primary" style="width:100%;margin-top:14px" ${filled===5?'':'disabled'} onclick="submitPick()">Ready up (${filled}/5)</button>`;
+  }
   $k(`${topBar('goBack(1)')}
-  <div class="eyebrow">${p.half==='first'?'Pre-season':'Second half'}</div>
-  <h1 style="margin-bottom:6px">Pick your five</h1>
+  <div class="eyebrow">${eyebrow}</div>
+  <h1 style="margin-bottom:6px">${heading}</h1>
+  ${winterHead}
   ${formChips(p.squad.filter(x=>!x.injured),'pickForm')}
   ${unitBars(p.slots, p.squad)}
   <div class="pitch">${rows}</div>
@@ -1074,9 +1131,15 @@ function renderPick(){
       <span class="pos ${pl.pos}">${pl.pos}</span>${esc(pl.name)}${pl.wonderkid?' ⭐':''}${pl.legend?' 👑':''}${pl.rtg?` <b style="opacity:.85">${pl.rtg}</b>`:''}${pickTags(pl)}${pl.injured?' 🤕':''}</button>`).join('')}
   </div>
   <div class="muted" style="margin-top:8px">Anyone not placed starts on the bench.</div>
-  ${(p.half==='second')?standingsBtnHTML():''}
-  <button class="primary" style="width:100%;margin-top:14px" ${filled===5?'':'disabled'}
-    onclick="submitPick()">Ready up (${filled}/5)</button>`);
+  ${(p.half==='second'||isWinter)?standingsBtnHTML():''}
+  ${submitBtn}
+  ${isWinter?statPanels(W.stats,true):''}`);
+}
+function submitWinterPick(){
+  const starters=pickState.slots.map(x=>x.player).filter(Boolean);
+  if(starters.length!==5) return toast('Place all 5 first ('+starters.length+'/5)');
+  WINTER_IAMREADY=true; renderPick();
+  s.emit('submitWinterStarters',{starters},(r)=>{ if(r&&r.error){ WINTER_IAMREADY=false; toast(r.error); renderPick(); } });
 }
 function autoXI(){
   if(!pickState) return;
@@ -1152,7 +1215,7 @@ function renderMatch(m, instant){
       <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
       ${yours?`<div style="font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.1em;color:var(--pink);margin-bottom:8px">YOUR MATCH</div>`:''}
-      ${(m.suspended&&m.suspended.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:15px;color:#FFB347;margin-bottom:8px">⛔ Suspended this game: ${m.suspended.map(esc).join(', ')}</div>`:''}
+      ${(m.replacements&&m.replacements.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:14px;color:#FFD23D;margin-bottom:8px;line-height:1.5">${m.replacements.map(rp=>`⛔ Suspended: ${esc(rp.suspended)}${rp.replacement?`<br>↳ Replacement: ${esc(rp.replacement)}`:'<br>↳ No replacement available'}`).join('<br>')}</div>`:''}
       ${teamLine(m.home,m.homeMgr,m.homePos,0.1,m.homeForm,'#FFD23D')}
       <div class="muted" style="font-size:16px;margin:4px 0;opacity:0;animation:cerIn .4s .5s forwards">vs</div>
       ${teamLine(m.away,m.awayMgr,m.awayPos,0.8,m.awayForm,'#FFFFFF')}
@@ -1287,77 +1350,31 @@ function applyWinter(w){
   W=w;
   if(w.table) STANDINGS=w.table;
   if(w.stats) STANDINGS_STATS=w.stats;
-  renderWinterLineup();
+  STANDINGS_ON = (typeof ME.standings==='boolean') ? ME.standings : (w.showStandings!==false);
+  STANDINGS_REVEALED=true; // winter break: half is over, the table is safe to view
+  clearTimeout(window.__standReveal);
+  const mine = w.review.find(r=> (ME.uid&&r.uid)?r.uid===ME.uid:r.manager===ME.name) || w.review.find(r=>r.manager===ME.name);
+  if(ME.sacked || !mine){ renderWinterSacked(); return; }
+  // Build the SAME interactive pick state as the other two lineup screens, seeded with the prior XI.
+  pickState={ half:'winter', squad:mine.players, slots:null, prevStarters:(mine.starterCards||[]).map(p=>p.name) };
+  initSlots();
+  renderPick();
 }
 s.on('winter',applyWinter);
-s.on('winterUpdate',(u)=>{ if(W&&u.review){ W.review=u.review; if(document.querySelector('[data-winterscr]')) renderWinterLineup(); } });
-s.on('winterReady',(d)=>{ WINTER_READY=d; if(document.querySelector('[data-winterscr]')) renderWinterLineup(); });
+s.on('winterUpdate',(u)=>{ if(W&&u.review){ W.review=u.review; } });
+s.on('winterReady',(d)=>{ WINTER_READY=d; if(pickState && pickState.half==='winter' && !WINTER_IAMREADY) renderPick(); });
 let WINTER_READY=null;
 let WINTER_IAMREADY=false;
-function winterReadyUp(){
-  WINTER_IAMREADY=true;
-  s.emit('winterReady',{ready:true},(r)=>{ if(r&&r.error){ WINTER_IAMREADY=false; toast(r.error); } });
-  renderWinterLineup();
+function renderWinterSacked(){
+  $(`${topBar('home()')}
+  <div class="eyebrow" style="padding-top:4px">Winter break</div>
+  <h1 style="margin-bottom:6px">You were sacked</h1>
+  <div class="blackbox" style="padding:18px;text-align:center;margin:10px 0"><div class="muted">Your club plays on under AI control. Sit back and watch the run-in.</div></div>
+  ${standingsBtnHTML()}
+  <div class="center muted" style="padding:14px 0">Waiting for the others…</div>`);
 }
 function winterNextSolo(){ s.emit('startWinterAuction',(r)=>{ if(r&&r.error) toast(r.error); }); }
 // goals/assists/form/rating mini-boxes drawn onto each lineup card
-function winterCard(p){
-  const col={GK:'#E8B931',DEF:'#3D7BFF',MID:'#2EC96E',ATT:'#FF5247'}[p.pos]||'#888';
-  const grew=p.grew||0;
-  const grewCol=grew>0?'#39d97c':grew<0?'#FF5247':'#9A9AA8';
-  const grewTxt=grew>0?'+'+grew:grew<0?(''+grew):'±0';
-  const formCol=p.form==null?'#9A9AA8':p.form>=8?'#39d97c':p.form>=6?'#FFD23D':p.form>=4?'#FF9838':'#FF5247';
-  const formTxt=p.form==null?'NEW':p.form.toFixed(1);
-  return `<div class="wcard" data-name="${esc(p.name)}" data-pos="${p.pos}" style="position:relative;background:linear-gradient(165deg,${col}22,#000 70%);border:2px solid ${col}99;border-radius:14px;padding:10px 8px 8px;text-align:center;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">
-    <div style="position:absolute;top:6px;left:7px;display:flex;align-items:flex-start;gap:3px">
-      <span style="font-family:var(--disp);font-weight:900;font-size:24px;line-height:1;color:#fff">${p.rtg}</span>
-      <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${grewCol};line-height:1.4">${grewTxt}</span>
-    </div>
-    <div style="position:absolute;top:6px;right:7px;font-family:var(--disp);font-weight:800;font-size:13px;color:#000;background:${formCol};border-radius:7px;padding:3px 6px;min-width:34px">${formTxt}</div>
-    <div style="position:absolute;bottom:30px;right:7px;font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:#FFD23D;border-radius:6px;padding:2px 5px">${p.goals||0}G</div>
-    <div style="position:absolute;bottom:8px;right:7px;font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:#5BC8FF;border-radius:6px;padding:2px 5px">${p.assists||0}A</div>
-    <span class="pos ${p.pos}" style="position:absolute;bottom:8px;left:7px;margin:0">${p.pos}</span>
-    <div style="font-size:13px;font-weight:800;line-height:1.1;width:100%;padding:0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:26px">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.injured?' 🤕':''}</div>
-  </div>`;
-}
-function renderWinterLineup(){
-  if(!W) return;
-  const mine = W.review.find(r=> (ME.uid&&r.uid)?r.uid===ME.uid:r.manager===ME.name) || W.review.find(r=>r.manager===ME.name);
-  const myBudget = (W.budgets||[]).find(b=>b.manager===ME.name);
-  STANDINGS_ON = (typeof ME.standings==='boolean') ? ME.standings : (W.showStandings!==false);
-  if(W.table) STANDINGS=W.table;
-  STANDINGS_REVEALED=true; // winter break: results are already in, standings safe to view
-  const players = mine ? mine.players : [];
-  // group by line for a lineup-style layout
-  const line=(pos)=>players.filter(p=>p.pos===pos);
-  const grid=(arr)=>arr.length?`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin-bottom:8px">${arr.map(winterCard).join('')}</div>`:'';
-  const solo = !!ME.solo;
-  const humans = WINTER_READY ? WINTER_READY.total : null;
-  const readyCount = WINTER_READY ? WINTER_READY.ready.length : 0;
-  const onWinter = !!document.querySelector('[data-winterscr]');
-  const render = onWinter ? $k : $;
-  render(`<div data-winterscr style="padding-top:max(92px,calc(env(safe-area-inset-top) + 76px))"></div>
-  <div class="eyebrow" style="padding-top:4px">Winter break</div>
-  <h1 style="margin-bottom:6px">Your squad at the break</h1>
-  <div class="muted" style="font-size:14px;margin:0 0 4px;line-height:1.45">Updated ratings, season goals &amp; assists, and form. ${myBudget?`War chest: <b style="color:#fff">£${myBudget.budget}m</b> (+£50m)`:''}</div>
-  ${W.injuries && W.injuries.length?`<div class="panel" style="border-color:var(--att);padding:10px 12px">${W.injuries.map(i=>`<div style="padding:3px 0">🤕 <b>${esc(i.player)}</b> (${esc(i.manager)}) — out for the season</div>`).join('')}</div>`:''}
-  ${W.sackings && W.sackings.length?`<div class="panel" style="border-color:var(--att);padding:10px 12px">${W.sackings.map(x=>`<div style="padding:3px 0">🪓 <b>${esc(x.manager)}</b> sacked — ${esc(x.club)} carry on without him</div>`).join('')}</div>`:''}
-  ${ME.sacked?`<div class="blackbox" style="padding:18px;text-align:center;margin:10px 0"><div class="score" style="font-size:22px;color:var(--att)">You were sacked</div><div class="muted" style="margin-top:6px">Your club plays on under AI control.</div></div>`
-    : players.length?`<div style="margin-top:8px">
-        <div class="flabel" style="margin:8px 0 4px">⚔️ Attack</div>${grid(line('ATT'))}
-        <div class="flabel" style="margin:8px 0 4px">🎯 Midfield</div>${grid(line('MID'))}
-        <div class="flabel" style="margin:8px 0 4px">🛡️ Defence</div>${grid(line('DEF'))}
-        <div class="flabel" style="margin:8px 0 4px">🧤 Goalkeeper</div>${grid(line('GK'))}
-      </div>`:''}
-  ${standingsBtnHTML()}
-  ${solo
-    ? `<button class="startready" style="width:100%;max-width:340px;margin:14px auto 0;display:block" onclick="winterNextSolo()">Next: winter market ▸</button>`
-    : (ME.sacked
-        ? `<div class="center muted" style="padding:14px 0">Waiting for the others to ready up…</div>`
-        : `<button class="${WINTER_IAMREADY?'':'startready'}" ${WINTER_IAMREADY?'disabled':''} style="width:100%;max-width:340px;margin:14px auto 0;display:block;${WINTER_IAMREADY?'opacity:.6':''}" onclick="winterReadyUp()">${WINTER_IAMREADY?'Ready ✓ — waiting for others':'Ready up ▸'}</button>
-           ${humans!=null?`<div class="muted center" style="margin-top:8px">${readyCount}/${humans} managers ready</div>`:''}`)}
-  ${statPanels(W.stats,true)}`);
-}
 /* stats helpers (kept; used on the winter lineup + nowhere else now) */
 function statPanels(st,mineOnly){
   let scorers=(st&&st.topScorers)||[], assists=(st&&st.topAssists)||[];

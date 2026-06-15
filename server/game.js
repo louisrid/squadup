@@ -782,6 +782,7 @@ class Game {
       standings: this.season ? this.table() : null,
       perManager: this.activeManagers().map((m) => ({
         id: m.id, uid: m.uid || null,
+        prevStarters: (m.starters || []).map((p) => p.name),
         squad: m.squad.map((p) => ({
           name: p.name, pos: p.pos, injured: p.name === m.injured, rtg: p.rating,
           wonderkid: !!p.wonderkid, legend: !!p.legend, hero: !!p.hero, grew: p.grew || 0,
@@ -886,6 +887,32 @@ class Game {
     return { ok: true, formation: 'FREE', starters: five.map((p) => p.name) };
   }
 
+  // Winter break: if a human disconnects without locking their lineup, after a grace period give them
+  // a sensible auto-lineup and mark them ready, so the other managers are never stuck waiting.
+  autoReadyWinterGhosts() {
+    if (this.phase !== 'winter') return;
+    if (this.managers.filter((m) => !m.isBot).length <= 1) return; // SOLO: just wait for them to return
+    this.winterReady = this.winterReady || new Set();
+    const pending = this.activeManagers().filter((m) => !m.isBot && !this.winterReady.has(m.uid || m.id));
+    const anyPendingConnected = pending.some((m) => m.connected);
+    if (pending.length === 0 || anyPendingConnected) return; // someone still here & deciding
+    clearTimeout(this.timers.ghostWinter);
+    const wait = FAST ? 250 : 60000;
+    this.timers.ghostWinter = setTimeout(() => {
+      if (this.phase !== 'winter') return;
+      const stillPending = this.activeManagers().filter((m) => !m.isBot && !this.winterReady.has(m.uid || m.id));
+      const stillGhosts = stillPending.length > 0 && !stillPending.some((m) => m.connected);
+      if (!stillGhosts) return;
+      for (const m of stillPending) {
+        const avail = m.squad.filter((p) => p.name !== m.injured);
+        const starters = Game.legalFive(avail, (l) => [...l].sort((a, b) => b.rating - a.rating)) || avail.slice(0, 5);
+        m.formation = Game.deriveStyle(starters);
+        m.starters = starters;
+        this.setWinterReady(m.id, true); // last one flips allReady -> winter auction
+      }
+    }, wait);
+  }
+
   autoPickIfOnlyGhosts() {
     if (!this.pendingStarters || this.pendingStarters.size === 0) return;
     const pendingConnected = [...this.pendingStarters].some((id) => {
@@ -978,6 +1005,25 @@ class Game {
     return out;
   }
 
+  // Returns [{ suspended, replacement, pos }] for a team on a matchday — used for the yellow
+  // "Suspended / Replacement" note and to know a replacement is being fielded (small team penalty).
+  replacementsFor(t, md) {
+    if (t.type === 'ai') return [];
+    const m = this.managers[t.mIdx];
+    this.suspensions = this.suspensions || {};
+    const pairs = [];
+    for (const p of m.starters) {
+      if (this.suspensions[p.name] !== md) continue;
+      const sub = m.squad
+        .filter((q) => !m.starters.includes(q) && q.name !== m.injured && q.pos === p.pos)
+        .sort((a, b) => (b.rating + b.seasonMod) - (a.rating + a.seasonMod))[0]
+        || m.squad.filter((q) => !m.starters.includes(q) && q.name !== m.injured && q.pos !== 'GK' && p.pos !== 'GK')
+        .sort((a, b) => (b.rating + b.seasonMod) - (a.rating + a.seasonMod))[0];
+      pairs.push({ suspended: p.name, suspendedPos: p.pos, replacement: sub ? sub.name : null, replacementPos: sub ? sub.pos : null });
+    }
+    return pairs;
+  }
+
   teamStrengthNow(t, md) {
     if (t.type === 'ai') return { attack: t.attack + (t.comeback || 0), midfield: (t.midfield != null ? t.midfield : t.attack) + (t.comeback || 0), defence: t.defence + (t.comeback || 0) };
     const m = this.managers[t.mIdx];
@@ -985,9 +1031,9 @@ class Game {
     this.rusty = this.rusty || {};
     const eligible = this.lineupFor(t, md) || [];
     const s = E.teamStrength(eligible.length ? eligible : m.starters, m.formation);
-    // a player coming back from a red is rusty: small, slightly noticeable team penalty that one game
-    const rustyBack = eligible.some((p) => this.rusty[p.name] === md);
-    const pen = rustyBack ? 1.2 : 0;
+    // the game a suspended player MISSES, the makeshift replacement disrupts the side (small one-game penalty)
+    const hasReplacement = this.replacementsFor(t, md).length > 0;
+    const pen = hasReplacement ? 1.2 : 0;
     return { attack: s.attack + (t.comeback || 0) - pen, midfield: s.midfield + (t.comeback || 0) - pen, defence: s.defence + (t.comeback || 0) - pen };
   }
 
@@ -1057,6 +1103,8 @@ class Game {
       else if (r.goalsA < r.goalsB) { this.season.pts[b] += 3; this.season.w[b]++; this.season.l[a]++; }
       else { this.season.pts[a]++; this.season.pts[b]++; this.season.d[a]++; this.season.d[b]++; }
       out.push({ md, a, b, ...r, detail, suspended,
+        suspReplA: TA.type === 'human' ? this.replacementsFor(TA, md) : [],
+        suspReplB: TB.type === 'human' ? this.replacementsFor(TB, md) : [],
         homeForm: TA.type === 'human' ? Game.formationName(this.managers[TA.mIdx].starters).key : null,
         awayForm: TB.type === 'human' ? Game.formationName(this.managers[TB.mIdx].starters).key : null,
         humans: (sA ? 1 : 0) + (sB ? 1 : 0) });
@@ -1133,6 +1181,7 @@ class Game {
       homeForm: item.homeForm || null,
       awayForm: item.awayForm || null,
       suspended: item.suspended || [],
+      replacements: [...(item.suspReplA || []), ...(item.suspReplB || [])].filter((x) => x.suspended),
       featured: item.humans === 2,
       hostName: host ? host.name : 'Host',
     };
@@ -1295,24 +1344,30 @@ class Game {
       sackings: this.winterSackings,
       breakdowns: this.buildBreakdowns(),
       race: this.raceHistory(),
-      review: this.activeManagers().map((m) => ({
+      review: this.activeManagers().map((m) => {
+        const ps = this.season ? this.season.playerStats : {};
+        const enrich = (p) => ({
+          name: p.name, pos: p.pos, legend: !!p.legend, wonderkid: !!p.wonderkid, hero: !!p.hero, rtg: p.rating,
+          form: p.winterForm != null ? p.winterForm : null,
+          grew: p.grew || 0,
+          goals: (ps[p.name] || {}).goals || 0,
+          assists: (ps[p.name] || {}).assists || 0,
+          injured: p.name === m.injured,
+        });
+        return {
         id: m.id,
         manager: m.name,
         club: m.club,
         locked: this.pendingStarters && this.startersHalf === 'second' ? !this.pendingStarters.has(m.id) : false,
         units: this.unitScores(m),
         starters: (m.starters || []).map((p) => p.name),
+        starterCards: (m.starters || []).map(enrich), // full XI in saved order, for the pitch view
+        formation: m.formation || Game.deriveStyle(m.starters || []),
         tips: this.assistantTips(m),
         validFormations: this.validFormations(m),
-        players: m.squad.map((p) => ({
-          name: p.name, pos: p.pos, legend: !!p.legend, wonderkid: !!p.wonderkid, hero: !!p.hero, rtg: p.rating,
-          form: p.winterForm != null ? p.winterForm : null,
-          grew: p.grew || 0,
-          goals: (this.season.playerStats[p.name] || {}).goals || 0,
-          assists: (this.season.playerStats[p.name] || {}).assists || 0,
-          injured: p.name === m.injured,
-        })),
-      })),
+        players: m.squad.map(enrich),
+      };
+      }),
     };
   }
 
@@ -1379,6 +1434,28 @@ class Game {
 
   // Winter lineup readiness (multiplayer): each human readies up on the lineup screen; once every
   // active human is ready the winter auction begins automatically. Single player starts it directly.
+  // Winter break lineup: save the manager's chosen XI + formation, then mark them ready.
+  // Validates exactly like submitStarters so the saved lineup is always legal.
+  submitWinterStarters(managerId, starterNames) {
+    if (this.phase !== 'winter') return { error: 'Not the winter break' };
+    const m = this.managers.find((x) => x.id === managerId);
+    if (!m || m.sacked) return { error: 'Not in the game' };
+    const names = (starterNames || []).filter(Boolean);
+    const players = names.map((nm) => m.squad.find((p) => p.name === nm)).filter(Boolean);
+    if (players.length !== 5) return { error: 'Pick exactly 5 (you have ' + players.length + ')' };
+    if (new Set(names).size !== 5) return { error: 'Duplicate player picked' };
+    const healthy = m.squad.filter((p) => p.name !== m.injured);
+    if (healthy.length >= 5 && players.some((p) => p.name === m.injured)) return { error: 'Injured player selected' };
+    if (players.filter((p) => p.pos === 'GK').length !== 1) return { error: 'Exactly one keeper' };
+    const fit = healthy.length >= 5 ? healthy : m.squad;
+    for (const pos of ['DEF', 'MID', 'ATT']) {
+      if (fit.some((p) => p.pos === pos) && !players.some((p) => p.pos === pos)) return { error: 'You must field at least one ' + pos };
+    }
+    m.formation = Game.deriveStyle(players);
+    m.starters = players;
+    return this.setWinterReady(managerId, true);
+  }
+
   setWinterReady(managerId, ready) {
     if (this.phase !== 'winter') return { error: 'Not the winter break' };
     const m = this.managers.find((x) => x.id === managerId);
@@ -1623,7 +1700,8 @@ class Game {
     }
     // Host migration is disabled entirely: the host always keeps their seat and reclaims it on
     // reconnect via their stable uid. We never hand the host role to anyone else.
-    if (!connected && (this.phase === 'setup' || this.phase === 'winter')) this.autoPickIfOnlyGhosts();
+    if (!connected && this.phase === 'setup') this.autoPickIfOnlyGhosts();
+    if (!connected && this.phase === 'winter') this.autoReadyWinterGhosts();
     if (!connected && this.phase === 'spin') this.autoSpinIfOnlyGhosts();
     const inAuction = this.phase === 'auction';
     const humanCount = this.managers.filter((x) => !x.isBot).length;
@@ -1701,6 +1779,7 @@ class Game {
       showStandings: !!this.showStandings,
       standings: this.season ? this.table() : null,
       standingsStats: this.season ? this.seasonStats() : null,
+      winterReadyMine: (this.phase === 'winter' && this.winterReady) ? (() => { const me = this.managers.find((x) => x.id === forId); return me ? this.winterReady.has(me.uid || me.id) : false; })() : false,
       managers: this.managers.map((m) => ({
         id: m.id, uid: m.uid || null, name: m.name, club: m.club, ready: m.ready, budget: m.budget, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null,
         squad: m.id === forId ? m.squad.map((p) => ({ name: p.name, pos: p.pos })) : { count: m.squad.length },
@@ -1736,6 +1815,7 @@ class Game {
         return {
           half: this.startersHalf,
           locked: !this.pendingStarters.has(forId),
+          prevStarters: (me.starters || []).map((p) => p.name),
           squad: me.squad.map((p) => ({
             name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating,
             wonderkid: !!p.wonderkid, legend: !!p.legend, hero: !!p.hero, grew: p.grew || 0,
@@ -1745,7 +1825,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v13.8',
+      serverV: 'v14.6',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
