@@ -99,8 +99,8 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .bidflash{animation:bidPulse .55s ease}
 @keyframes bidPulse{0%{transform:scale(1);color:var(--text)}30%{transform:scale(1.14);color:var(--pink)}100%{transform:scale(1)}}
 /* ---------- confetti ---------- */
-.cf{position:fixed;top:0;left:0;width:10px;height:14px;z-index:40;pointer-events:none;animation:cfFall linear forwards;will-change:transform}
-@keyframes cfFall{0%{transform:translateY(-10vh) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:1}}
+.cf{position:fixed;top:0;left:0;width:10px;height:14px;z-index:40;pointer-events:none;animation:cfFall linear both;will-change:transform}
+@keyframes cfFall{0%{transform:translateY(-12vh) rotate(0deg);opacity:1}100%{transform:translateY(112vh) rotate(720deg);opacity:1}}
 /* ---------- my squad mini ---------- */
 .minirow{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;justify-content:flex-start;margin-bottom:10px;padding-bottom:2px}
 .minirow::-webkit-scrollbar{display:none}
@@ -281,7 +281,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v16.3';
+const VERSION = 'v16.4';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -426,12 +426,12 @@ function showSetup(mode){
     <input id="code" placeholder="e.g. 42" inputmode="numeric" pattern="[0-9]*" style="font-family:var(--disp);font-weight:800;font-size:30px;letter-spacing:.14em;text-align:center" maxlength="2">`:''}
     <label class="flabel">Your name</label>
     <div style="display:flex;gap:8px;align-items:center">
-      <input id="name" placeholder="Louis" maxlength="14" style="flex:1">
+      <input id="name" placeholder="Name" maxlength="14" style="flex:1">
       <button onclick="randName()" aria-label="Random name" style="flex:0 0 auto;width:54px;height:54px;font-size:22px;padding:0;border-radius:12px;background:var(--surface2);border:1px solid var(--line)">🎲</button>
     </div>
     <label class="flabel">Club name <span class="muted">(optional)</span></label>
     <div style="display:flex;gap:8px;align-items:center">
-      <input id="club" placeholder="Louis FC" maxlength="18" style="flex:1">
+      <input id="club" placeholder="Team Name" maxlength="18" style="flex:1">
       <button onclick="randClub()" aria-label="Random club" style="flex:0 0 auto;width:54px;height:54px;font-size:22px;padding:0;border-radius:12px;background:var(--surface2);border:1px solid var(--line)">🎲</button>
     </div>
     ${mode==='create'?`<label class="flabel" style="margin-top:14px">Rating hints</label>
