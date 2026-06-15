@@ -238,9 +238,11 @@ tr.me td{background:rgba(255,61,138,.14)}
 .pitch{background:linear-gradient(180deg,#0B2415,#07180D);border:1px solid rgba(46,201,110,.3);
   border-radius:18px;padding:18px 8px;margin:14px 0;position:relative;box-shadow:inset 0 0 50px rgba(0,0,0,.45)}
 .pitch:before{content:'';position:absolute;inset:10px;border:1px solid rgba(255,255,255,.07);border-radius:12px;pointer-events:none}
-.prow{display:flex;justify-content:center;gap:10px;margin:9px 0}
-.pickCard{position:relative;cursor:pointer}
+.prow{display:flex;justify-content:center;align-items:flex-start;gap:10px;margin:9px 0}
+.pickCard{position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;width:96px}
 .pickCard .pcard.sm{width:96px;margin:0}
+.pickStats{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;width:100%}
+.pickStats .st{font-family:var(--disp);font-weight:800;font-size:12px;line-height:1.2;border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:2px 5px;white-space:nowrap}
 .slot{width:100px;min-height:116px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
   border:2px dashed var(--line);color:var(--muted);font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.08em;cursor:pointer}
 .slot.filled{border:2px solid var(--pink);background:var(--surface2);color:var(--text);padding:6px 4px}
@@ -283,7 +285,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v17.4';
+const VERSION = 'v17.7';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -1100,21 +1102,23 @@ function pickTags(pl){
   return `${grewBit} <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#fff;background:var(--red);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:1px 4px">${pl.goals||0}G</span> <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:var(--assist);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:1px 4px">${pl.assists||0}A</span> <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:${formCol};border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:1px 4px">${formTxt}</span>`;
 }
 function statOverlay(pl){
-  // tags overlaid on the real auction card: rating+change top-right, form below it, goals/assists bottom corners.
-  // (position badge + name + colour fill all come from cardHTML.)
+  // rating (+ growth) overlaid top-right on the card; form/goals/assists shown in a READABLE strip below it.
   const grew=pl.grew||0;
   const grewCol=grew>0?'#1FE060':grew<0?'#FF5247':'#9A9AA8';
-  const grewBit=grew?`<span style="font-size:9px;color:${grewCol};margin-left:2px">${grew>0?'+'+grew:grew}</span>`:'';
+  const grewBit=grew?`<span style="font-size:11px;color:${grewCol};margin-left:2px">${grew>0?'+'+grew:grew}</span>`:'';
   const hasStats=(pl.form!=null||(pl.goals||0)>0||(pl.assists||0)>0);
   const formCol=pl.form==null?'#9A9AA8':pl.form>=8?'#1FE060':pl.form>=6?'#FFD23D':pl.form>=4?'#FF9838':'#FF5247';
   const formTxt=pl.form==null?'NEW':pl.form.toFixed(1);
-  const tag=(bg,txt,fg)=>`<span style="font-family:var(--disp);font-weight:800;font-size:9px;color:${fg};background:${bg};border:1px solid rgba(255,255,255,.35);border-radius:4px;padding:1px 3px;line-height:1.25">${txt}</span>`;
-  return `<div style="position:absolute;top:5px;right:5px;display:flex;flex-direction:column;align-items:flex-end;gap:3px;z-index:2">
-      <span style="font-family:var(--disp);font-weight:900;font-size:16px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);line-height:1">${pl.rtg||''}${grewBit}</span>
-      ${hasStats?tag(formCol,formTxt,'#000'):''}
-    </div>
-    ${hasStats?`<div style="position:absolute;bottom:24px;left:5px;z-index:2">${tag('var(--red)',(pl.goals||0)+'G','#fff')}</div>
-    <div style="position:absolute;bottom:24px;right:5px;z-index:2">${tag('var(--assist)',(pl.assists||0)+'A','#000')}</div>`:''}`;
+  const ratingOverlay=`<div style="position:absolute;top:5px;right:5px;z-index:2">
+      <span style="font-family:var(--disp);font-weight:900;font-size:18px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.85);line-height:1">${pl.rtg||''}${grewBit}</span>
+    </div>`;
+  if(!hasStats) return ratingOverlay;
+  const strip=`<div class="pickStats">
+      <span class="st" style="background:var(--red);color:#fff">⚽${pl.goals||0}</span>
+      <span class="st" style="background:var(--assist);color:#000">🅰${pl.assists||0}</span>
+      <span class="st" style="background:${formCol};color:#000">${formTxt}</span>
+    </div>`;
+  return ratingOverlay + strip;
 }
 function renderPick(){
   const p=pickState;
@@ -1260,7 +1264,7 @@ function renderMatch(m, instant){
       <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
       ${yours?`<div style="font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.1em;color:#FFFFFF;margin-bottom:8px">YOUR MATCH</div>`:''}
-      ${(m.replacements&&m.replacements.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:14px;color:var(--you);margin-bottom:8px;line-height:1.5">${m.replacements.map(rp=>`⛔ Suspended: ${esc(rp.suspended)}${rp.replacement?`<br>↳ Replacement: ${esc(rp.replacement)}`:'<br>↳ No replacement available'}`).join('<br>')}</div>`:''}
+      ${(m.replacements&&m.replacements.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:14px;color:#FFFFFF;margin-bottom:8px;line-height:1.5">${m.replacements.map(rp=>`⛔ Suspended: ${esc(rp.suspended)}${rp.replacement?`<br>↳ Replacement: ${esc(rp.replacement)}`:'<br>↳ No replacement available'}`).join('<br>')}</div>`:''}
       ${teamLine(m.home,m.homeMgr,m.homePos,0.1,m.homeForm,(ME.club&&m.home===ME.club)?'var(--you)':'#FFFFFF',(ME.club&&m.home===ME.club))}
       <div class="muted" style="font-size:16px;margin:4px 0;opacity:0;animation:cerIn .4s .5s forwards">vs</div>
       ${teamLine(m.away,m.awayMgr,m.awayPos,0.8,m.awayForm,(ME.club&&m.away===ME.club)?'var(--you)':'#FFFFFF',(ME.club&&m.away===ME.club))}
@@ -1357,9 +1361,9 @@ function openStandings(){
     : `<div class="muted" style="padding:12px 2px;font-size:13px">None yet</div>`;
   const ov=document.createElement('div');
   ov.id='standOv';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);z-index:120;display:flex;align-items:center;justify-content:center;padding:20px;animation:mFade .15s ease;touch-action:none';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);z-index:120;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;animation:mFade .15s ease;touch-action:none';
   ov.onclick=closeStandings;
-  ov.innerHTML=`<div onclick="event.stopPropagation()" style="position:relative;width:100%;max-width:380px;max-height:66vh;display:flex;flex-direction:column;background:var(--surface);border:2px solid var(--line);border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.6);overflow:hidden">
+  ov.innerHTML=`<div onclick="event.stopPropagation()" style="position:relative;width:100%;max-width:380px;max-height:80vh;box-sizing:border-box;display:flex;flex-direction:column;background:var(--surface);border:2px solid var(--line);border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.6);overflow:hidden">
     <button onclick="closeStandings()" aria-label="Close" style="position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;font-size:16px;line-height:1;padding:0;background:var(--surface2);border:1px solid var(--line);color:var(--text);z-index:2">✕</button>
     <div style="padding:16px 16px 12px;border-bottom:1px solid var(--line);flex-shrink:0">
       <div style="font-family:var(--disp);font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.03em;padding-right:34px">📊 League table</div>
@@ -1462,14 +1466,14 @@ function runLeagueRace(f){
   const leaderNow=()=>{ const r=teams.map(t=>({n:t.manager||t.name,p:t.pts[Math.min(md,t.pts.length-1)]})).sort((a,b)=>b.p-a.p); return r[0]&&r[0].n; };
   draw(); sfx('tick'); prevLeader=leaderNow();
   const stepAll=()=>{
+    if(!document.getElementById('raceRows')){ ceremonyPodium(window.__finalData); return; }
     md++;
     if(md>=MD){
       draw(); sfx('prize');
-      // HOLD on the final standings — host presses next, others wait, so everyone can examine it
+      // the ceremony is just a local animation of final data everyone already has —
+      // let ANY player advance themselves so nobody can get stuck waiting on a host.
       const nx=document.getElementById('raceNext');
-      if(nx){ nx.innerHTML = ME.isHost
-        ? `<button class="primary bigbtn" style="max-width:300px" onclick="ceremonyPodium(window.__finalData)">Continue to the podium ▸</button>`
-        : `<div class="muted">${esc((window.__finalData&&window.__finalData.hostName)||'The host')} will continue when ready…</div>`; }
+      if(nx){ nx.innerHTML = `<button class="primary bigbtn" style="max-width:300px" onclick="ceremonyPodium(window.__finalData)">Continue to the podium ▸</button>`; }
       return;
     }
     draw();

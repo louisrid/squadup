@@ -377,7 +377,10 @@ class Game {
 
   canBuyPlayer(m, p) {
     if (m.sacked || m.budget < 1) return false;
-    if (p.pos === 'GK' && m.squad.some((x) => x.pos === 'GK')) return false;
+    // In the MAIN auction, don't let a manager stockpile keepers. In the WINTER market the whole
+    // point of a premium GK is to upgrade, so allow it even if they already own one.
+    const winter = this.auction && this.auction.window === 'winter';
+    if (p.pos === 'GK' && !winter && m.squad.some((x) => x.pos === 'GK')) return false;
     return true;
   }
 
@@ -508,7 +511,7 @@ class Game {
     // randomise order every lot so no single bot has a permanent first-mover advantage
     const bots = E.shuffle(this.activeManagers().filter((m) => m.isBot));
     for (const m of bots) {
-      if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue; // can never hold 2 keepers
+      if (a.current.pos === 'GK' && a.window !== 'winter' && m.squad.some((p) => p.pos === 'GK')) continue; // main auction: keeper cap (winter allows an upgrade)
       const need = this.botNeeds(m).needs(a.current.pos);
       const hard = m.diff === 'hard';
       const winterMkt = a.window === 'winter';
@@ -553,7 +556,7 @@ class Game {
     const a = this.auction;
     if (!a || !a.current) return;
     for (const m of this.activeManagers().filter((x) => x.isBot)) {
-      if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue;
+      if (a.current.pos === 'GK' && a.window !== 'winter' && m.squad.some((p) => p.pos === 'GK')) continue;
       const hard = m.diff === 'hard';
       const chance = hard ? 0.45 : 0.18; // hard bots snipe often, easy bots occasionally
       if (Math.random() >= chance) continue;
@@ -582,7 +585,7 @@ class Game {
     const lotName = a.current.name;
     for (const m of E.shuffle(this.activeManagers().filter((x) => x.isBot))) {
       if (m.id === a.highBidder) continue; // already winning
-      if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) continue;
+      if (a.current.pos === 'GK' && a.window !== 'winter' && m.squad.some((p) => p.pos === 'GK')) continue;
       const ceiling = this.botMaxBid(m, a.current);
       if (ceiling <= a.highBid) continue; // priced out — walk away cleanly
       // a human-ish reactive counter-bid after a short think (1-5m jumps)
@@ -617,7 +620,7 @@ class Game {
     if (amount < minBid) return { error: `Min bid £${minBid}m` };
     if (amount > m.budget) return { error: 'Not enough budget' };
     if (a.highBidder === m.id) return { error: 'Already highest bidder' };
-    if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) return { error: 'You already have a keeper' };
+    if (a.current.pos === 'GK' && a.window !== 'winter' && m.squad.some((p) => p.pos === 'GK')) return { error: 'You already have a keeper' };
     if (a.outs.has(m.id)) return { error: 'You gave up on this lot' };
     a.highBid = amount;
     a.highBidder = m.id;
@@ -662,7 +665,7 @@ class Game {
     if (this.timers.botBids) { this.timers.botBids.forEach(clearTimeout); this.timers.botBids = []; }
     const interested = this.activeManagers()
       .filter((b) => b.isBot)
-      .filter((b) => !(a.current.pos === 'GK' && b.squad.some((p) => p.pos === 'GK')))
+      .filter((b) => !(a.current.pos === 'GK' && a.window !== 'winter' && b.squad.some((p) => p.pos === 'GK')))
       .map((b) => ({ b, max: this.botMaxBid(b, a.current) }))
       .filter((x) => x.max >= Math.max(1, a.highBid + 1))
       .sort((x, y) => y.max - x.max);
@@ -690,7 +693,7 @@ class Game {
       if (a.outs.has(m.id)) return false;
       if (m.id === a.highBidder) return false;
       if (m.budget < a.highBid + 1) return false;
-      if (a.current.pos === 'GK' && m.squad.some((p) => p.pos === 'GK')) return false;
+      if (a.current.pos === 'GK' && a.window !== 'winter' && m.squad.some((p) => p.pos === 'GK')) return false;
       return true;
     });
     if (contenders.length === 0) {
@@ -1203,8 +1206,8 @@ class Game {
       away: this.season.teams[item.b].name,
       homeMgr: this.season.teams[item.a].type === 'human' ? this.managers[this.season.teams[item.a].mIdx].name : null,
       awayMgr: this.season.teams[item.b].type === 'human' ? this.managers[this.season.teams[item.b].mIdx].name : null,
-      homePos: this.season.teams[item.a].type === 'ai' ? this.table().findIndex((r) => r.name === this.season.teams[item.a].name) + 1 : null,
-      awayPos: this.season.teams[item.b].type === 'ai' ? this.table().findIndex((r) => r.name === this.season.teams[item.b].name) + 1 : null,
+      homePos: (this.season.teams[item.a].type === 'ai' || (this.season.teams[item.a].mIdx != null && this.managers[this.season.teams[item.a].mIdx] && this.managers[this.season.teams[item.a].mIdx].isBot)) ? this.table().findIndex((r) => r.name === this.season.teams[item.a].name) + 1 : null,
+      awayPos: (this.season.teams[item.b].type === 'ai' || (this.season.teams[item.b].mIdx != null && this.managers[this.season.teams[item.b].mIdx] && this.managers[this.season.teams[item.b].mIdx].isBot)) ? this.table().findIndex((r) => r.name === this.season.teams[item.b].name) + 1 : null,
       score: [item.goalsA, item.goalsB],
       events: item.detail ? item.detail.events : [],
       homeForm: item.homeForm || null,
@@ -1871,7 +1874,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v17.4',
+      serverV: 'v17.7',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
