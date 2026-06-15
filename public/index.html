@@ -273,7 +273,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v13.1';
+const VERSION = 'v13.2';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -960,9 +960,9 @@ function rebuildSlots(oldSlots, avail, d, m2, a){
 function formationInfo(slots){
   const c={DEF:0,MID:0,ATT:0};
   slots.forEach(x=>{ if(c[x.ppos]!=null)c[x.ppos]++; }); // count the SHAPE (all slots), not just filled ones
-  if(c.ATT>c.DEF) return {name:'Attacking',shape:'1-1-2',blurb:['Score more goals','Concede a little more'],col:'#FF8FB6',key:'ATT'};
-  if(c.DEF>c.ATT) return {name:'Defensive',shape:'2-1-1',blurb:['Concede fewer goals','Score a little less'],col:'#7FB8FF',key:'DEF'};
-  return {name:'Balanced',shape:'1-2-1',blurb:['Strong midfield control','Steady at both ends'],col:'#C9D2E0',key:'BAL'};
+  if(c.ATT>c.DEF) return {name:'Attacking',shape:'1-1-2',blurb:['Score more goals','Concede a little more'],col:'var(--red)',key:'ATT'};
+  if(c.DEF>c.ATT) return {name:'Defensive',shape:'2-1-1',blurb:['Concede fewer goals','Score a little less'],col:'var(--blue)',key:'DEF'};
+  return {name:'Balanced',shape:'1-2-1',blurb:['Strong midfield control','Steady at both ends'],col:'var(--green)',key:'BAL'};
 }
 function unitBars(slots, avail){
   const eff=(r)=> r<=90 ? r : 90+(r-90)*0.92; // mirrors the engine
@@ -985,7 +985,7 @@ function unitBars(slots, avail){
   const obox=`<div class="blackbox" style="padding:8px 12px;margin-bottom:8px;text-align:center">
     <div class="muted" style="font-size:12px">⭐ OVERALL TEAM RATING</div>
     <div style="font-family:var(--disp);font-weight:800;font-size:30px;color:${overall!=null?'#FFE08A':'#FF5470'}">${overall!=null?overall.toFixed(1):'—'}</div></div>`;
-  return fbox+obox+`<div class="blackbox" style="display:flex;gap:4px;padding:11px 6px;margin-bottom:8px">${cell('⚔️ ATT',atk,'#FF8FB6')}${cell('🎯 MID',mid,'#F4FF8F')}${cell('🛡️ DEF',def,'#7FB8FF')}</div>`;
+  return fbox+obox+`<div class="blackbox" style="display:flex;gap:4px;padding:11px 6px;margin-bottom:8px">${cell('⚔️ ATT',atk,'var(--att)')}${cell('🎯 MID',mid,'var(--mid)')}${cell('🛡️ DEF',def,'var(--def)')}</div>`;
 }
 let lockedManagers=[];
 s.on('pickStarters',(p)=>{
@@ -1084,7 +1084,8 @@ function renderLockWait(){
 let MATCHLIVE=false;
 function evLine(e, m){
   const t=(e.text||'').replace(/\(?\d+\+?\d*'\)?/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s+/g,' ').replace(/\s+([,.!])/g,'$1').trim();
-  return `<b>${e.minute!=null?e.minute+"'":''}</b> ${esc(t)}`;
+  const col=e.side==='A'?'#FFD23D':e.side==='B'?'#FFFFFF':'#FFFFFF';
+  return `<span style="color:${col}"><b>${e.minute!=null?e.minute+"'":''}</b> ${esc(t)}</span>`;
 }
 let MATCH_SFXT=[];
 function clearMatchSfx(){ MATCH_SFXT.forEach(clearTimeout); MATCH_SFXT=[]; }
@@ -1093,11 +1094,11 @@ function renderMatch(m, instant){
   clearMatchSfx();
   clearInterval(timerInt);
   const yours = ME.club && (m.home===ME.club || m.away===ME.club);
-  const fbadge=(key)=>{ if(!key) return ''; const m={ATT:['ATTACKING','#FF8FB6'],DEF:['DEFENSIVE','#7FB8FF'],BAL:['BALANCED','#C9D2E0']}[key]||['',''];
+  const fbadge=(key)=>{ if(!key) return ''; const m={ATT:['ATTACKING','var(--red)'],DEF:['DEFENSIVE','var(--blue)'],BAL:['BALANCED','var(--green)']}[key]||['',''];
     return ` <span style="font-family:var(--disp);font-weight:800;font-size:13px;color:${m[1]};border:1px solid ${m[1]};border-radius:6px;padding:1px 6px;vertical-align:middle">${m[0]}</span>`; };
-  const teamLine=(name,mgr,pos,delay,formKey)=>`<div style="opacity:0;animation:cerIn .5s ${delay}s forwards;max-width:440px;margin:0 auto">
+  const teamLine=(name,mgr,pos,delay,formKey,nameCol)=>`<div style="opacity:0;animation:cerIn .5s ${delay}s forwards;max-width:440px;margin:0 auto">
     ${pos?`<div class="muted" style="font-size:13px;letter-spacing:.12em">#${pos} IN THE LEAGUE</div>`:''}
-    <div class="score" style="font-size:clamp(22px,6vw,34px);word-break:break-word">${esc(name)}${mgr?` <span style="font-size:.6em;color:var(--muted)">(${esc(mgr)})</span>`:''}${mgr?fbadge(formKey):''}</div>
+    <div class="score" style="font-size:clamp(22px,6vw,34px);word-break:break-word;color:${nameCol}">${esc(name)}${mgr?` <span style="font-size:.6em;color:var(--muted)">(${esc(mgr)})</span>`:''}${mgr?fbadge(formKey):''}</div>
   </div>`;
   $(`<div class="screen mdscreen" style="justify-content:flex-start;padding-top:max(12vh,96px)">
     <div class="center">
@@ -1105,9 +1106,9 @@ function renderMatch(m, instant){
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
       ${yours?`<div style="font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.1em;color:var(--pink);margin-bottom:8px">YOUR MATCH</div>`:''}
       ${(m.suspended&&m.suspended.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:15px;color:#FFB347;margin-bottom:8px">⛔ Suspended this game: ${m.suspended.map(esc).join(', ')}</div>`:''}
-      ${teamLine(m.home,m.homeMgr,m.homePos,0.1,m.homeForm)}
+      ${teamLine(m.home,m.homeMgr,m.homePos,0.1,m.homeForm,'#FFD23D')}
       <div class="muted" style="font-size:16px;margin:4px 0;opacity:0;animation:cerIn .4s .5s forwards">vs</div>
-      ${teamLine(m.away,m.awayMgr,m.awayPos,0.8,m.awayForm)}
+      ${teamLine(m.away,m.awayMgr,m.awayPos,0.8,m.awayForm,'#FFFFFF')}
       <div class="blackbox" style="margin:16px auto;width:min(260px,90%);opacity:0;animation:cerIn .5s 1.5s forwards">
         <div class="score" style="font-size:44px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div>
       </div>
