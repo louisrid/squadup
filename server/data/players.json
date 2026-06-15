@@ -3742,7 +3742,8 @@
 "fc26": 91,
 "rating": 91,
 "pot": 91,
-"age": "prime"
+"age": "prime",
+"hero": true
 },
 {
 "name": "David Villa",

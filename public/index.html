@@ -99,8 +99,8 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .bidflash{animation:bidPulse .55s ease}
 @keyframes bidPulse{0%{transform:scale(1);color:var(--text)}30%{transform:scale(1.14);color:var(--pink)}100%{transform:scale(1)}}
 /* ---------- confetti ---------- */
-.cf{position:fixed;top:-12px;width:10px;height:14px;z-index:60;pointer-events:none;animation:cfFall linear forwards}
-@keyframes cfFall{to{transform:translateY(110vh) rotate(720deg)}}
+.cf{position:fixed;top:0;left:0;width:10px;height:14px;z-index:40;pointer-events:none;animation:cfFall linear forwards;will-change:transform}
+@keyframes cfFall{from{transform:translateY(-5vh) rotate(0deg)}to{transform:translateY(105dvh) rotate(720deg)}}
 /* ---------- my squad mini ---------- */
 .minirow{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;justify-content:flex-start;margin-bottom:10px;padding-bottom:2px}
 .minirow::-webkit-scrollbar{display:none}
@@ -281,7 +281,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v15.5';
+const VERSION = 'v15.8';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -749,12 +749,13 @@ function confetti(){
     const d=document.createElement('div');
     d.className='cf';
     d.style.left=(Math.random()*100)+'vw';
+    d.style.top=(-2 - Math.random()*8)+'vh'; // slight stagger just above the top edge
     d.style.background=colors[i%colors.length];
     d.style.animationDuration=(1.4+Math.random()*1.6)+'s';
     d.style.animationDelay=(Math.random()*0.4)+'s';
     d.style.borderRadius=Math.random()<.4?'50%':'2px';
     document.body.appendChild(d);
-    setTimeout(()=>d.remove(),3600);
+    setTimeout(()=>d.remove(),4200);
   }
 }
 let BUDG=null;
