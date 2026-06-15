@@ -14,7 +14,7 @@
   --bg:#000000; --surface:#12121A; --surface2:#191924; --line:#2A2A38;
   --pink:#FF3D8A; --pink-deep:#C2186B;
   --gk:#E8B931; --def:#3D7BFF; --mid:#2EC96E; --att:#FF5247;
-  --text:#F2F2F7; --muted:#B7B7C4;
+  --text:#F2F2F7; --muted:#9A9AA8;
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
 *{box-sizing:border-box}
@@ -128,12 +128,12 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .bidline small{font-size:18px;color:var(--muted);font-weight:700}
 .bidder{color:var(--pink);font-weight:700;font-size:16px}
 .bidbar #budgets{margin:0 0 6px}.bidbar .bchip{font-size:11px;padding:5px 7px}
-.bidbar{position:fixed;left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));
-  max-width:468px;margin:0 auto;display:flex;flex-direction:column;max-height:48vh;overflow:hidden;
+.bidbar{position:fixed;left:16px;right:16px;bottom:max(12px,env(safe-area-inset-bottom));
+  max-width:468px;margin:0 auto;display:flex;flex-direction:column;max-height:40vh;overflow:hidden;
   background:rgba(20,20,28,.97);border:1px solid var(--line);border-radius:18px;
   padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
 .bidbar .bidline,.bidbar #bidderEl{flex:0 0 auto}
-.bidbar-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-height:0}
+.bidbar-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-height:0;max-height:20vh}
 .bidbar-scroll::-webkit-scrollbar{display:none}
 @media (min-width:700px){.bidbar{max-width:568px}}
 input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:6px;background:var(--surface2);outline:none;border:1px solid var(--line);padding:0;margin:0}
@@ -263,7 +263,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v10.9';
+const VERSION = 'v11.0';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -481,7 +481,7 @@ function restoreFromSnapshot(snap){
     if(b){ if(isPaused){ b.style.display='block'; b.textContent = hostPausedLocal? '⏸ Paused' : '⏸ Paused — disconnected player'; } else b.style.display='none'; }
     syncPauseBtn();
   };
-  if(snap.reveal){ renderMatch(snap.reveal); setTimeout(applyPauseUI,0); return; }
+  if(snap.reveal){ renderMatch(snap.reveal, true); setTimeout(applyPauseUI,0); return; }
   if(snap.winter && !snap.auction){ applyWinter(snap.winter); setTimeout(applyPauseUI,0); return; }
   // rebuild the budget/squad-count strip from the snapshot so it's correct right after a reconnect
   if(Array.isArray(snap.managers)){
@@ -674,10 +674,15 @@ function showManagerInfo(encName){
   const r=BUDG&&BUDG.find(x=>x.name===name); if(!r) return;
   closeManagerInfo();
   const sigs=(r.signings||[]).filter(s=>s.window!=='freebie');
+  const dotColor=(s)=>{ if(s.legend) return '#C9A227'; if(s.wonderkid) return 'conic-gradient(from 0deg,#FF3D8A,#FF9F45,#FFE34D,#3DDC84,#4FC3F7,#9B5CFF,#FF3D8A)'; const c={GK:'#E8B931',DEF:'#3D7BFF',MID:'#2EC96E',ATT:'#FF5247'}; return c[s.pos]||'#888'; };
   const rows = sigs.length
-    ? sigs.map(s=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:15px">
-        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700">${esc(s.player)}${s.window==='winter'?' <span style="color:#4FC3F7;font-size:12px">·W</span>':''}</span>
-        <span style="font-family:var(--disp);font-weight:800;white-space:nowrap">£${s.price}m</span></div>`).join('')
+    ? sigs.map(s=>{ const col=dotColor(s); const isGrad=col.indexOf('gradient')>=0;
+      return `<div style="display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:15px">
+        <span style="font-family:var(--disp);font-weight:800;font-size:15px;min-width:26px;text-align:center;opacity:.95">${s.rating||'–'}</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700">${esc(s.player)}</span>
+        <span style="width:13px;height:13px;border-radius:50%;flex-shrink:0;${isGrad?`background:${col}`:`background:${col}`};box-shadow:0 0 0 1px rgba(255,255,255,.15)"></span>
+        <span style="font-family:var(--disp);font-weight:800;white-space:nowrap;min-width:42px;text-align:right">£${s.price}m</span></div>`;
+    }).join('')
     : `<div class="muted" style="padding:14px 2px;font-size:15px">No players bought yet</div>`;
   const ov=document.createElement('div');
   ov.id='mInfoOv';
@@ -705,7 +710,7 @@ s.on('budgets',(rows)=>{
 });
 function flashResult(big, small){
   clearInterval(timerInt);
-  $(`<div class="screen center" style="justify-content:center">
+  $(`${backBtn(1)}<div class="screen center" style="justify-content:center">
     <div class="blackbox" style="width:100%"><div class="score">${big}</div>
     <div style="margin-top:10px;font-size:18px">${small}</div></div>
     <div id="nextslot" style="margin-top:18px"></div>
@@ -1013,17 +1018,11 @@ function renderLockWait(){
 let MATCHLIVE=false;
 function evLine(e, m){
   const t=(e.text||'').replace(/\(?\d+\+?\d*'\)?/g,'').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/\s+/g,' ').replace(/\s+([,.!])/g,'$1').trim();
-  // grey assist text for a goal scored by a human team (engine already excludes the scorer & red-carded players)
-  let assistTxt='';
-  if(e.assist && e.scorer && m){
-    const humanSide=(e.side==='A'&&m.homeMgr)||(e.side==='B'&&m.awayMgr);
-    if(humanSide) assistTxt=` <span style="color:var(--muted);font-size:12px">(assist: ${esc(e.assist)})</span>`;
-  }
-  return `<b>${e.minute!=null?e.minute+"'":''}</b> ${esc(t)}${assistTxt}`;
+  return `<b>${e.minute!=null?e.minute+"'":''}</b> ${esc(t)}`;
 }
 let MATCH_SFXT=[];
 function clearMatchSfx(){ MATCH_SFXT.forEach(clearTimeout); MATCH_SFXT=[]; }
-function renderMatch(m){
+function renderMatch(m, instant){
   MATCHLIVE=true;
   clearMatchSfx();
   clearInterval(timerInt);
@@ -1047,7 +1046,7 @@ function renderMatch(m){
         <div class="score" style="font-size:44px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div>
       </div>
       <div style="text-align:left;max-width:420px;margin:0 auto">
-        ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${(2.1+i*0.5).toFixed(1)}s">${evLine(e,m)}</div>`).join('')||'<div class="muted center">No goals. Grim.</div>'}
+        ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${instant?0:(2.1+i*0.5).toFixed(1)}s${instant?';opacity:1':''}">${evLine(e,m)}</div>`).join('')||'<div class="muted center">No goals. Grim.</div>'}
 
       </div>
       ${ME.isHost
@@ -1059,7 +1058,7 @@ function renderMatch(m){
   if(hHome||hAway){
     const humanWon=(hHome&&m.score[0]>m.score[1])||(hAway&&m.score[1]>m.score[0]);
     const k=(hHome&&hAway)?'cheer':(humanWon?'cheer':(m.score[0]===m.score[1]?null:'boo'));
-    if(k) sfx(k); // fire straight away on reveal, not after all events play out
+    if(k && !instant) sfx(k); // fire on live reveal only, not on snapshot restore
   }
 }
 s.on('matchReveal',renderMatch);

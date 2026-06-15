@@ -46,11 +46,11 @@ const FORMATIONS = {
 
 const FAST = process.env.FAST === '1';
 const TIMINGS = {
-  AUCTION_START_MS: FAST ? 150 : 10000,     // normal speed: 10s per player
-  AUCTION_START_2X_MS: FAST ? 150 : 5000,   // 2x speed: 5s per player
+  AUCTION_START_MS: FAST ? 150 : 8000,      // normal speed: 8s per player
+  AUCTION_START_2X_MS: FAST ? 150 : 4000,   // 2x speed: 4s per player
   AUCTION_BID_ADD_MS: FAST ? 60 : 2000,     // +2s per bid (both speeds)
-  AUCTION_MAX_MS: FAST ? 600 : 12000,       // normal speed cap: 12s
-  AUCTION_MAX_2X_MS: FAST ? 600 : 7000,     // 2x speed cap: 7s
+  AUCTION_MAX_MS: FAST ? 600 : 10000,       // normal speed cap: 10s
+  AUCTION_MAX_2X_MS: FAST ? 600 : 6000,     // 2x speed cap: 6s
   AUCTION_BETWEEN_MS: FAST ? 30 : 4000,
   LOT_REVEAL_MS: FAST ? 20 : 4400,
   REVEAL_QUICK_MS: FAST ? 15 : 3000,
@@ -344,7 +344,7 @@ class Game {
         const m = this.managers.find((x) => x.id === a.highBidder);
         m.budget -= a.highBid;
         m.squad.push({ ...a.current, seasonMod: 0, freshSigning: a.window === 'winter' });
-        m.signings.push({ player: a.current.name, price: a.highBid, window: a.window });
+        m.signings.push({ player: a.current.name, price: a.highBid, window: a.window, pos: a.current.pos, rating: a.current.rating, wonderkid: !!a.current.wonderkid, legend: !!a.current.legend, hero: !!a.current.hero });
         this.lastResult = { sold: true, player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name, rtg: a.current.rating, wonderkid: !!a.current.wonderkid };
         this.io.emit('lotSold', { player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name, rtg: a.current.rating, wonderkid: !!a.current.wonderkid });
       } else {
@@ -440,8 +440,8 @@ class Game {
     // wonderkids grow into stars — hard bots price them off their POTENTIAL, not current rating.
     const effR = (player.wonderkid && hard && player.pot) ? Math.max(r, player.pot) : r;
     let base;
-    if (hard) base = effR >= 92 ? 38 : effR >= 89 ? 28 : effR >= 86 ? 17 : effR >= 83 ? 9 : effR >= 80 ? 4 : 2;
-    else      base = r >= 92 ? 15 : r >= 89 ? 11 : r >= 86 ? 8 : r >= 83 ? 6 : r >= 80 ? 4 : 2;
+    if (hard) base = effR >= 92 ? 44 : effR >= 89 ? 33 : effR >= 86 ? 21 : effR >= 83 ? 12 : effR >= 80 ? 6 : 3;
+    else      base = r >= 92 ? 16 : r >= 89 ? 12 : r >= 86 ? 9 : r >= 83 ? 6 : r >= 80 ? 4 : 2;
     const n = this.botNeeds(m);
     const need = n.needs(player.pos);
     const winterMkt = this.auction && this.auction.window === 'winter';
@@ -871,7 +871,7 @@ class Game {
     const eligibleSecond = AI_CLUB_NAMES.filter((nm) => nm !== 'Eastvale Rovers' && nm !== 'Donkey United');
     const secondStrong = eligibleSecond[Math.floor(Math.random() * eligibleSecond.length)];
     const ais = E.aiStrengths(n, avg, 12 - n).map((s, i) => {
-      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 0.8, midfield: s.midfield - 0.8, defence: s.defence - 0.8 };
+      const t = { type: 'ai', name: AI_CLUB_NAMES[i], attack: s.attack - 0.4, midfield: s.midfield - 0.4, defence: s.defence - 0.4 };
       if (t.name === 'Eastvale Rovers') { t.attack += 1.4; t.midfield += 1.4; t.defence += 1.4; t.elite = true; t.eliteBonus = 1.4; }
       else if (t.name === secondStrong) { t.attack += 0.9; t.midfield += 0.9; t.defence += 0.9; t.elite = true; t.eliteBonus = 0.9; }
       return t;
@@ -1354,8 +1354,9 @@ class Game {
 
   buildWinterPool() {
     const n = this.activeManagers().length;
-    // per manager: 1 GK, 1 DEF, 1 MID, 1 ATT (no bonus extra)
-    const want = { GK: n, DEF: n, MID: n, ATT: n };
+    // leaner on defenders, richer in marquee names. per manager baseline: 1 GK, 1 DEF, 1 MID, 1 ATT
+    // then a chunk of outfield slots get upgraded to wonderkids / heroes / legends below.
+    const want = { GK: Math.max(1, Math.round(n * 0.5)), DEF: n, MID: n, ATT: n };
     const total = want.GK + want.DEF + want.MID + want.ATT;
     // 60% of windows feature 1 legend, 40% feature 2 — outfield legends replace an outfield slot
     const legendCount = Math.random() < 0.6 ? 1 : 2;
@@ -1376,21 +1377,29 @@ class Game {
         if (p && !rest.includes(p)) rest.push(p);
       }
     };
-    // each legend consumes one outfield slot of its position so totals stay on-spec
     const legByPos = { DEF: 0, MID: 0, ATT: 0 };
     for (const l of legends) if (legByPos[l.pos] != null) legByPos[l.pos]++;
     take('GK', want.GK);
     for (const pos of ['DEF', 'MID', 'ATT']) take(pos, Math.max(0, want[pos] - legByPos[pos]));
-    // optionally upgrade one slot to a hero (mutually exclusive: keeper OR outfield, at most one)
+
+    // MARQUEE INJECTION: upgrade a share of slots to wonderkids and heroes so winter feels special.
+    const wkCount = Math.max(1, Math.round(n * 0.35)); // pre-grown wonderkids
+    const heroCount = Math.max(1, Math.round(n * 0.3)); // hero cards
+    const wkPool = E.shuffle(ALL_PLAYERS.filter((p) => p.wonderkid && !this.owned(p.name) && !rest.some((x) => x.name === p.name)))
+      .map((p) => ({ ...p, rating: Math.max(p.rating, (p.pot || p.rating)) })); // pre-upgraded to potential
+    const heroPool = E.shuffle(ALL_PLAYERS.filter((p) => p.hero && p.pos !== 'GK' && !this.owned(p.name) && !rest.some((x) => x.name === p.name)));
+    // replace some DEF/plain slots (prefer replacing defenders) with marquee cards
+    const replaceable = () => { const cands = rest.map((x, idx) => ({ x, idx })).filter((o) => !o.x.wonderkid && !o.x.hero && !o.x.legend); return cands.length ? cands[Math.floor(Math.random() * cands.length)].idx : -1; };
+    for (let k = 0; k < wkCount && wkPool.length; k++) { const i = replaceable(); const wk = wkPool.shift(); if (i >= 0) rest[i] = wk; else rest.push(wk); }
+    for (let k = 0; k < heroCount && heroPool.length; k++) { const i = replaceable(); const h = heroPool.shift(); if (i >= 0) rest[i] = h; else rest.push(h); }
+
+    // optional bonus hero keeper
     if (Math.random() < 0.30) {
       const hk = E.shuffle([
         ...LEGENDS.filter((l) => l.pos === 'GK' && !this.owned(l.name)).map((l) => ({ ...l, rating: 95, pot: 95 })),
         ...ALL_PLAYERS.filter((p) => p.pos === 'GK' && p.hero && !this.owned(p.name)),
       ])[0];
       if (hk) { const i = rest.findIndex((x) => x.pos === 'GK'); if (i >= 0) rest[i] = hk; else rest.push(hk); }
-    } else if (Math.random() < 0.30) {
-      const hero = E.shuffle(ALL_PLAYERS.filter((p) => p.hero && p.pos !== 'GK' && !this.owned(p.name) && !rest.some((x) => x.name === p.name)))[0];
-      if (hero) { const i = rest.findIndex((x) => x.pos === hero.pos); if (i >= 0) rest[i] = hero; else rest.push(hero); }
     }
     // place legends: never lots 1-3, never back-to-back
     const seq = E.shuffle(rest);
@@ -1530,7 +1539,7 @@ class Game {
       name: m.name, budget: m.budget,
       squadCount: m.squad.length,
       done: !!m.sacked,
-      signings: m.signings.map((s) => ({ player: s.player, price: s.price, window: s.window })),
+      signings: m.signings.map((s) => ({ player: s.player, price: s.price, window: s.window, pos: s.pos || null, rating: s.rating || null, wonderkid: !!s.wonderkid, legend: !!s.legend, hero: !!s.hero })),
     })));
   }
 
@@ -1581,8 +1590,9 @@ class Game {
     if (!connected && (this.phase === 'setup' || this.phase === 'winter')) this.autoPickIfOnlyGhosts();
     if (!connected && this.phase === 'spin') this.autoSpinIfOnlyGhosts();
     const inAuction = this.phase === 'auction';
-    if (!connected && inAuction && m.id === this.hostId) {
-      // HOST tabbed out mid-auction: hard-pause until they come back and manually press Resume.
+    const humanCount = this.managers.filter((x) => !x.isBot).length;
+    if (!connected && inAuction && m.id === this.hostId && humanCount > 1) {
+      // MULTIPLAYER host tabbed out mid-auction: hard-pause until they manually Resume (others wait).
       if (!this.paused) { this.paused = true; this.pausedAt = Date.now(); }
       this.hostPaused = true; // requires a manual hostResume — no auto-resume
       this.io.emit('paused', { manager: m.name, byHost: true });
@@ -1590,7 +1600,7 @@ class Game {
       clearTimeout(this.timers.autoNext);
       clearTimeout(this.timers.pause);
     } else if (!connected && inAuction && !m.sacked && !this.hostPaused) {
-      // a non-host player dropped: soft-pause with an auto-resume safety timer
+      // single-player host, or a non-host player dropped: soft-pause with auto-resume so nobody gets stuck
       if (!this.paused) { this.paused = true; this.pausedAt = Date.now(); }
       this.io.emit('paused', { manager: m.name, maxMs: TIMINGS.DISCONNECT_PAUSE_MS });
       clearTimeout(this.timers.lot);
@@ -1598,7 +1608,7 @@ class Game {
       clearTimeout(this.timers.pause);
       this.timers.pause = setTimeout(() => this.resume(), TIMINGS.DISCONNECT_PAUSE_MS);
     }
-    if (connected && this.paused && !this.hostPaused) this.resume(); // non-host returned → auto-resume
+    if (connected && this.paused && !this.hostPaused) this.resume(); // returned → auto-resume
   }
 
   hostPause(managerId) {
@@ -1648,7 +1658,7 @@ class Game {
       managers: this.managers.map((m) => ({
         id: m.id, uid: m.uid || null, name: m.name, club: m.club, ready: m.ready, budget: m.budget, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null,
         squad: m.id === forId ? m.squad.map((p) => ({ name: p.name, pos: p.pos })) : { count: m.squad.length },
-        signings: m.signings.map((s) => ({ player: s.player, price: s.price, window: s.window })),
+        signings: m.signings.map((s) => ({ player: s.player, price: s.price, window: s.window, pos: s.pos || null, rating: s.rating || null, wonderkid: !!s.wonderkid, legend: !!s.legend, hero: !!s.hero })),
         sacked: m.sacked, injured: m.injured,
       })),
       auction: this.phase === 'auction' && this.auction && this.auction.current ? {
@@ -1681,7 +1691,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v10.9',
+      serverV: 'v11.0',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

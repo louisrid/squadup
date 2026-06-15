@@ -10,7 +10,7 @@ const PARAMS = {
   TILT_CORR: 0.0015, // cancels exp() convexity bias so no formation nets free points at even ratings
   MID_INFLUENCE: 0.10, // how much winning midfield tilts the game (kept modest so it doesn't inflate goals)
   MID_CAP: 1.0,        // max swing from the midfield battle
-  AI_MEAN_OFF: { 2: -4.8, 3: -4.0, 4: -3.2, 5: -2.7, 6: -2.3 },
+  AI_MEAN_OFF: { 1: -2.2, 2: -3.4, 3: -2.8, 4: -2.2, 5: -1.8, 6: -1.5 },
   AI_SD: 3.4,
   COMEBACK: 0.8,
   MATCH_NOISE: 1.15,
@@ -113,7 +113,7 @@ function attributeGoals(goals, starters) {
   let outfield = starters.filter((p) => p.pos !== 'GK');
   if (!outfield.length) outfield = starters; // keeper-only freak lineup: he scores them all
   const w = (p) => {
-    const base = p.pos === 'ATT' ? 9 : p.pos === 'MID' ? 2.5 : 0.6; // forwards score the bulk, defenders rarely
+    const base = p.pos === 'ATT' ? 9 : p.pos === 'MID' ? 2.5 : 1.1; // forwards score the bulk, defenders occasionally
     return base * (1 + ((p.rating + (p.seasonMod || 0)) - 75) / 50);
   };
   const total = outfield.reduce((s, p) => s + w(p), 0);
@@ -133,7 +133,7 @@ function attributeGoals(goals, starters) {
 
 // assists: 60% of goals get one, midfielders supply most; GK can very rarely assist; never the scorer
 function attributeAssists(scorers, starters, sentOff) {
-  const w = (p) => (p.pos === 'MID' ? 8 : p.pos === 'ATT' ? 3 : p.pos === 'DEF' ? 1.5 : 0.15); // GK 0.15 = rare
+  const w = (p) => (p.pos === 'MID' ? 8 : p.pos === 'ATT' ? 3 : p.pos === 'DEF' ? 3 : 0.15); // GK 0.15 = rare; DEF assist > DEF goal
   const off = new Set(sentOff || []);
   return scorers.map((s) => {
     if (Math.random() > 0.6) return { ...s, assist: null };
