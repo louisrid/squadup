@@ -346,8 +346,8 @@ class Game {
         m.budget -= a.highBid;
         m.squad.push({ ...a.current, seasonMod: 0, freshSigning: a.window === 'winter' });
         m.signings.push({ player: a.current.name, price: a.highBid, window: a.window, pos: a.current.pos, rating: a.current.rating, wonderkid: !!a.current.wonderkid, legend: !!a.current.legend, hero: !!a.current.hero });
-        this.lastResult = { sold: true, player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name, rtg: a.current.rating, wonderkid: !!a.current.wonderkid };
-        this.io.emit('lotSold', { player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name, rtg: a.current.rating, wonderkid: !!a.current.wonderkid });
+        this.lastResult = { sold: true, player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name, managerUid: m.uid || null, rtg: a.current.rating, wonderkid: !!a.current.wonderkid };
+        this.io.emit('lotSold', { player: a.current.name, pos: a.current.pos, price: a.highBid, manager: m.name, managerUid: m.uid || null, rtg: a.current.rating, wonderkid: !!a.current.wonderkid });
       } else {
         a.unsold.push(a.current);
         this.lastResult = { sold: false, player: a.current.name };
@@ -1825,7 +1825,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v14.7',
+      serverV: 'v15.5',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
