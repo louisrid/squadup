@@ -14,6 +14,7 @@
   --bg:#000000; --surface:#0d0d0d; --surface2:#0d0d0d; --line:rgba(255,255,255,0.14); --panel:#0d0d0d;
   --pink:#FF3D8A; --pink-deep:#C2186B;
   --gk:#E8B931; --def:#3D7BFF; --mid:#2EC96E; --att:#FF5247;
+  --blue:#1FA8FF; --green:#22C55E; --red:#FF3B47;
   --text:#F2F2F7; --muted:#E6E6EC; --muted-dim:#9A9AA8;
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
@@ -82,8 +83,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
   background:linear-gradient(transparent,rgba(0,0,0,.88) 45%)}
 .pcard.sm{width:104px}.pcard.sm .nm{font-size:13px;padding-bottom:7px}.pcard.sm .posb{font-size:13px;padding:2px 7px}
 /* ---------- start ready ---------- */
-.startready{background:#4FC3F7;border-color:#4FC3F7;color:#06222e;animation:readyPulse 1.6s ease infinite}
-@keyframes readyPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+.startready{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:800}
 .reconnspin{width:46px;height:46px;border-radius:50%;border:4px solid rgba(255,255,255,.18);border-top-color:var(--pink);animation:reconnSpin .8s linear infinite}
 @keyframes reconnSpin{to{transform:rotate(360deg)}}
 /* ---------- bid flash ---------- */
@@ -179,7 +179,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 .fbtn{font-size:16px;padding:10px 14px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);border-radius:11px}
 .fbtn.sel{background:var(--pink);border-color:var(--pink);color:#fff}
 .slot .plus{font-size:24px;line-height:1;color:var(--muted-dim);margin-bottom:3px}
-.autobtn{width:100%;margin-top:10px;border-color:#4FC3F7;color:#4FC3F7;background:transparent;font-size:17px}
+.autobtn{width:100%;margin-top:10px;border-color:var(--blue);color:var(--blue);background:transparent;font-size:17px}
 .stepbtn{font-family:var(--disp);font-weight:800;font-size:20px;min-width:54px;padding:12px 0;background:var(--surface2);border:1px solid var(--line);border-radius:12px;color:#fff}
 .stepbtn:active{background:var(--pink);border-color:var(--pink)}
 /* ---------- legend card ---------- */
@@ -194,7 +194,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 .pcard.legend .posb{background:#C9A227!important;color:#fff!important}
 .hintchip{position:absolute;top:8px;right:8px;font-family:var(--disp);font-weight:800;font-size:19px;letter-spacing:.04em;
   background:rgba(0,0,0,.62);border:1px solid var(--line);border-radius:8px;padding:3px 9px;color:#fff}
-.pcard.wonder .bgGrad{background:linear-gradient(165deg,#FF3D8A 0%,#FF9F45 22%,#FFE34D 42%,#3DDC84 62%,#4FC3F7 80%,#9B5CFF 100%)}
+.pcard.wonder .bgGrad{background:linear-gradient(165deg,#FF3D8A 0%,#FF9F45 22%,#FFE34D 42%,#3DDC84 62%,var(--blue) 80%,#9B5CFF 100%)}
 
 .pcard.wonder .hintchip{background:rgba(0,0,0,.78)}}
 
@@ -221,7 +221,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 .legendGlow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(60% 45% at 50% 52%,rgba(201,162,39,.28),transparent 70%)}
 .tabwrap{position:sticky;top:0;z-index:30;background:linear-gradient(#0B0B10 78%,transparent);padding:8px 0 4px;margin:0 -2px}
 .tab.sel{border-color:var(--pink);color:#fff;background:var(--pink)}
-.t-worse{color:var(--att)}.t-better{color:#5BE08A}.t-great{color:#4FC3F7}.t-legend{color:#C9A227}
+.t-worse{color:var(--att)}.t-better{color:#5BE08A}.t-great{color:var(--blue)}.t-legend{color:#C9A227}
 /* ---------- pitch squad selection ---------- */
 .pitch{background:linear-gradient(180deg,#0B2415,#07180D);border:1px solid rgba(46,201,110,.3);
   border-radius:18px;padding:18px 8px;margin:14px 0;position:relative;box-shadow:inset 0 0 50px rgba(0,0,0,.45)}
@@ -269,7 +269,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v12.4';
+const VERSION = 'v12.5';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -340,7 +340,7 @@ function home(){
     if(sv&&sv.name) s.emit('findMyGames',{name:sv.name},(r)=>{
       const el=document.getElementById('rejoinSlot');
       if(!el||!r||!r.games||!r.games.length) return;
-      el.innerHTML = r.games.map(gm=>`<button class="bigbtn" style="margin-top:12px;border-color:#4FC3F7;color:#4FC3F7"
+      el.innerHTML = r.games.map(gm=>`<button class="bigbtn" style="margin-top:12px;border-color:var(--blue);color:var(--blue)"
         onclick="rejoinAs('${gm.code}')">↻ Rejoin game ${gm.code} as ${esc(sv.name)}</button>`).join('');
     });
   }catch(e){}
@@ -360,7 +360,7 @@ function renderWhatsNew(){
     ${li(`🎰 <b>RESPINS</b> — roll the dice on a squad player for a mystery upgrade`)}
     ${li(`🏁 <b>THE TITLE RACE</b> — a live animated run through the season before the trophy lift`)}
   </div>
-  <div class="panel" style="border-color:#4FC3F7"><h2 style="margin-top:0;color:#4FC3F7">SHARPER THAN EVER</h2>
+  <div class="panel" style="border-color:var(--blue)"><h2 style="margin-top:0;color:var(--blue)">SHARPER THAN EVER</h2>
     ${li(`📈 Squads that grow, fade and surprise you across the year`)}
     ${li(`🟥 Red cards, suspensions, own goals & last-minute drama`)}
     ${li(`🤖 Smarter rivals — the AI clubs will push you all the way`)}
@@ -625,7 +625,7 @@ function renderLobby(l){
   <div class="muted center">Share the code with your mates · 2–6 managers</div>
   <div class="panel">
     ${l.managers.map(m=>`<div class="row" style="padding:7px 0;border-bottom:1px solid var(--line)">
-      <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.isBot?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${m.diff==='hard'?'#FF5470':'#7CE38B'};border:1px solid ${m.diff==='hard'?'#FF5470':'#7CE38B'};border-radius:5px;padding:0 5px">${m.diff==='hard'?'HARD':'EASY'} BOT</span>`:''}${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
+      <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.isBot?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${m.diff==='hard'?'var(--red)':'var(--green)'};border:1px solid ${m.diff==='hard'?'var(--red)':'var(--green)'};border-radius:5px;padding:0 5px">${m.diff==='hard'?'HARD':'EASY'} BOT</span>`:''}${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
       <span>${m.ready?'🟢':'⚪️'}</span></div>`).join('')}
   </div>
   ${iAmHost?(()=>{
@@ -637,7 +637,7 @@ function renderLobby(l){
     <button style="width:100%" ${l.managers.length>=6?'disabled':''} onclick="addBot()">+ Add a bot opponent${l.managers.length>=6?' (full)':''}</button>
     ${botCount?`<div class="row" style="margin-top:10px;gap:8px">
       <span class="muted grow" style="font-size:14px">Difficulty (all bots)</span>
-      <button id="diffToggle" class="${allHard?'startready':''}" style="font-size:15px;padding:8px 18px;font-weight:800;min-width:96px" onclick="setBotsDiff('${allHard?'easy':'hard'}')">${allHard?'HARD':'EASY'}</button>
+      <button id="diffToggle" style="font-size:15px;padding:8px 18px;font-weight:800;min-width:96px;color:#fff;background:${allHard?'var(--red)':'var(--green)'};border-color:${allHard?'var(--red)':'var(--green)'}" onclick="setBotsDiff('${allHard?'easy':'hard'}')">${allHard?'HARD':'EASY'}</button>
     </div>`:''}
     <div class="muted" style="font-size:13px;margin-top:8px">Bots draft, bid & play like rival managers. Tap the difficulty to switch every bot between Easy and Hard.</div>
   </div>`;})():''}
@@ -697,7 +697,7 @@ s.on('lotSold',(x)=>{ sfx('sold');
 });
 s.on('lotUnsold',(x)=>{ sfx('unsold'); A=null; hideToast(); flashResult('UNSOLD', esc(x.player)); });
 function confetti(){
-  const colors=['#FF3D8A','#4FC3F7','#FFD23D','#2EC96E','#fff'];
+  const colors=['#FF3D8A','var(--blue)','#FFD23D','#2EC96E','#fff'];
   for(let i=0;i<70;i++){
     const d=document.createElement('div');
     d.className='cf';
@@ -721,7 +721,7 @@ function showManagerInfo(encName){
   const r=BUDG&&BUDG.find(x=>x.name===name); if(!r) return;
   closeManagerInfo();
   const sigs=(r.signings||[]).filter(s=>s.window!=='freebie');
-  const dotColor=(s)=>{ if(s.legend) return '#C9A227'; if(s.wonderkid) return 'conic-gradient(from 0deg,#FF3D8A,#FF9F45,#FFE34D,#3DDC84,#4FC3F7,#9B5CFF,#FF3D8A)'; const c={GK:'#E8B931',DEF:'#3D7BFF',MID:'#2EC96E',ATT:'#FF5247'}; return c[s.pos]||'#888'; };
+  const dotColor=(s)=>{ if(s.legend) return '#C9A227'; if(s.wonderkid) return 'conic-gradient(from 0deg,#FF3D8A,#FF9F45,#FFE34D,#3DDC84,var(--blue),#9B5CFF,#FF3D8A)'; const c={GK:'#E8B931',DEF:'#3D7BFF',MID:'#2EC96E',ATT:'#FF5247'}; return c[s.pos]||'#888'; };
   const rows = sigs.length
     ? sigs.map(s=>{ const col=dotColor(s); const isGrad=col.indexOf('gradient')>=0;
       return `<div style="display:flex;align-items:center;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:15px">
@@ -814,7 +814,7 @@ function renderLot(){
     </div>
   </div>
   ${ME.isHost?`<div class="row" style="justify-content:center;margin-top:2px">
-    <button onclick="toggleSpeed()" style="width:194px;font-size:17px;padding:12px;font-weight:800;${SPEED===2?'background:#4FC3F7;border-color:#4FC3F7;color:#06222e':''}">${SPEED===2?'2x speed ✓':'2x speed'}</button>
+    <button onclick="toggleSpeed()" style="width:194px;font-size:17px;padding:12px;font-weight:800;${SPEED===2?'background:var(--blue);border-color:var(--blue);color:#fff':''}">${SPEED===2?'2x speed ✓':'2x speed'}</button>
   </div>`:''}
   </div>
   <div class="bidbar">
@@ -1295,7 +1295,7 @@ function renderWinterReport(){
     <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:18px;flex-shrink:0">${p.rtg}</span>${grewBox(p)}
     ${(!ME.sacked&&RESPINS>0)?`<button class="spinbtn" style="margin-left:4px;font-size:15px;padding:7px 9px;min-width:0;flex-shrink:0" onclick="doRespin('${esc(p.name).replace(/'/g,"\\'")}')">🎰</button>`:''}</div>`).join('')}</div>`:''}
   ${tips.length?`<h2 style="margin:14px 0 4px">📋 Assistant's notes</h2>
-  <div class="panel" style="border-color:#4FC3F7">${tips.map(t=>`<div style="font-size:16px;line-height:1.45;padding:6px 0">💬 ${esc(t)}</div>`).join('')}</div>`:''}
+  <div class="panel" style="border-color:var(--blue)">${tips.map(t=>`<div style="font-size:16px;line-height:1.45;padding:6px 0">💬 ${esc(t)}</div>`).join('')}</div>`:''}
   ${ME.isHost && !ME.sacked
     ?`<button class="primary bigbtn" style="margin-top:6px" onclick="openWinterMarket()">Open the winter market ▸</button>
        <div class="muted center" style="font-size:13px;margin-top:8px">Everyone keeps their respins until you open it</div>`
@@ -1318,7 +1318,7 @@ function runCeremony(f){
 function runLeagueRace(f){
   const teams=f.race.filter(t=>t.pts&&t.pts.length);
   const MD=Math.max(...teams.map(t=>t.pts.length));
-  const palette=['#FF2E7E','#4FC3F7','#3DDC84','#F4FF00','#9B5CFF','#FF8A3D','#FF5470','#56E0C8','#C9A227','#B7B7C4'];
+  const palette=['#FF2E7E','var(--blue)','#3DDC84','#F4FF00','#9B5CFF','#FF8A3D','#FF5470','#56E0C8','#C9A227','#B7B7C4'];
   teams.forEach((t,i)=>t._c=t.human?palette[i%palette.length]:'#555');
   const maxPts=Math.max(1,...teams.map(t=>t.pts[t.pts.length-1]));
   $(`<div class="screen center" style="justify-content:center;min-height:100dvh">
