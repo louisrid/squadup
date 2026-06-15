@@ -169,7 +169,7 @@ io.on('connection', (socket) => {
 
   socket.on('hostSpeed', ({ fast }, cb) => {
     const g = current();
-    cb && cb(g ? g.hostSetSpeed(joined.managerId, !!fast) : { error: 'No game' });
+    if(!g) return cb && cb({error:'No game'}); cb && cb(g.hostSetSpeed(isHost(g)?g.hostId:joined.managerId, !!fast));
   });
   socket.on('passLot', (cb) => {
     const g = current();
@@ -177,19 +177,21 @@ io.on('connection', (socket) => {
   });
   socket.on('hostNextMatch', (cb) => {
     const g = current();
-    cb && cb(g ? g.hostAdvanceReveal(joined.managerId) : { error: 'No game' });
+    if(!g) return cb && cb({error:'No game'}); cb && cb(g.hostAdvanceReveal(isHost(g)?g.hostId:joined.managerId));
   });
   socket.on('hostNext', (cb) => {
     const g = current();
-    cb && cb(g ? g.hostNextLot(joined.managerId) : { error: 'No game' });
+    if(!g) return cb && cb({error:'No game'}); cb && cb(g.hostNextLot(isHost(g)?g.hostId:joined.managerId));
   });
   socket.on('hostPause', (cb) => {
     const g = current();
-    cb && cb(g ? g.hostPause(joined.managerId) : { error: 'No game' });
+    if (!g) return cb && cb({ error: 'No game' });
+    cb && cb(g.hostPause(isHost(g) ? g.hostId : joined.managerId));
   });
   socket.on('hostResume', (cb) => {
     const g = current();
-    cb && cb(g ? g.hostResume(joined.managerId) : { error: 'No game' });
+    if (!g) return cb && cb({ error: 'No game' });
+    cb && cb(g.hostResume(isHost(g) ? g.hostId : joined.managerId));
   });
 
   socket.on('suggestXI', (cb) => {
@@ -202,7 +204,7 @@ io.on('connection', (socket) => {
   });
   socket.on('forceSpins', (cb) => {
     const g = current();
-    cb && cb(g ? g.hostForceSpins(joined.managerId) : { error: 'No game' });
+    if(!g) return cb && cb({error:'No game'}); cb && cb(g.hostForceSpins(isHost(g)?g.hostId:joined.managerId));
   });
   socket.on('doSpin', (cb) => {
     const g = current();
@@ -210,7 +212,7 @@ io.on('connection', (socket) => {
   });
   socket.on('startWinterAuction', (cb) => {
     const g = current();
-    cb && cb(g ? g.hostStartWinterAuction(joined.managerId) : { error: 'No game' });
+    if(!g) return cb && cb({error:'No game'}); cb && cb(g.hostStartWinterAuction(isHost(g)?g.hostId:joined.managerId));
   });
 
   socket.on('getSnapshot', (cb) => {
