@@ -993,6 +993,29 @@ class Game {
     this.revealHalf(0, 11, () => this.startWinter()); // spin parked — respins are back
   }
 
+  // Full squad detail for the on-matchday "their team" modal. Only for real human-managed teams
+  // (we don't expose AI/bot squads). Returns the fielded XI for this matchday, the bench, and any injured.
+  teamDetail(t, md) {
+    if (!t || t.type !== 'human' || t.mIdx == null) return null;
+    const m = this.managers[t.mIdx];
+    if (!m || m.isBot) return null;
+    const stat = (p) => ({
+      name: p.name, pos: p.pos, rtg: p.rating + (p.seasonMod || 0),
+      wonderkid: !!p.wonderkid, legend: !!p.legend, hero: !!p.hero,
+      injured: p.name === m.injured,
+    });
+    const fielded = (this.lineupFor(t, md) || m.starters || []);
+    const fieldedNames = new Set(fielded.map((p) => p.name));
+    const bench = m.squad.filter((p) => !fieldedNames.has(p.name) && p.name !== m.injured);
+    const injured = m.squad.filter((p) => p.name === m.injured);
+    return {
+      manager: m.name, club: m.club, formation: m.formation || 'BAL',
+      starters: fielded.map(stat),
+      bench: bench.map(stat),
+      injured: injured.map(stat),
+    };
+  }
+
   lineupFor(t, md) {
     if (t.type === 'ai') return null;
     const m = this.managers[t.mIdx];
@@ -1216,6 +1239,8 @@ class Game {
       replacements: [...(item.suspReplA || []), ...(item.suspReplB || [])].filter((x) => x.suspended),
       featured: item.humans === 2,
       tableAfter: item.tableAfter || null,
+      homeTeam: this.teamDetail(this.season.teams[item.a], item.md),
+      awayTeam: this.teamDetail(this.season.teams[item.b], item.md),
       hostName: host ? host.name : 'Host',
     };
     R.waiting = true;
@@ -1874,7 +1899,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v17.7',
+      serverV: 'v17.8',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

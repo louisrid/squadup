@@ -285,7 +285,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v17.7';
+const VERSION = 'v17.8';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -1279,6 +1279,7 @@ function renderMatch(m, instant){
         ?`<button class="primary bigbtn" style="margin-top:22px;max-width:340px" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
         :`<div class="muted" style="margin-top:22px">${esc(m.hostName)} controls the remote…</div>`}
       ${standingsBtnHTML()}
+      ${teamBtnsHTML(m)}
       <div style="height:200px;flex-shrink:0"></div>
     </div>
   </div>`);
@@ -1335,11 +1336,56 @@ function standingsBtnHTML(){
   return `<button id="standingsBtn" onclick="openStandings()" ${ready?'':'disabled'}
     style="width:100%;max-width:340px;margin:10px auto 0;display:block;font-size:16px;padding:12px;font-weight:800;${ready?'':'opacity:.4;pointer-events:none'}">📊 League standings</button>`;
 }
+window.__teams={};
+function teamBtnsHTML(m){
+  // a button per HUMAN team in this match, opening their full lineup. gated like standings (no early peek).
+  const out=[];
+  if(m.homeTeam){ window.__teams.home=m.homeTeam; out.push(['home',m.homeTeam]); }
+  if(m.awayTeam){ window.__teams.away=m.awayTeam; out.push(['away',m.awayTeam]); }
+  if(!out.length) return '';
+  const ready=STANDINGS_ON ? STANDINGS_REVEALED : true; // reuse the same reveal flag so teams can't be peeked early
+  return out.map(([side,t])=>`<button onclick="openTeamModal('${side}')" ${ready?'':'disabled'}
+    style="width:100%;max-width:340px;margin:8px auto 0;display:block;font-size:15px;padding:11px;font-weight:800;${ready?'':'opacity:.4;pointer-events:none'}">👥 ${esc(t.manager||t.club)}'s team</button>`).join('');
+}
+function teamModalCard(p){
+  // small auction-style card with the rating overlaid — mirrors the lineup look, consistent across the app
+  return `<div class="pickCard" style="cursor:default;width:84px">${cardHTML(p,true)}
+    <div style="position:absolute;top:4px;right:4px;z-index:2"><span style="font-family:var(--disp);font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.85);line-height:1">${p.rtg||''}</span></div>
+    ${p.injured?'<div style="position:absolute;top:4px;left:4px;z-index:2;font-size:13px">🤕</div>':''}</div>`;
+}
+function openTeamModal(side){
+  const t=window.__teams[side]; if(!t) return;
+  closeTeamModal();
+  const section=(label,arr,empty)=> `<div style="margin-top:14px">
+      <div style="font-family:var(--disp);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">${label}</div>
+      ${arr.length?`<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">${arr.map(teamModalCard).join('')}</div>`:`<div class="muted" style="font-size:13px">${empty}</div>`}
+    </div>`;
+  const ov=document.createElement('div');
+  ov.id='teamOv';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);z-index:121;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;animation:mFade .15s ease;touch-action:none';
+  ov.onclick=closeTeamModal;
+  ov.innerHTML=`<div onclick="event.stopPropagation()" style="position:relative;width:100%;max-width:380px;max-height:84vh;box-sizing:border-box;display:flex;flex-direction:column;background:var(--surface);border:2px solid var(--line);border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.6);overflow:hidden">
+    <button onclick="closeTeamModal()" aria-label="Close" style="position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;font-size:16px;line-height:1;padding:0;background:var(--surface2);border:1px solid var(--line);color:var(--text);z-index:2">✕</button>
+    <div style="padding:16px 16px 12px;border-bottom:1px solid var(--line);flex-shrink:0">
+      <div style="font-family:var(--disp);font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.03em;padding-right:34px">${esc(t.club)}</div>
+      <div class="muted" style="font-size:12px;margin-top:2px">${esc(t.manager)} · ${esc(t.formation)}</div>
+    </div>
+    <div id="teamScroll" style="overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding:8px 14px 18px;flex:1;min-height:0">
+      ${section('Starting XI',t.starters,'—')}
+      ${section('Bench',t.bench,'No subs available')}
+      ${t.injured&&t.injured.length?section('Injured',t.injured,''):''}
+    </div>
+  </div>`;
+  ov.addEventListener('touchmove',(ev)=>{ const sc=document.getElementById('teamScroll'); if(!sc||!sc.contains(ev.target)) ev.preventDefault(); },{passive:false});
+  document.body.appendChild(ov);
+}
+function closeTeamModal(){ const el=document.getElementById('teamOv'); if(el) el.remove(); }
 function setStandingsRevealed(v){
   STANDINGS_REVEALED=v;
   const b=document.getElementById('standingsBtn');
   if(b){ b.disabled=!v; b.style.opacity=v?'1':'.4'; b.style.pointerEvents=v?'auto':'none'; }
-  if(!v) closeStandings(); // never leave it open across a fresh reveal
+  // NOTE: we intentionally do NOT close an open modal here. If the user has the standings or a team
+  // sheet open and the host advances, it should linger until they close it themselves.
 }
 function openStandings(){
   if(!STANDINGS_ON || !STANDINGS_REVEALED) return;
