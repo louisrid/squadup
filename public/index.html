@@ -15,7 +15,7 @@
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:500;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;touch-action:manipulation}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:500;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;overscroll-behavior-y:auto;-webkit-overflow-scrolling:touch;touch-action:manipulation}
 .muted{color:var(--muted)!important;font-weight:600}
 button{font-weight:700}
 @media (max-width:768px){ body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0} }
@@ -50,8 +50,8 @@ h2{font-size:24px;font-weight:700;margin:16px 0 8px}
 .bigbtn{width:100%;font-size:21px;padding:17px}
 .blackbox{background:#000;border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:14px 0;text-align:center}
 button{font-family:var(--disp);text-transform:uppercase;font-weight:700;letter-spacing:.04em;font-size:19px;
-  padding:14px 19px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--text);cursor:pointer}
-button:active{transform:scale(.97)}
+  padding:14px 19px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);color:var(--text);cursor:pointer;transition:transform .12s ease,box-shadow .15s ease,background .15s ease}
+button:active{transform:scale(.96)}
 button.primary{background:var(--pink);border-color:var(--pink);color:#fff;box-shadow:0 4px 24px rgba(255,61,138,.35)}
 button:disabled{opacity:.35;pointer-events:none}
 input{padding:15px 15px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:18px;width:100%;margin:5px 0;font-family:var(--body);font-weight:600;scroll-margin-top:96px;scroll-margin-bottom:96px}
@@ -129,7 +129,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
   background:rgba(20,20,28,.97);border:1px solid var(--line);border-radius:18px;
   padding:14px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
 .bidbar .bidline,.bidbar #bidderEl{flex:0 0 auto}
-.bidbar-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-height:0}
+.bidbar-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;min-height:0;overscroll-behavior:contain}
 .bidbar-scroll::-webkit-scrollbar{display:none}
 @media (min-width:700px){.bidbar{max-width:568px}}
 input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:6px;background:var(--surface2);outline:none;border:1px solid var(--line);padding:0;margin:0}
@@ -257,7 +257,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v10.0';
+const VERSION = 'v10.1';
 const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
