@@ -213,10 +213,13 @@ function buildCommentary(result, startersA, startersB, opts) {
   ogify(sA, startersB); ogify(sB, startersA);
   for (const s of sA) events.push({ minute: s.minute, side: 'A', scorer: s.og ? null : s.name, assist: s.assist, text: s.og ? `🥅 Own goal! ${s.ogBy} turns it into his own net (${s.minute}')` : fill(pick(TPL.goal), s.name, s.minute) });
   for (const s of sB) events.push({ minute: s.minute, side: 'B', scorer: s.og ? null : s.name, assist: s.assist, text: s.og ? `🥅 Own goal! ${s.ogBy} turns it into his own net (${s.minute}')` : fill(pick(TPL.goal), s.name, s.minute) });
-  // one flavour/miss line for spice if low-scoring
-  if (events.length <= 1) {
-    const side = Math.random() < 0.5 ? startersA : startersB;
-    const p = pick(side.filter((x) => x.pos === 'ATT')) || pick(side);
+  // always show at least 2 events — top up low-incident games with flavour/miss lines
+  const allStarters = [startersA, startersB];
+  let guard = 0;
+  while (events.length < 2 && guard++ < 6) {
+    const side = allStarters[events.length % 2] || (Math.random() < 0.5 ? startersA : startersB);
+    const p = pick(side.filter((x) => x.pos === 'ATT')) || pick(side.filter((x) => x.pos !== 'GK')) || pick(side);
+    if (!p) break;
     events.push({ minute: 1 + Math.floor(Math.random() * 90), side: 'X', text: fill(pick(TPL.miss), p.name, 0) });
   }
   events.sort((a, b) => a.minute - b.minute);

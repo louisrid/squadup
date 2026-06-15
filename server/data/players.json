@@ -119,11 +119,11 @@
 "pos": "GK",
 "league": "FOR",
 "fc26": 90,
-"rating": 92,
-"potential": 92,
+"rating": 93,
+"potential": 93,
 "age": "prime",
 "old": true,
-"pot": 89
+"pot": 93
 },
 {
 "name": "Federico Valverde",
@@ -191,10 +191,10 @@
 "pos": "GK",
 "league": "FOR",
 "fc26": 89,
-"rating": 89,
-"potential": 89,
+"rating": 90,
+"potential": 90,
 "age": "prime",
-"pot": 89,
+"pot": 90,
 "hero": true
 },
 {
@@ -778,10 +778,10 @@
 "pos": "GK",
 "league": "PL",
 "fc26": 85,
-"rating": 88,
-"potential": 88,
+"rating": 92,
+"potential": 92,
 "age": "prime",
-"pot": 90
+"pot": 92
 },
 {
 "name": "Diogo Costa",
@@ -4584,5 +4584,49 @@
 "pot": 78,
 "age": "prime",
 "autofillOnly": true
+},
+{
+"name": "Alex Remiro",
+"pos": "GK",
+"league": "EU",
+"fc26": 85,
+"rating": 85,
+"potential": 85,
+"age": "prime",
+"old": false,
+"pot": 85
+},
+{
+"name": "Geronimo Rulli",
+"pos": "GK",
+"league": "EU",
+"fc26": 84,
+"rating": 84,
+"potential": 84,
+"age": "prime",
+"old": false,
+"pot": 84
+},
+{
+"name": "Pau López",
+"pos": "GK",
+"league": "EU",
+"fc26": 83,
+"rating": 83,
+"potential": 83,
+"age": "prime",
+"old": false,
+"pot": 83
+},
+{
+"name": "Caoimhín Kelleher",
+"pos": "GK",
+"league": "PL",
+"fc26": 83,
+"rating": 83,
+"potential": 83,
+"age": "prime",
+"old": false,
+"pot": 83
 }
 ]

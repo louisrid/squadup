@@ -448,11 +448,11 @@ class Game {
       // ~55, and only rarely approaches the hard cap of 71). Keyed off potential.
       const p = effR;
       if (hard) base = p >= 92 ? 31 : p >= 89 ? 25 : p >= 86 ? 18 : p >= 83 ? 12 : 8;
-      else      base = p >= 92 ? 18 : p >= 89 ? 14 : p >= 86 ? 10 : p >= 83 ? 7 : 4;
+      else      base = p >= 92 ? 24 : p >= 89 ? 19 : p >= 86 ? 14 : p >= 83 ? 10 : 6;
     } else if (hard) {
       base = effR >= 92 ? 44 : effR >= 89 ? 33 : effR >= 86 ? 21 : effR >= 83 ? 12 : effR >= 80 ? 6 : 3;
     } else {
-      base = r >= 92 ? 16 : r >= 89 ? 12 : r >= 86 ? 9 : r >= 83 ? 6 : r >= 80 ? 4 : 2;
+      base = r >= 92 ? 30 : r >= 89 ? 23 : r >= 86 ? 15 : r >= 83 ? 9 : r >= 80 ? 5 : 3;
     }
     const n = this.botNeeds(m);
     const need = n.needs(player.pos);
@@ -515,7 +515,7 @@ class Game {
       // main auction, already stocked: only sometimes chase a bargain.
       // winter: let botMaxBid decide (it bids on genuine upgrades) — don't gate it out here.
       if (need <= 0 && !a.current.wonderkid && !winterMkt) {
-        if (Math.random() >= (hard ? 0.30 : 0.10)) continue;
+        if (Math.random() >= (hard ? 0.30 : 0.20)) continue;
       }
       let ceiling = this.botMaxBid(m, a.current);
       // EASY blunders, rolled ONCE per lot: rare overpay or a timid lowball
@@ -1142,11 +1142,38 @@ class Game {
       .sort((x, y) => y.pts - x.pts || y.gd - x.gd || y.gf - x.gf);
   }
 
+  // Build a league table from running tallies (same sort as table()).
+  tableFromTallies(pts, gf, ga, w, d, l) {
+    return this.season.teams
+      .map((t, i) => ({
+        name: t.name, type: t.type,
+        manager: t.type === 'human' ? this.managers[t.mIdx].name : null,
+        sacked: t.type === 'human' ? this.managers[t.mIdx].sacked : false,
+        pts: pts[i], gf: gf[i], ga: ga[i], gd: gf[i] - ga[i], w: w[i], d: d[i], l: l[i],
+      }))
+      .sort((x, y) => y.pts - x.pts || y.gd - x.gd || y.gf - x.gf);
+  }
+
   revealHalf(fromMd, toMd, done) {
     const queue = [];
+    // running tallies seeded from the table state BEFORE this half (so 2nd-half standings continue on)
+    const n = this.season.teams.length;
+    const pts = [...this.season.pts], gf = [...this.season.gf], ga = [...this.season.ga];
+    const w = [...this.season.w], d = [...this.season.d], l = [...this.season.l];
+    // simMatchday accumulates into season.* — capture the delta per match by diffing a fresh replay.
+    // Simpler: snapshot season tallies before each half-day sim isn't enough for per-match, so we
+    // re-derive cumulative tallies from each match's own goals as we walk the results in order.
     for (let md = fromMd; md < toMd; md++) {
       const results = this.simMatchday(md);
-      for (const r of results) if (r.humans > 0) queue.push(r);
+      for (const r of results) {
+        // apply this single match to the running cumulative tally
+        gf[r.a] += r.goalsA; ga[r.a] += r.goalsB;
+        gf[r.b] += r.goalsB; ga[r.b] += r.goalsA;
+        if (r.goalsA > r.goalsB) { pts[r.a] += 3; w[r.a]++; l[r.b]++; }
+        else if (r.goalsA < r.goalsB) { pts[r.b] += 3; w[r.b]++; l[r.a]++; }
+        else { pts[r.a]++; pts[r.b]++; d[r.a]++; d[r.b]++; }
+        if (r.humans > 0) { r.tableAfter = this.tableFromTallies(pts, gf, ga, w, d, l); queue.push(r); }
+      }
       queue.push({ tableMark: true, md });
     }
     const finalTable = this.table();
@@ -1185,6 +1212,7 @@ class Game {
       suspended: item.suspended || [],
       replacements: [...(item.suspReplA || []), ...(item.suspReplB || [])].filter((x) => x.suspended),
       featured: item.humans === 2,
+      tableAfter: item.tableAfter || null,
       hostName: host ? host.name : 'Host',
     };
     R.waiting = true;
@@ -1491,7 +1519,9 @@ class Game {
     const n = this.activeManagers().length;
     // leaner on defenders, richer in marquee names. per manager baseline: 1 GK, 1 DEF, 1 MID, 1 ATT
     // then a chunk of outfield slots get upgraded to wonderkids / heroes / legends below.
-    const want = { GK: Math.max(1, Math.round(n * 0.5)), DEF: n, MID: n, ATT: n };
+    // GUARANTEED at least 1 keeper in winter, 60% chance of a 2nd. quality-first: see gkPicks below.
+    const gkCount = 1 + (Math.random() < 0.6 ? 1 : 0);
+    const want = { GK: 0, DEF: n, MID: n, ATT: n };
     const total = want.GK + want.DEF + want.MID + want.ATT;
     // 60% of windows feature 1 legend, 40% feature 2 — outfield legends replace an outfield slot
     const legendCount = Math.random() < 0.6 ? 1 : 2;
@@ -1528,14 +1558,26 @@ class Game {
     for (let k = 0; k < wkCount && wkPool.length; k++) { const i = replaceable(); const wk = wkPool.shift(); if (i >= 0) rest[i] = wk; else rest.push(wk); }
     for (let k = 0; k < heroCount && heroPool.length; k++) { const i = replaceable(); const h = heroPool.shift(); if (i >= 0) rest[i] = h; else rest.push(h); }
 
-    // optional bonus hero keeper
-    if (Math.random() < 0.30) {
-      const hk = E.shuffle([
-        ...LEGENDS.filter((l) => l.pos === 'GK' && !this.owned(l.name)).map((l) => ({ ...l, rating: 95, pot: 95 })),
-        ...ALL_PLAYERS.filter((p) => p.pos === 'GK' && p.hero && !this.owned(p.name)),
-      ])[0];
-      if (hk) { const i = rest.findIndex((x) => x.pos === 'GK'); if (i >= 0) rest[i] = hk; else rest.push(hk); }
+    // WINTER KEEPERS: 1 guaranteed (60% chance of 2), all high quality.
+    // pool = icon GKs (rated 95), hero GKs, and the best normal GKs (Courtois/Raya/Oblak tier),
+    // weighted so an icon/hero shows up often but a top normal keeper is also possible.
+    const iconGKs = LEGENDS.filter((l) => l.pos === 'GK' && !this.owned(l.name)).map((l) => ({ ...l, rating: 95, pot: 95 }));
+    const heroGKs = ALL_PLAYERS.filter((p) => p.pos === 'GK' && p.hero && !this.owned(p.name) && !rest.some((x) => x.name === p.name));
+    const topGKs = ALL_PLAYERS.filter((p) => p.pos === 'GK' && !p.hero && !p.wonderkid && !p.autofillOnly && p.rating >= 89 && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name) && !rest.some((x) => x.name === p.name));
+    const chosenGKs = [];
+    for (let k = 0; k < gkCount; k++) {
+      // weight: 35% icon, 45% hero, 20% top-normal — falling back across tiers if a tier is empty
+      const roll = Math.random();
+      const order = roll < 0.35 ? [iconGKs, heroGKs, topGKs] : roll < 0.80 ? [heroGKs, iconGKs, topGKs] : [topGKs, heroGKs, iconGKs];
+      let pick = null;
+      for (const tier of order) {
+        const avail = E.shuffle(tier.filter((g) => !chosenGKs.some((c) => c.name === g.name)));
+        if (avail.length) { pick = avail[0]; break; }
+      }
+      if (pick) chosenGKs.push(pick);
     }
+    // drop the chosen keepers into the pool (they don't displace outfield marquee slots)
+    for (const gk of chosenGKs) if (!rest.some((x) => x.name === gk.name)) rest.push(gk);
     // place legends: never lots 1-3, never back-to-back
     const seq = E.shuffle(rest);
     const used = [];
@@ -1603,7 +1645,7 @@ class Game {
     const biggestFlop = [...paid].sort((a, b) => (b.price - b.value) - (a.price - a.value))[0];
     const winterBuys = allSignings.filter((s) => s.window === 'winter' && s.price > 0);
     const winterSplash = [...winterBuys].sort((a, b) => b.price - a.price)[0];
-    this.io.emit('finished', {
+    this.finalData = {
       table,
       stats: this.seasonStats(),
       champion: table[0],
@@ -1617,7 +1659,8 @@ class Game {
       },
       breakdowns: this.buildBreakdowns(),
       race: this.raceHistory(),
-    });
+    };
+    this.io.emit('finished', this.finalData);
   }
 
   seasonFormOf(p) {
@@ -1778,6 +1821,7 @@ class Game {
   snapshot(forId) {
     return {
       code: this.code, phase: this.phase, hostId: this.hostId, hostUid: (this.managers.find((m) => m.id === this.hostId) || {}).uid || null, speed: this.speed,
+      finalData: this.phase === 'finished' ? (this.finalData || null) : null,
       showStandings: !!this.showStandings,
       standings: this.season ? this.table() : null,
       standingsStats: this.season ? this.seasonStats() : null,
@@ -1827,7 +1871,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v16.4',
+      serverV: 'v16.8',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
