@@ -15,7 +15,7 @@
   --pink:#FF3D8A; --pink-deep:#C2186B;
   --gk:#E8B931; --def:#3D7BFF; --mid:#2EC96E; --att:#FF5247;
   --blue:#1FA8FF; --green:#22C55E; --red:#FF3B47;
-  --text:#F2F2F7; --muted:#FFFFFF; --muted-dim:#9A9AA8;
+  --text:#FFFFFF; --muted:#FFFFFF; --muted-dim:#9A9AA8;
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
 *{box-sizing:border-box}
@@ -23,7 +23,12 @@ html{background:#000}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:700;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 .muted{color:var(--muted)!important;font-weight:700;font-size:16px}
 button{font-weight:700;touch-action:manipulation}
-@media (max-width:768px){ body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0} }
+@media (max-width:768px){ body.lock{overflow:hidden;height:100dvh;position:fixed;width:100%;left:0;top:0}
+  .standCols{flex-direction:column!important}
+  .standCols>div:first-child{flex:1 1 auto!important;max-height:40vh}
+  .standRight{flex:1 1 auto!important}
+  .standRight>div{min-height:90px}
+}
 @media (min-width:769px){ .backbtn{top:40px;left:34px;width:50px;height:50px;font-size:24px} .mdscreen{padding-top:16vh !important} }
 .wheelWrap{position:relative;width:min(380px,90vw);aspect-ratio:1;margin:12px auto}
 .wheelWrap svg{width:100%;height:100%;display:block;shape-rendering:geometricPrecision}
@@ -42,7 +47,7 @@ body{max-width:500px;margin:0 auto;padding:16px 16px 40px;min-height:100dvh;font
   .codetext{font-size:84px!important}
   .lotRow .pcard{width:190px!important}
   .lotRow .ringWrap{width:190px!important;height:190px!important}
-  #pauseBtn{width:190px!important}
+  #pauseBtn,#speedBtn{width:190px!important}
   .score{font-size:58px}
   .blackbox .bidline{font-size:25px}
 }
@@ -97,7 +102,9 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .cf{position:fixed;top:-12px;width:10px;height:14px;z-index:60;pointer-events:none;animation:cfFall linear forwards}
 @keyframes cfFall{to{transform:translateY(110vh) rotate(720deg)}}
 /* ---------- my squad mini ---------- */
-.minirow{flex-wrap:wrap;max-height:76px;overflow-y:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:10px}
+.minirow{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;justify-content:flex-start;margin-bottom:10px;padding-bottom:2px}
+.minirow::-webkit-scrollbar{display:none}
+.mini{flex:0 0 auto;white-space:nowrap}
 .mini{display:flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--line);
   border-radius:8px;padding:4px 8px;font-size:13px;font-weight:700}
 @media (prefers-reduced-motion: reduce){.cf{display:none}.startready{animation:none}.bidflash{animation:none}}
@@ -133,6 +140,7 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .bidline{font-family:var(--disp);font-weight:800;font-size:42px;line-height:1;letter-spacing:.01em}
 .bidline small{font-size:18px;color:var(--muted);font-weight:700}
 .bidder{color:var(--pink);font-weight:700;font-size:16px}
+.bidder .youbid{color:#FFD23D;font-weight:800}
 .bidbar #budgets{margin:0 0 6px}.bidbar .bchip{font-size:11px;padding:5px 7px}
 .bidbar{position:fixed;left:16px;right:16px;bottom:max(12px,env(safe-area-inset-bottom));
   max-width:468px;margin:0 auto;display:flex;flex-direction:column;max-height:40vh;overflow:hidden;
@@ -273,7 +281,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v13.2';
+const VERSION = 'v13.8';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -350,7 +358,7 @@ function home(){
   }catch(e){}
 }
 function renderWhatsNew(){
-  const li=(t)=>`<div style="font-size:17px;line-height:1.5;padding:5px 0">• ${t}</div>`;
+  const li=(t)=>`<div style="font-size:17px;line-height:1.55;padding:6px 0;color:#fff">• ${t}</div>`;
   $(`${topBar("home()")}
   <div class="eyebrow">What's new</div>
   <h1 style="color:#FFD75E">⭐ The season so far</h1>
@@ -361,7 +369,7 @@ function renderWhatsNew(){
     ${li(`👑 <b>LEGENDS & ICONS</b> — the all-time greats turn up in the winter market`)}
     ${li(`⭐ <b>WONDERKIDS</b> — rainbow cards that level up into superstars at the break`)}
     ${li(`❄️ <b>THE WINTER MARKET</b> — a fresh war chest, bigger names and a second run at glory`)}
-    ${li(`🎰 <b>RESPINS</b> — roll the dice on a squad player for a mystery upgrade`)}
+    ${li(`📊 <b>LIVE STANDINGS</b> — track the league table as it updates every matchweek`)}
     ${li(`🏁 <b>THE TITLE RACE</b> — a live animated run through the season before the trophy lift`)}
   </div>
   <div class="panel" style="border-color:var(--blue)"><h2 style="margin-top:0;color:var(--blue)">SHARPER THAN EVER</h2>
@@ -383,7 +391,7 @@ function renderHowTo(){
   <div class="panel"><h2 style="margin-top:0">3 · The season</h2>
   <div style="font-size:16px;line-height:1.5">Battle through the campaign against your friends and a field of AI clubs, with full match commentary, goals, assists and plenty of drama. Better teams tend to win — but upsets, thrashings and last-gasp moments are always on the cards.</div></div>
   <div class="panel"><h2 style="margin-top:0">4 · The winter market</h2>
-  <div style="font-size:16px;line-height:1.5">At the break your squad develops — youngsters rise, veterans fade, wonderkids break out. Then the big window opens: a fresh budget, marquee names and <b>LEGENDS 👑</b> up for grabs. Roll a <b>respin</b> to gamble on an upgrade, re-pick your team and chase the title.</div></div>
+  <div style="font-size:16px;line-height:1.5">At the break your squad develops — youngsters rise, veterans fade, wonderkids break out. You get a full visual look at every player's updated rating, season goals &amp; assists and form. Then the big window opens: a fresh budget, marquee names and <b>LEGENDS 👑</b> up for grabs. Re-pick your team and chase the title.</div></div>
   <div class="panel"><h2 style="margin-top:0">5 · Glory</h2>
   <div style="font-size:16px;line-height:1.5">Most points takes the crown. Sit back for the animated title race, the trophy lift and the end-of-season awards — Golden Boot, top playmaker, best bargain and more.</div></div>
   <button class="primary bigbtn" style="margin-top:14px" onclick="home()">‹ Back</button>`);
@@ -407,6 +415,7 @@ function randClub(){
 }
 function showSetup(mode){
   window.__solo = (mode==='solo');
+  ME.solo = (mode==='solo');
   if(mode==='solo') mode='create';
   $(`<button class="backbtn" onclick="home()">‹</button>
   <div class="screen">
@@ -427,7 +436,10 @@ function showSetup(mode){
     </div>
     ${mode==='create'?`<label class="flabel" style="margin-top:14px">Rating hints</label>
     <button id="hintsTgl" data-on="1" class="startready" style="width:100%;font-size:16px" onclick="this.dataset.on=this.dataset.on==='1'?'0':'1';this.textContent=this.dataset.on==='1'?'Rating ranges: ON':'Rating ranges: OFF';this.classList.toggle('startready',this.dataset.on==='1')">Rating ranges: ON</button>
-    <div style="font-size:14px;margin-top:8px;color:var(--muted);font-weight:700;line-height:1.5">Shows a rough range on every auction card, e.g. 84–91. The exact rating stays secret until he's signed.</div>`:''}
+    <div style="font-size:14px;margin-top:8px;color:var(--muted);font-weight:700;line-height:1.5">Shows a rough range on every auction card, e.g. 84–91. The exact rating stays secret until he's signed.</div>
+    ${!window.__solo?`<label class="flabel" style="margin-top:16px">Live standings</label>
+    <button id="standTgl" data-on="1" class="startready" style="width:100%;font-size:16px" onclick="this.dataset.on=this.dataset.on==='1'?'0':'1';this.textContent=this.dataset.on==='1'?'League standings: ON':'League standings: OFF';this.classList.toggle('startready',this.dataset.on==='1')">League standings: ON</button>
+    <div style="font-size:14px;margin-top:8px;color:var(--muted);font-weight:700;line-height:1.5">A live league table players can open during matches and the winter break. Turn off to hide it entirely.</div>`:''}`:''}
     <button class="primary bigbtn" style="margin-top:22px" onclick="${mode==='create'?'createL()':'joinL()'}">${mode==='create'?'Create lobby':'Join lobby'}</button>
   </div>
   </div>`);
@@ -448,7 +460,9 @@ function setBotsDiff(diff){
 }
 function createL(){ const {name,club}=getNC(); if(!name) return toast('Enter a name');
   const tgl=document.getElementById('hintsTgl');
-  s.emit('createLobby',{name,club,hints:tgl&&tgl.dataset.on==='1'},(r)=>{ if(r.error) return toast(r.error); onJoined(r,name); }); }
+  const stg=document.getElementById('standTgl');
+  const standings = window.__solo ? true : (stg ? stg.dataset.on==='1' : true);
+  s.emit('createLobby',{name,club,hints:tgl&&tgl.dataset.on==='1',standings},(r)=>{ if(r.error) return toast(r.error); onJoined(r,name); }); }
 function joinL(){ const {name,club}=getNC(); const code=document.getElementById('code').value.trim();
   if(!name) return toast('Enter a name'); if(!code) return toast('Enter the lobby code');
   s.emit('joinLobby',{code,name,club},(r)=>{ if(r.error) return toast(r.error); onJoined(r,name); }); }
@@ -538,6 +552,9 @@ function toggleSnd(){ SND=!SND; localStorage.setItem('squp_snd',SND?'1':'0'); co
 function restoreFromSnapshot(snap){
   if(!snap) return;
   ME.isHost = (snap.hostUid && ME.uid) ? (snap.hostUid===ME.uid) : (snap.hostId===ME.id);
+  if(typeof snap.showStandings==='boolean'){ ME.standings=snap.showStandings; STANDINGS_ON=snap.showStandings; }
+  if(snap.standings) STANDINGS=snap.standings;
+  if(snap.standingsStats) STANDINGS_STATS=snap.standingsStats;
   if(snap.serverV && snap.serverV!==VERSION) toast('⚠️ Server '+snap.serverV+' / client '+VERSION+' — redeploy ALL files');
   // re-apply pause state FIRST so whatever view renders shows the pause bar + Resume button
   isPaused = !!snap.paused;
@@ -570,7 +587,6 @@ function restoreFromSnapshot(snap){
       : `<div class="muted">Waiting for ${esc(snap.awaitingNext.hostName)} to bring up the next player…</div>`;
     return;
   }
-  if(snap.spin){ SPIN={segments:snap.spin.segments,spun:snap.spin.spun}; if(snap.spin.spun) renderSpinWait(); else renderSpinReady(); return; }
   if(snap.pick){
     if(snap.pick.locked){
       $(`<div class="screen center" style="justify-content:center"><div class="blackbox" style="width:100%"><div class="score">Locked in</div>
@@ -589,7 +605,7 @@ function restoreFromSnapshot(snap){
   }
   if(snap.auction && snap.auction.player){
     A={ index:snap.auction.index, total:snap.auction.total, player:snap.auction.player,
-        highBid:snap.auction.highBid, highBidder:snap.auction.highBidder,
+        highBid:snap.auction.highBid, highBidder:snap.auction.highBidder, highBidderUid:snap.auction.highBidderUid,
         deadline:snap.auction.deadline, start:16000 };
     if(snap.auction.revealLeft>500){ s_lotReveal({index:A.index,total:A.total,player:A.player,revealMs:snap.auction.revealLeft}); }
     else renderLot();
@@ -616,6 +632,7 @@ function fallbackCopy(c,done){
 let lastLobby=null;
 s.on('lobby',(l)=>{
   lastLobby=l;
+  if(typeof l.showStandings==='boolean'){ ME.standings=l.showStandings; STANDINGS_ON=l.showStandings; }
   if(!ME.code && !document.getElementById('codetext')) return;
   if(!ME.code) ME.code=l.code;
   renderLobby(l);
@@ -634,39 +651,51 @@ function renderLobby(l){
   // keep the user's scroll position instead of snapping to the top.
   const onLobby = !!document.getElementById('codetext');
   const render = onLobby ? $k : $;
+  const solo = !!ME.solo;
   render(`${backBtn(0)}<div class="screen">
-  <div class="eyebrow">Lobby</div>
-  <div class="codebox">
-    <div style="letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:800;color:var(--text)">Lobby code</div>
+  <div class="eyebrow">${solo?'Single player':'Lobby'}</div>
+  ${solo
+    ? `<h1>Set up your game</h1>
+  <div class="muted" style="margin:0 0 10px;line-height:1.45">Add AI opponents below, then start whenever you're ready.</div>`
+    : `<div class="codebox">
+    <div style="letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:800;color:#fff">Lobby code</div>
     <div class="codetext" id="codetext">${l.code}</div>
     <button class="copybtn" onclick="copyCode('${l.code}')">Copy code</button>
   </div>
-  <div class="muted center" style="margin:8px 0 4px">Share the code with your mates · 2–6 managers</div>
+  <div class="muted center" style="margin:10px 0 4px">Share the code with your mates · 2–6 managers</div>`}
   <div class="panel">
     ${l.managers.map(m=>`<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)">
       <span class="grow"><b>${esc(m.name)}</b> <span class="muted">${esc(m.club)}</span>${m.isBot?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${m.diff==='hard'?'var(--red)':'var(--green)'};border:1px solid ${m.diff==='hard'?'var(--red)':'var(--green)'};border-radius:5px;padding:1px 6px;margin-left:2px">${m.diff==='hard'?'HARD':'EASY'} BOT</span>`:''}${m.connected===false?' <span style="color:#FFB347;font-size:14px">reconnecting…</span>':''}</span>
-      <span>${m.ready?'🟢':'⚪️'}</span></div>`).join('')}
+      <span>${m.isBot?'🤖':(m.ready?'🟢':'⚪️')}</span></div>`).join('')}
   </div>
   ${iAmHost?(()=>{
     const botCount=l.managers.filter(m=>m.isBot).length;
     const allHard=botCount>0 && l.managers.filter(m=>m.isBot).every(m=>m.diff==='hard');
     const diff=allHard?'hard':'easy';
-    return `<div class="panel" style="border-color:#3DDC84;padding:12px">
-    <div class="row" style="margin-bottom:10px"><b class="grow" style="color:#7CE38B">🤖 Bots</b><span class="muted" style="font-size:13px">${botCount}/5</span></div>
-    <button style="width:100%" ${l.managers.length>=6?'disabled':''} onclick="addBot()">+ Add a bot opponent${l.managers.length>=6?' (full)':''}</button>
-    ${botCount?`<div class="row" style="margin-top:10px;gap:8px">
-      <span class="muted grow" style="font-size:14px">Difficulty (all bots)</span>
+    return `<div class="panel" style="border-color:#3DDC84;padding:16px">
+    <div class="row" style="margin-bottom:12px"><b class="grow" style="color:#7CE38B">🤖 ${solo?'AI opponents':'Bots'}</b><span class="muted" style="font-size:13px">${botCount}/5</span></div>
+    <button style="width:100%" ${l.managers.length>=6?'disabled':''} onclick="addBot()">+ Add an AI opponent${l.managers.length>=6?' (full)':''}</button>
+    ${botCount?`<div class="row" style="margin-top:12px;gap:8px">
+      <span class="muted grow" style="font-size:14px">Difficulty (all opponents)</span>
       <button id="diffToggle" style="font-size:15px;padding:8px 18px;font-weight:800;min-width:96px;color:#fff;background:${allHard?'var(--red)':'var(--green)'};border-color:${allHard?'var(--red)':'var(--green)'}" onclick="setBotsDiff('${allHard?'easy':'hard'}')">${allHard?'HARD':'EASY'}</button>
     </div>`:''}
-    <div class="muted" style="font-size:13px;margin-top:8px">Bots draft, bid & play like rival managers. Tap the difficulty to switch every bot between Easy and Hard.</div>
+    <div class="muted" style="font-size:13px;margin-top:12px;line-height:1.45">${solo?'AI clubs draft, bid & play against you. Tap the difficulty to switch them all between Easy and Hard.':'Bots draft, bid & play like rival managers. Tap the difficulty to switch every bot between Easy and Hard.'}</div>
   </div>`;})():''}
-  <button class="primary" style="width:100%" onclick="s.emit('ready',{ready:true})">I'm ready</button>
+  ${solo
+    ? (()=>{
+        const botCount=l.managers.filter(m=>m.isBot).length;
+        const canStart=botCount>=1;
+        return `<button class="${canStart?'startready':''}" style="width:100%;margin-top:4px" ${canStart?'':'disabled'}
+          onclick="s.emit('ready',{ready:true}); s.emit('startGame',(r)=>{if(r&&r.error)toast(r.error)})">Start game</button>
+        <div class="muted center" style="margin-top:10px">${canStart?'Good to go — kick off!':'Add at least one AI opponent to start'}</div>`;
+      })()
+    : `<button class="primary" style="width:100%" onclick="s.emit('ready',{ready:true})">I'm ready</button>
   ${iAmHost?(()=>{
     const allReady = l.managers.length>=2 && l.managers.every(m=>m.ready);
     return `<button class="${allReady?'startready':''}" style="width:100%;margin-top:8px" ${allReady?'':'disabled'}
       onclick="s.emit('startGame',(r)=>{if(r&&r.error)toast(r.error)})">Start game</button>
-    <div class="muted center" style="margin-top:6px">${allReady?'Everyone is ready — go!':'Starts when everyone\'s ready (2+ players)'}</div>`;
-  })():''}
+    <div class="muted center" style="margin-top:10px">${allReady?'Everyone is ready — go!':'Starts when everyone\'s ready (2+ players)'}</div>`;
+  })():''}`}
   </div>`);
 }
 
@@ -695,12 +724,12 @@ s.on('phase',(p)=>{
 });
 s.on('lot',(l)=>{ A={...l, highBid:0, highBidder:null, out:false, start: l.deadline - Date.now()}; renderLot(); });
 s.on('bid',(b)=>{ sfx('bid'); if(!A) return;
-  A.highBid=b.amount; A.highBidder=b.manager; A.deadline=b.deadline;
+  A.highBid=b.amount; A.highBidder=b.manager; A.highBidderUid=b.uid; A.deadline=b.deadline;
   const bl=document.getElementById('bidlineEl'), bd=document.getElementById('bidderEl'),
         am=document.getElementById('bidAmt');
   if(!bl) return renderLot();
   bl.innerHTML=`£${A.highBid}<small>m</small>`;
-  bd.textContent="🔨 "+A.highBidder;
+  bd.innerHTML="🔨 "+bidderLabel();
   bl.classList.remove('bidflash'); void bl.offsetWidth; bl.classList.add('bidflash');
   const minBid=A.highBid+1;
   if(BIDAMT!=null && BIDAMT<minBid){ BIDAMT=minBid; }
@@ -810,6 +839,11 @@ function s_lotReveal(l){ BIDAMT=null;
 }
 let hostPausedLocal=false;
 let SPEED=2;
+function bidderLabel(){
+  if(!A || !A.highBidder) return 'No bids yet';
+  const isMe = (A.highBidderUid && ME.uid) ? (A.highBidderUid===ME.uid) : (A.highBidder===ME.name);
+  return isMe ? '<span class="youbid">YOU</span>' : esc(A.highBidder);
+}
 function renderLot(){
   if(!A) return;
   const R=70, C=2*Math.PI*R;
@@ -829,21 +863,19 @@ function renderLot(){
           stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
         <div id="ringSec" class="ringSec">${Math.max(0,Math.ceil(((A.deadline||0)-Date.now())/1000))||'–'}</div>
       </div>
-      ${ME.isHost?`<button id="pauseBtn" onclick="togglePause()" style="width:min(124px,30vw);font-size:16px;padding:10px;font-weight:800">${isPaused?'Resume':'Pause'}</button>`:''}
+      ${ME.isHost?`<button id="pauseBtn" onclick="togglePause()" style="width:min(124px,30vw);font-size:15px;padding:9px;font-weight:800">${isPaused?'Resume':'Pause'}</button>
+      <button id="speedBtn" onclick="toggleSpeed()" style="width:min(124px,30vw);font-size:15px;padding:9px;font-weight:800;${SPEED===2?'background:var(--blue);border-color:var(--blue);color:#fff':''}">${SPEED===2?'2x ✓':'2x speed'}</button>`:''}
     </div>
   </div>
-  ${ME.isHost?`<div class="row" style="justify-content:center;margin-top:2px">
-    <button onclick="toggleSpeed()" style="width:194px;font-size:17px;padding:12px;font-weight:800;${SPEED===2?'background:var(--blue);border-color:var(--blue);color:#fff':''}">${SPEED===2?'2x speed ✓':'2x speed'}</button>
-  </div>`:''}
   </div>
   <div class="bidbar">
     <div class="bidbar-scroll">
     <div class="row" style="align-items:baseline;justify-content:center;gap:10px;margin-bottom:8px">
       <span class="bidline" id="bidlineEl" style="font-size:30px">${A.highBid?`£${A.highBid}<small>m</small>`:`£1<small>m start</small>`}</span>
-      <span class="bidder" id="bidderEl" style="font-size:14px">${A.highBidder?`🔨 ${esc(A.highBidder)}`:'No bids yet'}</span>
+      <span class="bidder" id="bidderEl" style="font-size:14px">${A.highBidder?`🔨 ${bidderLabel()}`:'No bids yet'}</span>
     </div>
     <div id="budgets" class="budgets"></div>
-    ${MYSQUAD.length?`<div class="minirow">${MYSQUAD.map(p=>`<span class="mini"><span class="pos ${p.pos}" style="margin-right:0">${p.pos}</span>${esc(p.name)}${p.wonderkid?'⭐':''}${p.rtg?` <b>${p.rtg}</b>`:''}</span>`).join('')}</div>`:''}
+    ${MYSQUAD.length?`<div class="minirow">${[...MYSQUAD].reverse().map(p=>`<span class="mini"><span class="pos ${p.pos}" style="margin-right:0">${p.pos}</span>${esc(p.name)}${p.wonderkid?'⭐':''}${p.rtg?` <b>${p.rtg}</b>`:''}</span>`).join('')}</div>`:''}
     </div>
     ${A.out
     ?`<div class="center muted" style="padding:10px 0;font-size:17px">You're out of this lot</div>`
@@ -990,6 +1022,9 @@ function unitBars(slots, avail){
 let lockedManagers=[];
 s.on('pickStarters',(p)=>{
   lockedManagers=[]; W=null; MATCHLIVE=false;
+  if(typeof p.showStandings==='boolean'){ STANDINGS_ON=p.showStandings; ME.standings=p.showStandings; }
+  if(p.standings) STANDINGS=p.standings;
+  STANDINGS_REVEALED=true; // setup screens: results already in, table safe to view
   const mine=p.perManager.find(x=>(x.uid&&ME.uid)?x.uid===ME.uid:x.id===ME.id); if(!mine) return;
   pickState={half:p.half, squad:mine.squad, slots:null};
   initSlots();
@@ -1001,6 +1036,17 @@ function initSlots(){
   if(!ok.length){ CURFORM=[0,0,0]; pickState.slots=makeshiftSlots(av); return; }
   CURFORM = ok.some(f=>f[0]===1&&f[1]===2&&f[2]===1)?[1,2,1]:(ok[0]||[1,2,1]);
   pickState.slots = slotsFor(...CURFORM);
+}
+function pickTags(pl){
+  // compact rating-change + goals + assists + form tags, matching the winter lineup card style
+  const grew=pl.grew||0;
+  const grewCol=grew>0?'#39d97c':grew<0?'#FF5247':'#9A9AA8';
+  const grewBit=grew?` <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${grewCol}">${grew>0?'+'+grew:grew}</span>`:'';
+  const hasStats=(pl.goals!=null||pl.assists!=null||pl.form!=null);
+  if(!hasStats) return grewBit;
+  const formCol=pl.form==null?'#9A9AA8':pl.form>=8?'#39d97c':pl.form>=6?'#FFD23D':pl.form>=4?'#FF9838':'#FF5247';
+  const formTxt=pl.form==null?'NEW':pl.form.toFixed(1);
+  return `${grewBit} <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:#FFD23D;border-radius:5px;padding:1px 4px">${pl.goals||0}G</span> <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:#5BC8FF;border-radius:5px;padding:1px 4px">${pl.assists||0}A</span> <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:${formCol};border-radius:5px;padding:1px 4px">${formTxt}</span>`;
 }
 function renderPick(){
   const p=pickState;
@@ -1025,9 +1071,10 @@ function renderPick(){
   <div class="benchrow">
     ${p.squad.map(pl=>`<button class="bp ${used.includes(pl.name)?'used':''} ${pl.injured?'inj':''}"
       onclick="placePlayer(this.dataset.n,this.dataset.p)" data-n="${esc(pl.name)}" data-p="${pl.pos}">
-      <span class="pos ${pl.pos}">${pl.pos}</span>${esc(pl.name)}${pl.wonderkid?' ⭐':''}${pl.rtg?` <b style="opacity:.85">${pl.rtg}</b>`:''}${p.half==='second'&&pl.grew?` <span style="font-family:var(--disp);font-weight:800;font-size:14px;padding:1px 5px;border-radius:6px;color:${pl.grew>0?'#7CE38B':'#FF5470'};background:${pl.grew>0?'rgba(124,227,139,.14)':'rgba(255,84,112,.14)'}">${pl.grew>0?'+':''}${pl.grew}</span>`:''}${pl.injured?' 🤕':''}</button>`).join('')}
+      <span class="pos ${pl.pos}">${pl.pos}</span>${esc(pl.name)}${pl.wonderkid?' ⭐':''}${pl.legend?' 👑':''}${pl.rtg?` <b style="opacity:.85">${pl.rtg}</b>`:''}${pickTags(pl)}${pl.injured?' 🤕':''}</button>`).join('')}
   </div>
   <div class="muted" style="margin-top:8px">Anyone not placed starts on the bench.</div>
+  ${(p.half==='second')?standingsBtnHTML():''}
   <button class="primary" style="width:100%;margin-top:14px" ${filled===5?'':'disabled'}
     onclick="submitPick()">Ready up (${filled}/5)</button>`);
 }
@@ -1119,17 +1166,41 @@ function renderMatch(m, instant){
       ${ME.isHost
         ?`<button class="primary bigbtn" style="margin-top:22px;max-width:340px" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
         :`<div class="muted" style="margin-top:22px">${esc(m.hostName)} controls the remote…</div>`}
+      ${standingsBtnHTML()}
     </div>
   </div>`);
-  const hHome=!!m.homeMgr, hAway=!!m.awayMgr;
-  if(hHome||hAway){
-    const humanWon=(hHome&&m.score[0]>m.score[1])||(hAway&&m.score[1]>m.score[0]);
-    const k=(hHome&&hAway)?'cheer':(humanWon?'cheer':(m.score[0]===m.score[1]?null:'boo'));
-    if(k && !instant) sfx(k); // fire on live reveal only, not on snapshot restore
+  // Standings button: hide its result-spoiling power until the match events have finished revealing.
+  if(STANDINGS_ON){
+    if(instant){ setStandingsRevealed(true); }
+    else {
+      setStandingsRevealed(false);
+      const evN=(m.events&&m.events.length)||0;
+      const revealMs=(2.1 + evN*0.5 + 0.6)*1000;
+      clearTimeout(window.__standReveal);
+      window.__standReveal=setTimeout(()=>setStandingsRevealed(true), revealMs);
+    }
+  }
+  // Single player: only the user's OWN match should cheer/boo (bot results shouldn't trigger it).
+  // Multiplayer: keep the original behaviour (any human-involved revealed match plays its result).
+  if(!instant){
+    if(ME.solo){
+      if(yours){
+        const iAmHome=(m.home===ME.club);
+        const myScore=iAmHome?m.score[0]:m.score[1], oppScore=iAmHome?m.score[1]:m.score[0];
+        const k=myScore>oppScore?'cheer':(myScore===oppScore?null:'boo');
+        if(k) sfx(k);
+      }
+    } else {
+      const hHome=!!m.homeMgr, hAway=!!m.awayMgr;
+      if(hHome||hAway){
+        const humanWon=(hHome&&m.score[0]>m.score[1])||(hAway&&m.score[1]>m.score[0]);
+        const k=(hHome&&hAway)?'cheer':(humanWon?'cheer':(m.score[0]===m.score[1]?null:'boo'));
+        if(k) sfx(k);
+      }
+    }
   }
 }
 s.on('matchReveal',renderMatch);
-s.on('halfDone',(h)=>{ lastTable=h.table; });
 function tableHTML(table, title){
   return `<h2>${title}</h2><div class="panel" style="padding:6px 8px"><table>
   <tr><th>#</th><th>Club</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr>
@@ -1138,105 +1209,158 @@ function tableHTML(table, title){
     <td>${r.w??'–'}</td><td>${r.d??'–'}</td><td>${r.l??'–'}</td><td>${r.gf}</td><td>${r.ga}</td><td>${r.gd}</td><td><b>${r.pts}</b></td></tr>`).join('')}</table></div>`;
 }
 
-/* ---------------- HALFTIME SPIN ---------------- */
-let SPIN=null;
-s.on('spinWheel',(p)=>{
-  SPINNAMES=(p.perManager||[]).map(x=>x.name).filter(Boolean);
-  const mine=p.perManager.find(x=>(x.uid&&ME.uid)?x.uid===ME.uid:x.id===ME.id);
-  if(!mine){ renderSpinWait(); return; }
-  SPIN={segments:mine.segments, spun:false};
-  renderSpinReady();
-});
-let SPINNAMES=[];
-s.on('spinResult',(x)=>{
-  SPINNED=SPINNED||[]; if(!SPINNED.includes(x.manager)) SPINNED.push(x.manager);
-  if(x.manager!==ME.name){ toast(`${x.manager} spun ${x.player} (${x.rating})`); const el=document.getElementById('spunlist'); if(el) el.innerHTML=SPINNED.map(n=>`<div>🎡 ${esc(n)} has spun</div>`).join(''); }
-});
-let SPINNED=[];
-function renderSpinReady(){
-  $(`<div class="screen center" data-lock style="min-height:100dvh;justify-content:center">
-    <div class="eyebrow" style="margin-bottom:10px">Halftime</div>
-    <h1 style="font-size:clamp(46px,9vw,72px);font-style:italic;font-weight:900;color:#F4FF00">READY TO SPIN?</h1>
-    <div class="muted" style="margin:14px 0 26px;font-size:16px">One free player. Your wheel is unique —<br>and the league table decides your odds…</div>
-    <button class="primary bigbtn" style="max-width:340px" onclick="renderSpinWheel()">Take me to my wheel ▸</button>
-  </div>`);
+/* ---------------- STANDINGS MODAL ---------------- */
+let STANDINGS=null;            // latest league table
+let STANDINGS_STATS=null;      // latest {topScorers, topAssists}
+let STANDINGS_ON=true;         // whether the feature is enabled for this game
+let STANDINGS_REVEALED=true;   // becomes false during a match reveal, true once events have shown
+s.on('tableUpdate',(d)=>{ if(d&&d.table) STANDINGS=d.table; if(d&&d.stats) STANDINGS_STATS=d.stats; refreshStandingsModal(); });
+s.on('halfDone',(h)=>{ lastTable=h.table; if(h.table) STANDINGS=h.table; refreshStandingsModal(); });
+function standingsBtnHTML(){
+  // Hidden entirely when the feature is off. Faded + disabled until the match events have revealed,
+  // so it can never be used to peek at a result before it's shown.
+  if(!STANDINGS_ON) return '';
+  const ready=STANDINGS_REVEALED;
+  return `<button id="standingsBtn" onclick="openStandings()" ${ready?'':'disabled'}
+    style="width:100%;max-width:340px;margin:10px auto 0;display:block;font-size:16px;padding:12px;font-weight:800;${ready?'':'opacity:.4;pointer-events:none'}">📊 League standings</button>`;
 }
-function renderSpinWheel(){
-  if(!SPIN) return;
-  const segs=SPIN.segments, n=segs.length, C=160, R=150;
-  const slice=(i)=>{
-    const a0=(i/n)*2*Math.PI-Math.PI/2, a1=((i+1)/n)*2*Math.PI-Math.PI/2;
-    const x0=C+R*Math.cos(a0), y0=C+R*Math.sin(a0), x1=C+R*Math.cos(a1), y1=C+R*Math.sin(a1);
-    const cls=segs[i].kind==='legend'?'segLegend':segs[i].kind==='wonder'?'segWonder':('seg'+segs[i].pos);
-    const mid=(a0+a1)/2;
-    let deg=mid*180/Math.PI;                     // text lies along the radius, reading outward
-    const tx=C+R*0.54*Math.cos(mid), ty=C+R*0.54*Math.sin(mid);
-    let anchor='start';
-    if(deg>90&&deg<270){ deg+=180; anchor='end'; } // keep every name upright
-    const last=segs[i].name.split(' ').slice(-1)[0].toUpperCase();
-    return `<path d="M${C},${C} L${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 0,1 ${x1.toFixed(1)},${y1.toFixed(1)} Z" class="${cls}" stroke="#06060B" stroke-width="2.5"/>
-      <text class="wheelTxt" x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" fill="#fff" font-size="11.5" font-weight="800" letter-spacing=".3" text-anchor="${anchor}" dominant-baseline="middle" transform="rotate(${deg.toFixed(1)} ${tx.toFixed(1)} ${ty.toFixed(1)})">${esc(last)} ${segs[i].rating}</text>`;
-  };
-  $(`<div class="screen center" data-lock style="min-height:100dvh;justify-content:center">
-    <div class="eyebrow">Halftime spin</div>
-    <div class="wheelWrap"><div class="wheelPtr">🔻</div>
-      <div id="wheelRot">
-      <svg id="wheelSvg" viewBox="0 0 320 320">
-        <defs><linearGradient id="wgrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#FF3D8A"/><stop offset="35%" stop-color="#FFE34D"/><stop offset="70%" stop-color="#3DDC84"/><stop offset="100%" stop-color="#9B5CFF"/>
-        </linearGradient></defs>
-        <circle cx="160" cy="160" r="156" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/>
-        ${segs.map((_,i)=>slice(i)).join('')}
-        <circle cx="160" cy="160" r="28" fill="#06060B" stroke="rgba(255,255,255,.3)" stroke-width="2"/>
-      </svg>
+function setStandingsRevealed(v){
+  STANDINGS_REVEALED=v;
+  const b=document.getElementById('standingsBtn');
+  if(b){ b.disabled=!v; b.style.opacity=v?'1':'.4'; b.style.pointerEvents=v?'auto':'none'; }
+  if(!v) closeStandings(); // never leave it open across a fresh reveal
+}
+function openStandings(){
+  if(!STANDINGS_ON || !STANDINGS_REVEALED) return;
+  closeStandings();
+  const table=STANDINGS||lastTable||[];
+  const st=STANDINGS_STATS||{};
+  const tableRows = table.length
+    ? table.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:14px${r.manager===ME.name?';background:rgba(255,61,138,.10)':''}">
+        <span style="font-family:var(--disp);font-weight:800;font-size:14px;min-width:20px;text-align:center;opacity:.95">${i+1}</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700">${esc(r.name)}${r.manager?` <span class="muted" style="font-size:11px">(${esc(r.manager)}${r.sacked?' · SACKED':''})</span>`:''}</span>
+        <span class="muted" style="font-size:11px;min-width:56px;text-align:right">${r.w??'–'}-${r.d??'–'}-${r.l??'–'}</span>
+        <span style="font-family:var(--disp);font-weight:800;white-space:nowrap;min-width:26px;text-align:right">${r.pts}</span></div>`).join('')
+    : `<div class="muted" style="padding:14px 2px;font-size:14px">No matches played yet</div>`;
+  const statList=(arr,key,unit,col)=> (arr&&arr.length)
+    ? arr.map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line);font-size:14px">
+        <span class="muted" style="min-width:18px;font-size:13px;text-align:center">${i+1}</span>
+        <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700">${esc(r.name)}</span>
+        <span style="font-family:var(--disp);font-weight:800;font-size:16px;color:${col};min-width:26px;text-align:right">${r[key]}</span></div>`).join('')
+    : `<div class="muted" style="padding:12px 2px;font-size:13px">None yet</div>`;
+  const ov=document.createElement('div');
+  ov.id='standOv';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.66);z-index:120;display:flex;align-items:center;justify-content:center;padding:16px;animation:mFade .15s ease';
+  ov.onclick=closeStandings;
+  const panel=(title,sub,body,flexBasis)=>`<div style="flex:1 1 ${flexBasis};min-height:0;display:flex;flex-direction:column;background:var(--surface2);border:1px solid var(--line);border-radius:12px;overflow:hidden">
+    <div style="padding:11px 13px 9px;border-bottom:1px solid var(--line);flex-shrink:0">
+      <div style="font-family:var(--disp);font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.03em">${title}</div>
+      ${sub?`<div class="muted" style="font-size:11px;margin-top:2px">${sub}</div>`:''}
+    </div>
+    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:4px 13px 12px;flex:1;min-height:0">${body}</div>
+  </div>`;
+  ov.innerHTML=`<div onclick="event.stopPropagation()" class="standWrap" style="position:relative;width:100%;max-width:760px;max-height:80vh;display:flex;flex-direction:column;background:var(--surface);border:2px solid var(--line);border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.6);overflow:hidden">
+    <button onclick="closeStandings()" aria-label="Close" style="position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;font-size:16px;line-height:1;padding:0;background:var(--surface2);border:1px solid var(--line);color:var(--text);z-index:2">✕</button>
+    <div style="padding:15px 16px 12px;border-bottom:1px solid var(--line);flex-shrink:0">
+      <div style="font-family:var(--disp);font-weight:800;font-size:19px;text-transform:uppercase;letter-spacing:.03em;padding-right:34px">📊 League standings</div>
+    </div>
+    <div class="standCols" style="display:flex;gap:10px;padding:12px;flex:1;min-height:0">
+      ${panel('Table','W-D-L · points',tableRows,'55%')}
+      <div class="standRight" style="flex:1 1 45%;min-height:0;display:flex;flex-direction:column;gap:10px">
+        ${panel('👟 Top scorers','',statList(st.topScorers,'goals','G','#FFD23D'),'50%')}
+        ${panel('🎯 Top assists','',statList(st.topAssists,'assists','A','#5BC8FF'),'50%')}
       </div>
     </div>
-    <button id="spinBtn" class="primary bigbtn" style="max-width:300px" onclick="doSpin()">SPIN 🎡</button>
-  </div>`);
+  </div>`;
+  document.body.appendChild(ov);
 }
-function doSpin(){
-  const b=document.getElementById('spinBtn'); if(b){ b.disabled=true; b.style.opacity='.5'; }
-  s.emit('doSpin',(r)=>{
-    if(r&&r.error){ toast(r.error); if(b){b.disabled=false;b.style.opacity='1';} return; }
-    const n=SPIN.segments.length;
-    const segAngle=360/n, target=360*6 - (r.index*segAngle + segAngle/2);
-    sfx('spin');
-    const gEl=document.getElementById('wheelRot');
-    if(gEl){ void gEl.offsetWidth; requestAnimationFrame(()=>{ gEl.style.transform=`rotate(${target}deg)`; }); }
-    const won=SPIN.segments[r.index];
-    setTimeout(()=>{
-      sfx('prize');
-      confetti();
-      $(`<div class="screen center" data-lock style="min-height:100dvh;justify-content:center;align-items:center;text-align:center;width:100%">
-        <div class="eyebrow" style="margin-bottom:12px;font-size:20px;color:${won.kind==='legend'?'#FFD75E':won.kind==='wonder'?'#F4FF00':'var(--pink)'}">${won.kind==='legend'?'👑 A LEGEND':won.kind==='wonder'?'⭐ A WONDERKID':'YOUR PRIZE'}</div>
-        <div class="revealCard" style="--fade:520ms;width:200px;margin:0 auto">${cardHTML({name:won.name,pos:won.pos,hint:String(won.rating),legend:won.kind==='legend',wonderkid:won.kind==='wonder'})}</div>
-        <div class="score" style="font-size:30px;margin-top:16px;opacity:0;animation:cerIn .5s .7s forwards">${esc(won.name)} joins your squad!</div>
-        <button class="primary bigbtn" style="max-width:320px;margin-top:22px" onclick="renderSpinWait()">Continue ▸</button>
-      </div>`);
-    },3600);
-  });
-}
-function renderSpinWait(){
-  $(`<div class="screen center" data-lock style="min-height:100dvh;justify-content:center">
-    <div class="score" style="font-size:28px">Waiting for the other managers…</div>
-    <div class="panel" id="spunlist" style="margin-top:16px;text-align:left;font-size:17px">${SPINNED.map(n=>`<div>🎡 ${esc(n)} has spun</div>`).join('')}${SPINNAMES.filter(n=>!SPINNED.includes(n)).map(n=>`<div class="muted">⏳ ${esc(n)} still to spin</div>`).join('')}</div>
-    ${ME.isHost?`<button class="bigbtn" style="margin-top:18px;max-width:340px" onclick="s.emit('forceSpins',(r)=>{ if(r&&r.error) toast(r.error); })">Host: spin for whoever's left ▸</button>`:''}
-  </div>`);
-}
+function closeStandings(){ const o=document.getElementById('standOv'); if(o) o.remove(); }
+function refreshStandingsModal(){ if(document.getElementById('standOv')) openStandings(); }
 
-/* ---------------- WINTER ---------------- */
+/* ---------------- WINTER LINEUP ---------------- */
 let W=null;
+function fcCls(f){ return f==null?'f-n':f>=8?'f-g':f>=6?'f-y':f>=4?'f-o':'f-r'; }
 function applyWinter(w){
   MATCHLIVE=false;
-  RESPINS=3;
-  if(w.sackings.some(x=>x.manager===ME.name)) ME.sacked=true;
+  closeStandings();
+  if(w.sackings && w.sackings.some(x=>x.manager===ME.name)) ME.sacked=true;
   W=w;
-  renderWinterReport();
+  if(w.table) STANDINGS=w.table;
+  if(w.stats) STANDINGS_STATS=w.stats;
+  renderWinterLineup();
 }
 s.on('winter',applyWinter);
-function fcCls(f){ return f==null?'f-n':f>=8?'f-g':f>=6?'f-y':f>=4?'f-o':'f-r'; }
+s.on('winterUpdate',(u)=>{ if(W&&u.review){ W.review=u.review; if(document.querySelector('[data-winterscr]')) renderWinterLineup(); } });
+s.on('winterReady',(d)=>{ WINTER_READY=d; if(document.querySelector('[data-winterscr]')) renderWinterLineup(); });
+let WINTER_READY=null;
+let WINTER_IAMREADY=false;
+function winterReadyUp(){
+  WINTER_IAMREADY=true;
+  s.emit('winterReady',{ready:true},(r)=>{ if(r&&r.error){ WINTER_IAMREADY=false; toast(r.error); } });
+  renderWinterLineup();
+}
+function winterNextSolo(){ s.emit('startWinterAuction',(r)=>{ if(r&&r.error) toast(r.error); }); }
+// goals/assists/form/rating mini-boxes drawn onto each lineup card
+function winterCard(p){
+  const col={GK:'#E8B931',DEF:'#3D7BFF',MID:'#2EC96E',ATT:'#FF5247'}[p.pos]||'#888';
+  const grew=p.grew||0;
+  const grewCol=grew>0?'#39d97c':grew<0?'#FF5247':'#9A9AA8';
+  const grewTxt=grew>0?'+'+grew:grew<0?(''+grew):'±0';
+  const formCol=p.form==null?'#9A9AA8':p.form>=8?'#39d97c':p.form>=6?'#FFD23D':p.form>=4?'#FF9838':'#FF5247';
+  const formTxt=p.form==null?'NEW':p.form.toFixed(1);
+  return `<div class="wcard" data-name="${esc(p.name)}" data-pos="${p.pos}" style="position:relative;background:linear-gradient(165deg,${col}22,#000 70%);border:2px solid ${col}99;border-radius:14px;padding:10px 8px 8px;text-align:center;min-height:120px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">
+    <div style="position:absolute;top:6px;left:7px;display:flex;align-items:flex-start;gap:3px">
+      <span style="font-family:var(--disp);font-weight:900;font-size:24px;line-height:1;color:#fff">${p.rtg}</span>
+      <span style="font-family:var(--disp);font-weight:800;font-size:12px;color:${grewCol};line-height:1.4">${grewTxt}</span>
+    </div>
+    <div style="position:absolute;top:6px;right:7px;font-family:var(--disp);font-weight:800;font-size:13px;color:#000;background:${formCol};border-radius:7px;padding:3px 6px;min-width:34px">${formTxt}</div>
+    <div style="position:absolute;bottom:30px;right:7px;font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:#FFD23D;border-radius:6px;padding:2px 5px">${p.goals||0}G</div>
+    <div style="position:absolute;bottom:8px;right:7px;font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:#5BC8FF;border-radius:6px;padding:2px 5px">${p.assists||0}A</div>
+    <span class="pos ${p.pos}" style="position:absolute;bottom:8px;left:7px;margin:0">${p.pos}</span>
+    <div style="font-size:13px;font-weight:800;line-height:1.1;width:100%;padding:0 2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:26px">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.injured?' 🤕':''}</div>
+  </div>`;
+}
+function renderWinterLineup(){
+  if(!W) return;
+  const mine = W.review.find(r=> (ME.uid&&r.uid)?r.uid===ME.uid:r.manager===ME.name) || W.review.find(r=>r.manager===ME.name);
+  const myBudget = (W.budgets||[]).find(b=>b.manager===ME.name);
+  STANDINGS_ON = (typeof ME.standings==='boolean') ? ME.standings : (W.showStandings!==false);
+  if(W.table) STANDINGS=W.table;
+  STANDINGS_REVEALED=true; // winter break: results are already in, standings safe to view
+  const players = mine ? mine.players : [];
+  // group by line for a lineup-style layout
+  const line=(pos)=>players.filter(p=>p.pos===pos);
+  const grid=(arr)=>arr.length?`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin-bottom:8px">${arr.map(winterCard).join('')}</div>`:'';
+  const solo = !!ME.solo;
+  const humans = WINTER_READY ? WINTER_READY.total : null;
+  const readyCount = WINTER_READY ? WINTER_READY.ready.length : 0;
+  const onWinter = !!document.querySelector('[data-winterscr]');
+  const render = onWinter ? $k : $;
+  render(`<div data-winterscr style="padding-top:max(92px,calc(env(safe-area-inset-top) + 76px))"></div>
+  <div class="eyebrow" style="padding-top:4px">Winter break</div>
+  <h1 style="margin-bottom:6px">Your squad at the break</h1>
+  <div class="muted" style="font-size:14px;margin:0 0 4px;line-height:1.45">Updated ratings, season goals &amp; assists, and form. ${myBudget?`War chest: <b style="color:#fff">£${myBudget.budget}m</b> (+£50m)`:''}</div>
+  ${W.injuries && W.injuries.length?`<div class="panel" style="border-color:var(--att);padding:10px 12px">${W.injuries.map(i=>`<div style="padding:3px 0">🤕 <b>${esc(i.player)}</b> (${esc(i.manager)}) — out for the season</div>`).join('')}</div>`:''}
+  ${W.sackings && W.sackings.length?`<div class="panel" style="border-color:var(--att);padding:10px 12px">${W.sackings.map(x=>`<div style="padding:3px 0">🪓 <b>${esc(x.manager)}</b> sacked — ${esc(x.club)} carry on without him</div>`).join('')}</div>`:''}
+  ${ME.sacked?`<div class="blackbox" style="padding:18px;text-align:center;margin:10px 0"><div class="score" style="font-size:22px;color:var(--att)">You were sacked</div><div class="muted" style="margin-top:6px">Your club plays on under AI control.</div></div>`
+    : players.length?`<div style="margin-top:8px">
+        <div class="flabel" style="margin:8px 0 4px">⚔️ Attack</div>${grid(line('ATT'))}
+        <div class="flabel" style="margin:8px 0 4px">🎯 Midfield</div>${grid(line('MID'))}
+        <div class="flabel" style="margin:8px 0 4px">🛡️ Defence</div>${grid(line('DEF'))}
+        <div class="flabel" style="margin:8px 0 4px">🧤 Goalkeeper</div>${grid(line('GK'))}
+      </div>`:''}
+  ${standingsBtnHTML()}
+  ${solo
+    ? `<button class="startready" style="width:100%;max-width:340px;margin:14px auto 0;display:block" onclick="winterNextSolo()">Next: winter market ▸</button>`
+    : (ME.sacked
+        ? `<div class="center muted" style="padding:14px 0">Waiting for the others to ready up…</div>`
+        : `<button class="${WINTER_IAMREADY?'':'startready'}" ${WINTER_IAMREADY?'disabled':''} style="width:100%;max-width:340px;margin:14px auto 0;display:block;${WINTER_IAMREADY?'opacity:.6':''}" onclick="winterReadyUp()">${WINTER_IAMREADY?'Ready ✓ — waiting for others':'Ready up ▸'}</button>
+           ${humans!=null?`<div class="muted center" style="margin-top:8px">${readyCount}/${humans} managers ready</div>`:''}`)}
+  ${statPanels(W.stats,true)}`);
+}
+/* stats helpers (kept; used on the winter lineup + nowhere else now) */
 function statPanels(st,mineOnly){
-  let scorers=st.topScorers||[], assists=st.topAssists||[];
+  let scorers=(st&&st.topScorers)||[], assists=(st&&st.topAssists)||[];
   if(mineOnly && ME.club){
     scorers=scorers.filter(r=>r.owner===ME.club);
     assists=assists.filter(r=>r.owner===ME.club);
@@ -1244,86 +1368,10 @@ function statPanels(st,mineOnly){
   const row=(r,i,v)=>`<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)">
     <span class="muted" style="min-width:26px;font-size:15px">${i+1}</span>
     <span class="grow" style="font-size:17px;font-weight:700">${esc(r.name)}</span>
-    <span class="muted" style="font-size:14px;margin-right:8px">${r.owner?esc(r.owner):'gone 🎰'}</span>
+    <span class="muted" style="font-size:14px;margin-right:8px">${r.owner?esc(r.owner):'—'}</span>
     <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:20px">${v}</span></div>`;
-  return `${scorers.length?`<h2>👟 Top scorers</h2><div class="panel">${scorers.map((r,i)=>row(r,i,r.goals)).join('')}</div>`:''}
-  ${assists.length?`<h2>🎯 Top assists</h2><div class="panel">${assists.map((r,i)=>row(r,i,r.assists)).join('')}</div>`:''}`;
-}
-function renderStats(){
-  if(!W) return;
-  const tierTxt={worse:'<span class="t-worse">▼ worse</span>',better:'<span class="t-better">▲ better</span>',great:'<span class="t-great">▲▲ great</span>',legend:'<span class="t-legend">👑 LEGEND</span>'};
-  $(`${topBar("renderWinterReport()")}
-  <div class="eyebrow">Season so far</div>
-  ${tableHTML(W.table,'Halfway table')}
-  ${statPanels(W.stats,true)}
-  <button class="primary bigbtn" style="margin-top:14px" onclick="renderWinterReport()">‹ Back</button>`);
-}
-let RESPINS=3;
-s.on('respun',(x)=>{
-  if(x.manager===ME.name){
-    RESPINS=x.left;
-    if(W){ const mine=W.review.find(r=>r.manager===ME.name);
-      if(mine){ const old=mine.players.find(p=>p.name===x.out);
-        if(old){ old.name=x.in.name; old.pos=x.in.pos; old.rtg=x.in.rating; old.grew=0; old.form=null; old.wonderkid=false; old.legend=false; old.injured=false; } } }
-    renderWinterReport();
-  } else toast(`🎰 ${x.manager} respun ${x.out} → ${x.in.name}`);
-});
-function doRespin(name){
-  sfx('spin');
-  s.emit('respin',{name},(r)=>{ if(r&&r.error) toast(r.error); });
-}
-function renderWinterReport(){
-  window.__bd=null;
-  if(!W) return;
-  const mine = W.review.find(r=>r.manager===ME.name);
-  if(mine && typeof mine.respins==='number') RESPINS=mine.respins;
-  const myBudget = (W.budgets||[]).find(b=>b.manager===ME.name);
-  const grewBox=(p)=>{
-    const v=p.grew||0;
-    const bg=v>0?'rgba(124,227,139,.16)':v<0?'rgba(255,84,112,.16)':'rgba(255,255,255,.07)';
-    const col=v>0?'#7CE38B':v<0?'#FF5470':'#9aa0ae';
-    return `<span style="display:inline-block;min-width:34px;text-align:center;margin-left:5px;padding:2px 5px;border-radius:7px;background:${bg};color:${col};font-family:var(--disp);font-weight:800;font-size:14px;border:1px solid ${col}44;flex-shrink:0">${v>0?'+'+v:v<0?v:'±0'}</span>`;
-  };
-  const mine0=W.review.find(r=>r.manager===ME.name);
-  const tips=(mine0&&mine0.tips)||[];
-  const onWinter = !!document.querySelector('[data-winterscr]');
-  const render = onWinter ? $k : $;
-  render(`<div data-winterscr style="padding-top:max(92px,calc(env(safe-area-inset-top) + 76px))"></div>
-  <div class="eyebrow" style="padding-top:4px">Winter break</div>
-  <h1 style="margin-bottom:6px">The window is open</h1>
-  <div class="muted" style="font-size:13px;margin:-2px 0 6px">League standings</div>
-  <div class="panel" style="padding:6px 8px;max-height:230px;overflow-y:auto;margin-bottom:10px">
-    <table><tr><th>#</th><th>Club</th><th>Pts</th></tr>
-    ${(W.table||[]).map((r,i)=>`<tr class="${r.manager?(r.manager===ME.name?'me':'hu'):''}">
-      <td>${i+1}</td><td>${esc(r.name)}${r.manager?`<br><span class="muted">${esc(r.manager)}${r.sacked?' · SACKED':''}</span>`:''}</td><td><b>${r.pts}</b></td></tr>`).join('')}
-    </table></div>
-  <div class="blackbox" style="padding:14px;margin-bottom:10px;text-align:center">
-    <div class="muted" style="font-size:14px">War chest topped up</div>
-    <div class="score" style="font-size:38px;color:#7CE38B">+£50m</div>
-    ${myBudget?`<div class="muted" style="font-size:15px">Your budget: <b style="color:#fff">£${myBudget.budget}m</b></div>`:''}
-  </div>
-  ${W.injuries.length?`<div class="panel">${W.injuries.map(i=>`<div>🤕 <b>${esc(i.player)}</b> (${esc(i.manager)}) — out for the season</div>`).join('')}</div>`:''}
-  ${W.sackings.length?`<div class="panel" style="border-color:var(--att)">${W.sackings.map(x=>`<div>🪓 <b>${esc(x.manager)}</b> sacked — ${esc(x.club)} carry on without him</div>`).join('')}</div>`:''}
-  <div class="row" style="margin:10px 0 4px">
-    <h2 class="grow" style="margin:0">Your squad developed</h2>
-    ${(!ME.sacked)?`<div style="font-family:var(--disp);font-weight:800;font-size:17px;color:#F4FF00">${RESPINS}/3 respins</div>`:''}
-  </div>
-  ${mine?`<div class="panel" style="padding:8px 10px">${mine.players.map(p=>`<div class="row spinrow" style="padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:nowrap;gap:6px">
-    <span class="pos ${p.pos}">${p.pos}</span>
-    <span class="grow" style="font-size:15px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.injured?' 🤕':''}</span>
-    <span class="formchip ${fcCls(p.form)}" style="font-size:14px;min-width:40px;padding:3px 6px;flex-shrink:0">${p.form==null?'NEW':p.form.toFixed(1)}</span>
-    <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:18px;flex-shrink:0">${p.rtg}</span>${grewBox(p)}
-    ${(!ME.sacked&&RESPINS>0)?`<button class="spinbtn" style="margin-left:4px;font-size:15px;padding:7px 9px;min-width:0;flex-shrink:0" onclick="doRespin('${esc(p.name).replace(/'/g,"\\'")}')">🎰</button>`:''}</div>`).join('')}</div>`:''}
-  ${tips.length?`<h2 style="margin:14px 0 4px">📋 Assistant's notes</h2>
-  <div class="panel" style="border-color:var(--blue)">${tips.map(t=>`<div style="font-size:16px;line-height:1.45;padding:6px 0">💬 ${esc(t)}</div>`).join('')}</div>`:''}
-  ${ME.isHost && !ME.sacked
-    ?`<button class="primary bigbtn" style="margin-top:6px" onclick="openWinterMarket()">Open the winter market ▸</button>
-       <div class="muted center" style="font-size:13px;margin-top:8px">Everyone keeps their respins until you open it</div>`
-    :`<div class="center muted" style="padding:8px 0">Waiting for the host to open the market…</div>`}
-  ${statPanels(W.stats,true)}`);
-}
-function openWinterMarket(){
-  s.emit('startWinterAuction',(r)=>{ if(r&&r.error) toast(r.error); });
+  return `${scorers.length?`<h2 style="margin-top:18px">👟 Your top scorers</h2><div class="panel">${scorers.map((r,i)=>row(r,i,r.goals)).join('')}</div>`:''}
+  ${assists.length?`<h2>🎯 Your top assists</h2><div class="panel">${assists.map((r,i)=>row(r,i,r.assists)).join('')}</div>`:''}`;
 }
 
 /* ---------------- FINISH ---------------- */
@@ -1398,6 +1446,7 @@ function ceremonyPodium(f){
     ${f.champion.manager?`<div class="bidder" style="font-size:22px;margin-top:10px">${esc(f.champion.manager)}${f.champion.manager===ME.name?' — THAT\'S YOU':''}</div>`:'<div class="muted" style="margin-top:10px">An AI club. Embarrassing scenes.</div>'}
     <button class="primary bigbtn" style="margin-top:34px;max-width:340px;opacity:0;animation:pop .5s 1.4s forwards" onclick="showFinal()">Final table & awards</button>`);
     confetti(); CTIMERS.push(setTimeout(confetti,900));
+    sfx('cheer'); CTIMERS.push(setTimeout(()=>sfx('cheer'),700));
   },7900));
   window.__finalData=f;
 }

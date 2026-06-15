@@ -76,6 +76,7 @@ class Game {
     this.paused = false;
     this.speed = 2; // host toggle: 1x or 2x auction pace (2x is the default)
     this.showHints = false; // host option: show fuzzy FC26 ranges on cards
+    this.showStandings = true; // host option: live STANDINGS modal (on by default)
     this.hints = {};
   }
 
@@ -164,6 +165,7 @@ class Game {
       code: this.code,
       hostId: this.hostId,
       hostUid: host ? host.uid : null,
+      showStandings: !!this.showStandings,
       managers: this.managers.map((m) => ({ id: m.id, uid: m.uid || null, name: m.name, club: m.club, ready: m.ready, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null })),
     });
   }
@@ -181,6 +183,7 @@ class Game {
       this.io.emit('bid', {
         player: a.current.name, amount: a.highBid,
         manager: a.highBidder ? this.managers.find((x) => x.id === a.highBidder).name : null,
+        uid: a.highBidder ? (this.managers.find((x) => x.id === a.highBidder).uid || null) : null,
         deadline: a.deadline,
       });
       this.armLotTimer();
@@ -435,11 +438,20 @@ class Game {
   botMaxBid(m, player) {
     const r = player.rating;
     const hard = m.diff === 'hard';
-    // wonderkids grow into stars — hard bots price them off their POTENTIAL, not current rating.
-    const effR = (player.wonderkid && hard && player.pot) ? Math.max(r, player.pot) : r;
+    // wonderkids grow into stars — value them off their POTENTIAL, not current rating.
+    const effR = (player.wonderkid && player.pot) ? Math.max(r, player.pot) : r;
     let base;
-    if (hard) base = effR >= 92 ? 44 : effR >= 89 ? 33 : effR >= 86 ? 21 : effR >= 83 ? 12 : effR >= 80 ? 6 : 3;
-    else      base = r >= 92 ? 16 : r >= 89 ? 12 : r >= 86 ? 9 : r >= 83 ? 6 : r >= 80 ? 4 : 2;
+    if (player.wonderkid) {
+      // Dedicated wonderkid scale (tuned so a single wonderkid typically goes ~30-40, occasionally
+      // ~55, and only rarely approaches the hard cap of 71). Keyed off potential.
+      const p = effR;
+      if (hard) base = p >= 92 ? 31 : p >= 89 ? 25 : p >= 86 ? 18 : p >= 83 ? 12 : 8;
+      else      base = p >= 92 ? 18 : p >= 89 ? 14 : p >= 86 ? 10 : p >= 83 ? 7 : 4;
+    } else if (hard) {
+      base = effR >= 92 ? 44 : effR >= 89 ? 33 : effR >= 86 ? 21 : effR >= 83 ? 12 : effR >= 80 ? 6 : 3;
+    } else {
+      base = r >= 92 ? 16 : r >= 89 ? 12 : r >= 86 ? 9 : r >= 83 ? 6 : r >= 80 ? 4 : 2;
+    }
     const n = this.botNeeds(m);
     const need = n.needs(player.pos);
     const winterMkt = this.auction && this.auction.window === 'winter';
@@ -456,7 +468,7 @@ class Game {
     }
     const seed = this.botSeed(m, player);
     const aggro = m.aggro || 1;
-    const wkBonus = player.wonderkid ? (hard ? 1.55 : 1.1) : 1;
+    const wkBonus = 1; // wonderkid value already baked into the dedicated base scale above
     let factor;
     if (hard) {
       factor = (1.0 + seed * 0.2) * aggro;
@@ -467,12 +479,24 @@ class Game {
     } else {
       factor = (0.62 + seed * 0.18) * aggro;
     }
+    // Wonderkids occasionally spark a bidding war in a bot's mind: most of the time normal,
+    // but a minority of seeds add real upside so the odd one goes ~55 and rarely near the cap.
+    if (player.wonderkid && hard) {
+      if (seed > 0.90) factor += 0.6;        // rare big splurge (~10%)
+      else if (seed > 0.72) factor += 0.28;  // occasional strong interest
+    }
     const slotsLeft = n.needs('GK') + n.needs('DEF') + n.needs('MID') + n.needs('ATT');
     const reserve = Math.max(0, slotsLeft - 1);
     const cap = Math.max(1, m.budget - reserve);
     let val = Math.round(base * wkBonus * factor);
     if (need >= 2) val = Math.round(val * 1.08);
     if (upgrade) val = Math.round(val * 0.9); // upgrades: slightly less keen than filling a true need
+    // Hard ceiling per single player so bots never blow the budget on one name.
+    // Hard tops out at 71 (and only the very best ever approach it); Easy lower. Wonderkids
+    // specifically should usually land ~30-40, occasionally ~55, and only rarely near the cap.
+    const perPlayerCap = hard ? 71 : 48;
+    if (player.wonderkid) val = Math.min(val, hard ? 71 : 40);
+    val = Math.min(val, perPlayerCap);
     return Math.min(cap, val);
   }
   scheduleBotBids() {
@@ -508,14 +532,14 @@ class Game {
       // confident OPENING bid toward its valuation (hard opens higher & tighter)
       const openFrac = hard ? (0.78 + Math.random() * 0.17) : (0.6 + Math.random() * 0.3);
       const open = Math.max(1, Math.min(ceiling, Math.round(ceiling * openFrac)));
-      const base = FAST ? 20 : (hard ? 500 : 900);
+      const base = FAST ? 20 : 1000; // bots always wait at least ~1s before their opening bid
       const to = setTimeout(() => {
         if (!a.current || a.current.name !== lotName || this.paused || this.phase !== 'auction') return;
         if (a.highBidder === m.id || a.highBid >= open) return;
         const amount = Math.max(a.highBid + 1, Math.min(ceiling, open));
         if (amount <= a.highBid || amount > m.budget) return;
         this.bid(m.id, amount);
-      }, this.sp(base + Math.random() * (FAST ? 60 : 2400)));
+      }, this.sp(base + Math.random() * (FAST ? 60 : (hard ? 900 : 1800))));
       (this.timers.botBids = this.timers.botBids || []).push(to);
     }
     this.scheduleSnipes(lotName);
@@ -543,7 +567,7 @@ class Game {
       };
       // fire in the final stretch before the current deadline
       const left = a.deadline - Date.now();
-      const when = Math.max(this.sp(FAST ? 8 : 200), left - this.sp(FAST ? 30 : (900 + Math.random() * 1400)));
+      const when = Math.max(this.sp(FAST ? 8 : 1000), left - this.sp(FAST ? 30 : (900 + Math.random() * 1400)));
       const to = setTimeout(fire, when);
       (this.timers.botBids = this.timers.botBids || []).push(to);
     }
@@ -601,7 +625,7 @@ class Game {
     const remaining = Math.max(0, a.deadline - now);
     const newRemaining = Math.min(remaining + this.lotBidAddMs(), this.lotMaxMs());
     a.deadline = Math.max(a.deadline, now + newRemaining);
-    this.io.emit('bid', { player: a.current.name, amount, manager: m.name, deadline: a.deadline });
+    this.io.emit('bid', { player: a.current.name, amount, manager: m.name, uid: m.uid || null, deadline: a.deadline });
     this.armLotTimer();
     this.resolveEarly();
     if (a.current) this.reactBotBids(); // outbid bots fight back (only if the lot is still live)
@@ -617,7 +641,42 @@ class Game {
     if (a.outs.has(managerId)) return { error: 'Already out' };
     a.outs.add(managerId);
     this.io.emit('lotPass', { manager: m.name });
+    // SINGLE PLAYER: once the only human gives up, there's no point watching the bots bid each
+    // other in real time — work out who would win at what price and settle the lot right now.
+    const humans = this.managers.filter((x) => !x.isBot);
+    if (humans.length === 1 && a.outs.has(humans[0].id)) {
+      return this.resolveLotInstantly() || { ok: true };
+    }
     this.resolveEarly();
+    return { ok: true };
+  }
+
+  // Settle the current lot immediately using the bots' valuations (second-price: winner pays just
+  // above the next-highest interested bot). Used when the lone human has bowed out.
+  resolveLotInstantly() {
+    const a = this.auction;
+    if (!a || !a.current) return null;
+    clearTimeout(this.timers.lot);
+    if (this.timers.botBids) { this.timers.botBids.forEach(clearTimeout); this.timers.botBids = []; }
+    const interested = this.activeManagers()
+      .filter((b) => b.isBot)
+      .filter((b) => !(a.current.pos === 'GK' && b.squad.some((p) => p.pos === 'GK')))
+      .map((b) => ({ b, max: this.botMaxBid(b, a.current) }))
+      .filter((x) => x.max >= Math.max(1, a.highBid + 1))
+      .sort((x, y) => y.max - x.max);
+    if (interested.length) {
+      const winner = interested[0];
+      const second = interested[1] ? interested[1].max : a.highBid;
+      // pay just above the second-highest interest (and at least the current high bid + 1), capped by the winner's own max & budget
+      let price = Math.min(winner.max, Math.max(a.highBid + 1, second + 1));
+      price = Math.min(price, winner.b.budget);
+      if (price >= 1) {
+        a.highBid = price;
+        a.highBidder = winner.b.id;
+      }
+    }
+    this.io.emit('lotSettling', { sold: !!a.highBidder });
+    this.nextLot();
     return { ok: true };
   }
 
@@ -715,12 +774,21 @@ class Game {
 
   requestStarters(half) {
     this.pendingStarters = new Set(this.activeManagers().map((m) => m.id));
+    const ps = this.season ? this.season.playerStats : {};
     this.io.emit('pickStarters', {
       half,
       deadlineMs: null, // no time limit on squad assembly
+      showStandings: !!this.showStandings,
+      standings: this.season ? this.table() : null,
       perManager: this.activeManagers().map((m) => ({
         id: m.id, uid: m.uid || null,
-        squad: m.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === m.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
+        squad: m.squad.map((p) => ({
+          name: p.name, pos: p.pos, injured: p.name === m.injured, rtg: p.rating,
+          wonderkid: !!p.wonderkid, legend: !!p.legend, hero: !!p.hero, grew: p.grew || 0,
+          form: p.winterForm != null ? p.winterForm : null,
+          goals: (ps[p.name] || {}).goals || 0,
+          assists: (ps[p.name] || {}).assists || 0,
+        })),
       })),
     });
     clearTimeout(this.timers.starters);
@@ -1041,7 +1109,7 @@ class Game {
     if (!R) return;
     if (this.paused) { this.timers.reveal = setTimeout(() => this.revealStep(), 500); return; }
     while (R.i < R.queue.length && R.queue[R.i].tableMark) {
-      this.io.emit('tableUpdate', { afterMatchday: R.queue[R.i].md + 1 });
+      this.io.emit('tableUpdate', { afterMatchday: R.queue[R.i].md + 1, table: this.table(), stats: this.season ? this.seasonStats() : null });
       R.i++;
     }
     if (R.i >= R.queue.length) {
@@ -1231,7 +1299,6 @@ class Game {
         id: m.id,
         manager: m.name,
         club: m.club,
-        respins: m.respins != null ? m.respins : 3,
         locked: this.pendingStarters && this.startersHalf === 'second' ? !this.pendingStarters.has(m.id) : false,
         units: this.unitScores(m),
         starters: (m.starters || []).map((p) => p.name),
@@ -1251,14 +1318,7 @@ class Game {
 
   startWinter() {
     if (this.phase === 'winter') return; // idempotent — never double-fire
-    for (const m of this.activeManagers()) m.respins = 3;
     this.phase = 'winter';
-    // bots use a few respins on their weakest outfielders (hard bots are a touch keener)
-    for (const m of this.activeManagers().filter((x) => x.isBot)) {
-      const spins = m.diff === 'hard' ? 1 + Math.floor(Math.random() * 3) : Math.floor(Math.random() * 3);
-      const weak = [...m.squad].filter((p) => p.pos !== 'GK').sort((x, y) => x.rating - y.rating);
-      for (let i = 0; i < spins && i < weak.length && m.respins > 0; i++) this.respin(m.id, weak[i].name);
-    }
     const table = this.table();
     for (const m of this.activeManagers()) {
       m.budget += 50; // winter war chest
@@ -1307,34 +1367,32 @@ class Game {
     this.broadcastBudgets();
   }
 
-  respin(managerId, playerName) {
-    if (this.phase !== 'winter') return { error: 'Respins only at the winter break' };
-    const m = this.managers.find((x) => x.id === managerId);
-    if (!m || m.sacked) return { error: 'Not in the game' };
-    if (!m.respins || m.respins <= 0) return { error: 'No respins left' };
-    const old = m.squad.find((p) => p.name === playerName);
-    if (!old) return { error: 'Not your player' };
-    const lo = Math.max(84, old.rating), hi = Math.min(93, old.rating + 6); // never a downgrade
-    const allowHero = Math.random() < 0.12; // heroes only on a rare lucky respin
-    const eligible = (p) => p.pos === old.pos && !p.wonderkid && p.rating >= lo && p.rating <= hi
-      && !this.owned(p.name) && !LEGENDS.some((l) => l.name === p.name) && (allowHero || !p.hero);
-    const cand = E.shuffle(ALL_PLAYERS.filter(eligible))[0]
-      || E.shuffle(ALL_PLAYERS.filter((p) => p.pos === old.pos && !p.hero && p.rating >= lo && p.rating <= hi && !this.owned(p.name) && !p.wonderkid && !LEGENDS.some((l) => l.name === p.name)))[0]
-      || E.shuffle(ALL_PLAYERS.filter((p) => p.pos === old.pos && !p.hero && !this.owned(p.name)))[0];
-    if (!cand) return { error: 'Nobody available' };
-    m.squad[m.squad.indexOf(old)] = { ...cand, seasonMod: 0 };
-    if (m.injured === old.name) m.injured = null;
-    m.respins -= 1;
-    m.signings.push({ player: cand.name, price: 0, window: 'respin' });
-    this.io.emit('respun', { manager: m.name, out: old.name, in: { name: cand.name, pos: cand.pos, rating: cand.rating }, left: m.respins });
-    return { ok: true, in: { name: cand.name, pos: cand.pos, rating: cand.rating }, out: old.name, left: m.respins };
-  }
+  respin() { return { error: 'Respins have been removed' }; }
+
 
   hostStartWinterAuction(managerId) {
     if (managerId !== this.hostId) return { error: 'Host only' };
     if (this.phase !== 'winter' || this.auction && this.auction.window === 'winter' && this.auction.current !== undefined && this.phase === 'auction') return { error: 'Not now' };
     this.startWinterAuction();
     return { ok: true };
+  }
+
+  // Winter lineup readiness (multiplayer): each human readies up on the lineup screen; once every
+  // active human is ready the winter auction begins automatically. Single player starts it directly.
+  setWinterReady(managerId, ready) {
+    if (this.phase !== 'winter') return { error: 'Not the winter break' };
+    const m = this.managers.find((x) => x.id === managerId);
+    if (!m || m.sacked) return { error: 'Not in the game' };
+    this.winterReady = this.winterReady || new Set();
+    if (ready) this.winterReady.add(m.uid || m.id); else this.winterReady.delete(m.uid || m.id);
+    const humans = this.activeManagers().filter((x) => !x.isBot);
+    const allReady = humans.length > 0 && humans.every((h) => this.winterReady.has(h.uid || h.id));
+    this.io.emit('winterReady', {
+      ready: humans.filter((h) => this.winterReady.has(h.uid || h.id)).map((h) => h.uid || h.id),
+      total: humans.length,
+    });
+    if (allReady) this.startWinterAuction();
+    return { ok: true, allReady };
   }
 
   startWinterAuction() {
@@ -1640,6 +1698,9 @@ class Game {
   snapshot(forId) {
     return {
       code: this.code, phase: this.phase, hostId: this.hostId, hostUid: (this.managers.find((m) => m.id === this.hostId) || {}).uid || null, speed: this.speed,
+      showStandings: !!this.showStandings,
+      standings: this.season ? this.table() : null,
+      standingsStats: this.season ? this.seasonStats() : null,
       managers: this.managers.map((m) => ({
         id: m.id, uid: m.uid || null, name: m.name, club: m.club, ready: m.ready, budget: m.budget, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null,
         squad: m.id === forId ? m.squad.map((p) => ({ name: p.name, pos: p.pos })) : { count: m.squad.length },
@@ -1651,6 +1712,7 @@ class Game {
         player: { name: this.auction.current.name, pos: this.auction.current.pos, hint: this.hintFor(this.auction.current), legend: !!this.auction.current.legend, wonderkid: !!this.auction.current.wonderkid },
         highBid: this.auction.highBid,
         highBidder: this.auction.highBidder ? (this.managers.find((x) => x.id === this.auction.highBidder) || {}).name : null,
+        highBidderUid: this.auction.highBidder ? ((this.managers.find((x) => x.id === this.auction.highBidder) || {}).uid || null) : null,
         deadline: this.auction.deadline,
         index: this.auction.index, total: this.auction.queue.length,
         revealLeft: Math.max(0, (this.auction.revealUntil || 0) - Date.now()),
@@ -1670,13 +1732,20 @@ class Game {
       pick: (this.phase === 'setup' && this.pendingStarters) ? (() => {
         const me = this.managers.find((x) => x.id === forId);
         if (!me || me.sacked) return null;
+        const ps = this.season ? this.season.playerStats : {};
         return {
           half: this.startersHalf,
           locked: !this.pendingStarters.has(forId),
-          squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
+          squad: me.squad.map((p) => ({
+            name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating,
+            wonderkid: !!p.wonderkid, legend: !!p.legend, hero: !!p.hero, grew: p.grew || 0,
+            form: p.winterForm != null ? p.winterForm : null,
+            goals: (ps[p.name] || {}).goals || 0,
+            assists: (ps[p.name] || {}).assists || 0,
+          })),
         };
       })() : null,
-      serverV: 'v13.2',
+      serverV: 'v13.8',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

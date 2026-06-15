@@ -32,11 +32,12 @@ io.on('connection', (socket) => {
     }
     cb && cb({ games: out });
   });
-  socket.on('createLobby', ({ name, club, hints }, cb) => {
+  socket.on('createLobby', ({ name, club, hints, standings }, cb) => {
     let code = mid();
     while (games.has(code)) code = mid();
     const game = new Game(code, roomEmitter(code));
     game.showHints = !!hints;
+    game.showStandings = standings === undefined ? true : !!standings;
     games.set(code, game);
     socket.join(code);
     const r = game.addManager(socket.id, name, club);
@@ -209,6 +210,15 @@ io.on('connection', (socket) => {
   socket.on('doSpin', (cb) => {
     const g = current();
     cb && cb(g ? g.doSpin(joined.managerId) : { error: 'No game' });
+  });
+  socket.on('winterReady', ({ ready }, cb) => {
+    const g = current();
+    cb && cb(g ? g.setWinterReady(joined.managerId, !!ready) : { error: 'No game' });
+  });
+  socket.on('getStandings', (cb) => {
+    const g = current();
+    if (!g) return cb && cb({ error: 'No game' });
+    cb && cb({ ok: true, showStandings: !!g.showStandings, table: g.season ? g.table() : null, stats: g.season ? g.seasonStats() : null });
   });
   socket.on('startWinterAuction', (cb) => {
     const g = current();
