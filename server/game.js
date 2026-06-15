@@ -1527,6 +1527,7 @@ class Game {
       name: m.name, budget: m.budget,
       squadCount: m.squad.length,
       done: !!m.sacked,
+      signings: m.signings.map((s) => ({ player: s.player, price: s.price, window: s.window })),
     })));
   }
 
@@ -1644,6 +1645,7 @@ class Game {
       managers: this.managers.map((m) => ({
         id: m.id, uid: m.uid || null, name: m.name, club: m.club, ready: m.ready, budget: m.budget, connected: m.connected, isBot: !!m.isBot, diff: m.diff || null,
         squad: m.id === forId ? m.squad.map((p) => ({ name: p.name, pos: p.pos })) : { count: m.squad.length },
+        signings: m.signings.map((s) => ({ player: s.player, price: s.price, window: s.window })),
         sacked: m.sacked, injured: m.injured,
       })),
       auction: this.phase === 'auction' && this.auction && this.auction.current ? {
@@ -1676,7 +1678,7 @@ class Game {
           squad: me.squad.map((p) => ({ name: p.name, pos: p.pos, injured: p.name === me.injured, rtg: p.rating, wonderkid: !!p.wonderkid, grew: p.grew || 0 })),
         };
       })() : null,
-      serverV: 'v10.2',
+      serverV: 'v10.6',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

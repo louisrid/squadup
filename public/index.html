@@ -3,18 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>SQUADUP</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Archivo:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#06060B; --surface:#12121A; --surface2:#191924; --line:#2A2A38;
+  --bg:#000000; --surface:#12121A; --surface2:#191924; --line:#2A2A38;
   --pink:#FF3D8A; --pink-deep:#C2186B;
   --gk:#E8B931; --def:#3D7BFF; --mid:#2EC96E; --att:#FF5247;
   --text:#F2F2F7; --muted:#B7B7C4;
   --disp:'Barlow Condensed',sans-serif; --body:'Archivo',sans-serif;
 }
 *{box-sizing:border-box}
+html{background:#000}
 html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-weight:500;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 .muted{color:var(--muted)!important;font-weight:600}
 button{font-weight:700;touch-action:manipulation}
@@ -137,7 +141,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
 input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--pink);border:3px solid #fff;cursor:pointer}
 .budgets{display:flex;gap:5px;overflow-x:auto;padding:3px 6px;margin:4px auto;justify-content:center;max-width:100%;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .budgets::-webkit-scrollbar{display:none}
-.bchip{flex:0 0 auto;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:6px 9px;font-size:12.5px;line-height:1.2;text-align:center;white-space:nowrap}
+.bchip{flex:0 0 auto;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:6px 9px;font-size:12.5px;line-height:1.2;text-align:center;white-space:nowrap;transition:transform .1s ease,border-color .12s ease}
+.bchip:active{transform:scale(.94);border-color:var(--pink)}
 .bchip b{font-family:var(--disp);font-size:14px}
 .bchip.me{border-color:var(--pink)}
 .bchip.done{opacity:.45}
@@ -148,6 +153,7 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
   font-size:12px;letter-spacing:.16em;padding:3px 10px;border-radius:6px;text-transform:uppercase}
 .evt{font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line);opacity:0;animation:pop .4s forwards}
 @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes mFade{from{opacity:0}to{opacity:1}}
 .tick{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
 /* ---------- tables / form ---------- */
 table{width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed}
@@ -236,7 +242,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 .award b{font-family:var(--disp);text-transform:uppercase;letter-spacing:.04em}
 .auctionWrap{align-items:center!important;width:100%;max-width:620px;margin-left:auto!important;margin-right:auto!important}
 /* budgets row handled by the .budgets rule above */
-.paused{position:fixed;top:0;left:0;right:0;background:var(--pink-deep);color:#fff;text-align:center;
+.paused{position:fixed;top:env(safe-area-inset-top);left:0;right:0;background:var(--pink-deep);color:#fff;text-align:center;
   font-family:var(--disp);font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:7px;z-index:50}
 #toast{position:fixed;left:50%;transform:translateX(-50%) translateY(20px);
   bottom:max(26px,calc(env(safe-area-inset-bottom) + 18px));z-index:90;
@@ -257,9 +263,9 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v10.2';
-const $ = (h) => { if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
-const $k = (h) => { const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
+const VERSION = 'v10.6';
+const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
+const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
 let A = null, timerInt = null, pickState = null, lastTable = null;
 
@@ -407,12 +413,16 @@ function onJoined(r,name){ ME.id=r.managerId; ME.code=r.code; ME.name=name; if(r
   if(lastLobby && lastLobby.code===ME.code) renderLobby(lastLobby);
   if(r.snapshot) restoreFromSnapshot(r.snapshot); }
 function resyncSession(){
-  if(!ME.code || !ME.name) return;
-  s.emit('joinLobby',{code:ME.code,name:ME.name,club:'',uid:ME.uid},(r)=>{
-    if(r && r.ok){ ME.id=r.managerId; if(r.uid) ME.uid=r.uid;
+  let code=ME.code, name=ME.name, uid=ME.uid;
+  if(!code || !name){ // after a hard refresh ME is empty — pull the saved session
+    try{ const sv=JSON.parse(localStorage.getItem('squp')||'null'); if(sv&&sv.code&&sv.name){ code=sv.code; name=sv.name; uid=sv.uid; } }catch(e){}
+  }
+  if(!code || !name) return;
+  s.emit('joinLobby',{code,name,club:'',uid},(r)=>{
+    if(r && r.ok){ ME.id=r.managerId; ME.code=code; ME.name=name; if(r.uid) ME.uid=r.uid;
       try{ localStorage.setItem('squp', JSON.stringify({name:ME.name, code:ME.code, uid:ME.uid})); }catch(e){}
       if(r.snapshot) restoreFromSnapshot(r.snapshot);
-    } else if(r && r.error && /not found/i.test(r.error)){ ME.code=null; toast('That game no longer exists — start a fresh one'); home(); }
+    } else if(r && r.error && /not found/i.test(r.error)){ ME.code=null; }
   });
 }
 document.addEventListener('visibilitychange',()=>{
@@ -465,7 +475,7 @@ function restoreFromSnapshot(snap){
   if(snap.winter && !snap.auction){ applyWinter(snap.winter); setTimeout(applyPauseUI,0); return; }
   // rebuild the budget/squad-count strip from the snapshot so it's correct right after a reconnect
   if(Array.isArray(snap.managers)){
-    BUDG = snap.managers.map(m=>({ name:m.name, budget:m.budget, squadCount:(m.squad&&typeof m.squad.count==='number')?m.squad.count:(Array.isArray(m.squad)?m.squad.length:0), done:!!m.sacked }));
+    BUDG = snap.managers.map(m=>({ name:m.name, budget:m.budget, squadCount:(m.squad&&typeof m.squad.count==='number')?m.squad.count:(Array.isArray(m.squad)?m.squad.length:0), done:!!m.sacked, signings:m.signings||[] }));
     const me=BUDG.find(r=>r.name===ME.name); if(me) ME.budget=me.budget;
   }
   if(typeof paintBudgets==='function') setTimeout(paintBudgets,0);
@@ -638,13 +648,42 @@ function confetti(){
 let BUDG=null;
 function paintBudgets(){
   const el=document.getElementById('budgets');
-  if(el&&BUDG) el.innerHTML=BUDG.map(r=>`<div class="bchip ${r.name===ME.name?'me':''} ${r.done?'done':''}">
+  if(el&&BUDG) el.innerHTML=BUDG.map(r=>`<div class="bchip ${r.name===ME.name?'me':''} ${r.done?'done':''}" onclick="showManagerInfo('${encodeURIComponent(r.name)}')" style="cursor:pointer">
     ${esc(r.name)}<br><b>£${r.budget}m</b> · ${r.squadCount||0} signed</div>`).join('');
 }
+function showManagerInfo(encName){
+  const name=decodeURIComponent(encName);
+  const r=BUDG&&BUDG.find(x=>x.name===name); if(!r) return;
+  closeManagerInfo();
+  const sigs=(r.signings||[]).filter(s=>s.window!=='freebie');
+  const rows = sigs.length
+    ? sigs.map(s=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:15px">
+        <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700">${esc(s.player)}${s.window==='winter'?' <span style="color:#4FC3F7;font-size:12px">·W</span>':''}</span>
+        <span style="font-family:var(--disp);font-weight:800;white-space:nowrap">£${s.price}m</span></div>`).join('')
+    : `<div class="muted" style="padding:14px 2px;font-size:15px">No players bought yet</div>`;
+  const ov=document.createElement('div');
+  ov.id='mInfoOv';
+  ov.setAttribute('data-mname', name);
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.66);z-index:120;display:flex;align-items:center;justify-content:center;padding:20px;animation:mFade .15s ease';
+  ov.onclick=closeManagerInfo;
+  ov.innerHTML=`<div style="position:relative;width:100%;max-width:380px;max-height:62vh;display:flex;flex-direction:column;background:var(--surface);border:2px solid var(--line);border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.6);overflow:hidden">
+    <button onclick="closeManagerInfo()" aria-label="Close" style="position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;font-size:16px;line-height:1;padding:0;background:var(--surface2);border:1px solid var(--line);color:var(--text);z-index:1">✕</button>
+    <div style="padding:16px 16px 12px;border-bottom:1px solid var(--line)">
+      <div style="font-family:var(--disp);font-weight:800;font-size:20px;text-transform:uppercase;letter-spacing:.03em;padding-right:34px">${esc(name)}</div>
+      <div class="muted" style="font-size:14px;margin-top:4px"><b style="color:var(--text)">£${r.budget}m</b> left · ${r.squadCount||0} signed</div>
+    </div>
+    <div style="overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:6px 16px 16px">${rows}</div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+function closeManagerInfo(){ const o=document.getElementById('mInfoOv'); if(o) o.remove(); }
 s.on('budgets',(rows)=>{
   BUDG=rows;
   const me=rows.find(r=>r.name===ME.name); if(me) ME.budget=me.budget;
   paintBudgets();
+  // if the info popup is open, refresh it live with the new numbers
+  const o=document.getElementById('mInfoOv');
+  if(o){ const n=o.getAttribute('data-mname'); if(n){ showManagerInfo(encodeURIComponent(n)); } }
 });
 function flashResult(big, small){
   clearInterval(timerInt);
@@ -771,7 +810,7 @@ function giveUp(){
   });
 }
 s.on('lotPass',(x)=>{ if(x.manager!==ME.name) toast(esc(x.manager)+' is out'); });
-s.on('lotSkipped',(x)=>{ toast('Skipped '+esc(x.player)+' — nobody can buy'); });
+s.on('lotSkipped',()=>{});
 function toggleSpeed(){ s.emit('hostSpeed',{fast:SPEED!==2},(r)=>{ if(r&&r.error) toast(r.error); }); }
 s.on('speed',(x)=>{ SPEED=x.speed; toast(SPEED===2?'⚡ 2x speed on':'Speed back to normal'); if(A) renderLot(); });
 s.on('lotSettling',()=>{});
