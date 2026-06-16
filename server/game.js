@@ -202,12 +202,12 @@ class Game {
       const dropPos = E.pick(['DEF', 'MID', 'ATT']);
       posQuota[dropPos] = Math.max(n, posQuota[dropPos] - 1); // never below 1 per manager
     }
-    const stars = Math.max(2, n - 1); // always at least two 90+ headliners, scales with lobby size
+    const stars = Math.max(2, Math.ceil((n - 1) / 2)); // a couple of guaranteed 90+ headliners, not a flood
     const S = posQuota.GK + posQuota.DEF + posQuota.MID + posQuota.ATT;
-    const cElite = Math.max(2, Math.round(0.12 * S)); // always at least two 90+
-    const cHigh = Math.round(0.22 * S);               // 87-89
-    const cGood = Math.round(0.25 * S);               // 85-86
-    const cMid = Math.round(0.27 * S);                // 82-84
+    const cElite = Math.max(2, Math.round(0.07 * S)); // 90+ : a couple of true headliners, not a glut
+    const cHigh = Math.round(0.15 * S);               // 87-89
+    const cGood = Math.round(0.26 * S);               // 85-86
+    const cMid = Math.round(0.30 * S);                // 82-84
     const tiers = [
       { lo: 90, hi: 99, count: cElite },
       { lo: 87, hi: 89, count: cHigh },
@@ -455,7 +455,7 @@ class Game {
     } else if (hard) {
       base = effR >= 92 ? 44 : effR >= 89 ? 33 : effR >= 86 ? 21 : effR >= 83 ? 12 : effR >= 80 ? 6 : 3;
     } else {
-      base = r >= 92 ? 30 : r >= 89 ? 23 : r >= 86 ? 15 : r >= 83 ? 9 : r >= 80 ? 5 : 3;
+      base = r >= 92 ? 36 : r >= 89 ? 28 : r >= 86 ? 18 : r >= 83 ? 11 : r >= 80 ? 6 : 3;
     }
     const n = this.botNeeds(m);
     const need = n.needs(player.pos);
@@ -482,7 +482,8 @@ class Game {
       if (need >= 1 && myLine < 80) factor += 0.15;
       else if (need >= 1) factor += 0.05;
     } else {
-      factor = (0.62 + seed * 0.18) * aggro;
+      factor = (0.74 + seed * 0.18) * aggro;
+      if (need >= 1) factor += 0.06; // a little keener when it actually needs the position
     }
     // Wonderkids occasionally spark a bidding war in a bot's mind: most of the time normal,
     // but a minority of seeds add real upside so the odd one goes ~55 and rarely near the cap.
@@ -491,7 +492,15 @@ class Game {
       else if (seed > 0.72) factor += 0.28;  // occasional strong interest
     }
     const slotsLeft = n.needs('GK') + n.needs('DEF') + n.needs('MID') + n.needs('ATT');
-    const reserve = Math.max(0, slotsLeft - 1);
+    // Reserve enough to still buy decent players for the OTHER open slots, not just £1 each.
+    // Hard bots budget ~6 per remaining slot (after this one); easy a bit less. This stops a bot
+    // blowing its whole bank on one or two names and then fielding scrubs.
+    let perSlotReserve = hard ? 6 : 4;
+    // URGENCY: as the auction runs out, the chance to fill open slots disappears — so stop hoarding.
+    // When remaining lots only just cover the bot's open slots, collapse the reserve and commit.
+    const lotsRemaining = this.auction ? (this.auction.queue.length - (this.auction.index || 0)) : 99;
+    if (lotsRemaining <= slotsLeft + 2) perSlotReserve = Math.max(1, Math.round(perSlotReserve * 0.4));
+    const reserve = Math.max(0, (slotsLeft - 1)) * perSlotReserve;
     const cap = Math.max(1, m.budget - reserve);
     let val = Math.round(base * wkBonus * factor);
     if (need >= 2) val = Math.round(val * 1.08);
@@ -499,8 +508,8 @@ class Game {
     // Hard ceiling per single player so bots never blow the budget on one name.
     // Hard tops out at 71 (and only the very best ever approach it); Easy lower. Wonderkids
     // specifically should usually land ~30-40, occasionally ~55, and only rarely near the cap.
-    const perPlayerCap = hard ? 71 : 48;
-    if (player.wonderkid) val = Math.min(val, hard ? 71 : 40);
+    const perPlayerCap = hard ? 71 : 56;
+    if (player.wonderkid) val = Math.min(val, hard ? 71 : 46);
     val = Math.min(val, perPlayerCap);
     return Math.min(cap, val);
   }
@@ -993,12 +1002,12 @@ class Game {
     this.revealHalf(0, 11, () => this.startWinter()); // spin parked — respins are back
   }
 
-  // Full squad detail for the on-matchday "their team" modal. Only for real human-managed teams
-  // (we don't expose AI/bot squads). Returns the fielded XI for this matchday, the bench, and any injured.
+  // Full squad detail for the on-matchday "their team" modal. Works for any manager-controlled team
+  // (real humans AND bots — both have real squads). Pure-AI clubs have no player squad, so skip them.
   teamDetail(t, md) {
-    if (!t || t.type !== 'human' || t.mIdx == null) return null;
+    if (!t || t.mIdx == null) return null;
     const m = this.managers[t.mIdx];
-    if (!m || m.isBot) return null;
+    if (!m || !m.squad || !m.squad.length) return null;
     const stat = (p) => ({
       name: p.name, pos: p.pos, rtg: p.rating + (p.seasonMod || 0),
       wonderkid: !!p.wonderkid, legend: !!p.legend, hero: !!p.hero,
@@ -1899,7 +1908,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v17.9',
+      serverV: 'v18.1',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

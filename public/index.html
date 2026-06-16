@@ -285,7 +285,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v17.9';
+const VERSION = 'v18.1';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('mdscreen')===-1){ if(typeof closeStandings==='function') closeStandings(); if(typeof closeTeamModal==='function') closeTeamModal(); } if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -1257,7 +1257,7 @@ function renderMatch(m, instant){
     return ` <span style="font-family:var(--disp);font-weight:800;font-size:13px;color:${m[1]};border:1px solid ${m[1]};border-radius:6px;padding:1px 6px;vertical-align:middle">${m[0]}</span>`; };
   const teamLine=(name,mgr,pos,delay,formKey,nameCol,mineTeam)=>`<div style="opacity:0;animation:cerIn .5s ${delay}s forwards;max-width:440px;margin:0 auto">
     ${pos?`<div class="muted" style="font-size:13px;letter-spacing:.12em">#${pos} IN THE LEAGUE</div>`:''}
-    <div class="score" style="font-size:clamp(22px,6vw,34px);word-break:break-word;color:${nameCol}">${esc(name)}${mgr?` <span style="font-size:.6em;color:${mineTeam?'var(--you)':'var(--muted)'}">(${esc(mgr)})</span>`:''}${mgr?fbadge(formKey):''}</div>
+    <div class="score" style="font-size:clamp(20px,5vw,30px);word-break:break-word;color:${nameCol}">${esc(name)}${mgr?` <span style="font-size:.6em;color:${mineTeam?'var(--you)':'var(--muted)'}">(${esc(mgr)})</span>`:''}${mgr?fbadge(formKey):''}</div>
   </div>`;
   $(`<div class="screen mdscreen" style="justify-content:flex-start;padding-top:max(12vh,96px)">
     <div class="center">
@@ -1268,18 +1268,18 @@ function renderMatch(m, instant){
       ${teamLine(m.home,m.homeMgr,m.homePos,0.1,m.homeForm,(ME.club&&m.home===ME.club)?'var(--you)':'#FFFFFF',(ME.club&&m.home===ME.club))}
       <div class="muted" style="font-size:16px;margin:4px 0;opacity:0;animation:cerIn .4s .5s forwards">vs</div>
       ${teamLine(m.away,m.awayMgr,m.awayPos,0.8,m.awayForm,(ME.club&&m.away===ME.club)?'var(--you)':'#FFFFFF',(ME.club&&m.away===ME.club))}
-      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:18px;padding:18px 16px;margin:16px auto;width:min(260px,90%);text-align:center;opacity:0;animation:cerIn .5s 1.5s forwards">
-        <div class="score" style="font-size:44px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div>
+      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:16px;padding:14px 14px;margin:14px auto;width:min(220px,80%);text-align:center;opacity:0;animation:cerIn .5s 1.5s forwards">
+        <div class="score" style="font-size:38px;color:var(--pink)">${m.score[0]} – ${m.score[1]}</div>
       </div>
-      <div style="text-align:left;max-width:340px;margin:0 auto">
+      <div style="text-align:left;max-width:300px;margin:0 auto">
         ${m.events.map((e,i)=>`<div class="evt" style="animation-delay:${instant?0:(2.1+i*0.5).toFixed(1)}s${instant?';opacity:1':''}">${evLine(e,m)}</div>`).join('')||'<div class="muted center">No goals. Grim.</div>'}
 
       </div>
       ${ME.isHost
-        ?`<button class="primary bigbtn" style="margin-top:22px;max-width:340px" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
-        :`<div class="muted" style="margin-top:22px">${esc(m.hostName)} controls the remote…</div>`}
-      ${standingsBtnHTML()}
+        ?`<button class="primary" style="margin-top:18px;max-width:300px;width:100%;font-size:17px;padding:13px;font-weight:800;display:block;margin-left:auto;margin-right:auto" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
+        :`<div class="muted" style="margin-top:18px">${esc(m.hostName)} controls the remote…</div>`}
       ${teamBtnsHTML(m)}
+      ${standingsBtnHTML()}
       <div style="height:200px;flex-shrink:0"></div>
     </div>
   </div>`);
@@ -1334,7 +1334,7 @@ function standingsBtnHTML(){
   if(!STANDINGS_ON) return '';
   const ready=STANDINGS_REVEALED;
   return `<button id="standingsBtn" onclick="openStandings()" ${ready?'':'disabled'}
-    style="width:100%;max-width:340px;margin:10px auto 0;display:block;font-size:16px;padding:12px;font-weight:800;${ready?'':'opacity:.4;pointer-events:none'}">📊 League standings</button>`;
+    style="width:100%;max-width:300px;margin:8px auto 0;display:block;font-size:15px;padding:11px;font-weight:800;${ready?'':'opacity:.4;pointer-events:none'}">📊 League standings</button>`;
 }
 window.__teams={};
 function teamBtnsHTML(m){
@@ -1345,7 +1345,7 @@ function teamBtnsHTML(m){
   if(!out.length) return '';
   const ready=STANDINGS_ON ? STANDINGS_REVEALED : true; // reuse the same reveal flag so teams can't be peeked early
   return out.map(([side,t])=>`<button onclick="openTeamModal('${side}')" ${ready?'':'disabled'}
-    style="width:100%;max-width:340px;margin:8px auto 0;display:block;font-size:15px;padding:11px;font-weight:800;${ready?'':'opacity:.4;pointer-events:none'}">👥 ${esc(t.manager||t.club)}'s team</button>`).join('');
+    style="width:100%;max-width:300px;margin:8px auto 0;display:block;font-size:15px;padding:11px;font-weight:800;${ready?'':'opacity:.4;pointer-events:none'}">👥 ${esc(t.manager||t.club)}'s team</button>`).join('');
 }
 function teamModalCard(p){
   // small auction-style card with the rating overlaid — mirrors the lineup look, consistent across the app
