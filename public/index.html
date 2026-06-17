@@ -45,9 +45,9 @@ body{max-width:500px;margin:0 auto;padding:16px 16px 40px;min-height:100dvh;font
   body{max-width:600px;font-size:17px}
   h1:not(.logoBounce){font-size:64px!important}
   .codetext{font-size:84px!important}
-  .lotRow{gap:28px!important}
-  .lotCardWrap{width:200px!important}
-  .lotRow .pcard{width:200px!important}
+  .lotRow{gap:28px!important;transform:translateX(-16px)}
+  .lotCardWrap{width:230px!important}
+  .lotRow .pcard{width:230px!important}
   .lotRow .ringWrap{width:200px!important;height:200px!important}
   #pauseBtn,#speedBtn{width:200px!important}
   .lotRow .ringSec{font-size:60px!important}
@@ -292,7 +292,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v18.6';
+const VERSION = 'v18.7';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('mdscreen')===-1){ if(typeof closeStandings==='function') closeStandings(); if(typeof closeTeamModal==='function') closeTeamModal(); } if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
