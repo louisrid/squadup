@@ -292,7 +292,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v18.8';
+const VERSION = 'v18.9';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('mdscreen')===-1){ if(typeof closeStandings==='function') closeStandings(); if(typeof closeTeamModal==='function') closeTeamModal(); } if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -1285,7 +1285,7 @@ function renderMatch(m, instant){
       <div class="muted" style="margin-bottom:6px">Matchday ${m.matchday}</div>
       ${m.featured?`<span class="featuredTag" style="display:inline-block;margin-bottom:8px">⚔️ Match of the day</span>`:''}
       ${yours?`<div style="font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.1em;color:#FFFFFF;margin-bottom:8px">YOUR MATCH</div>`:''}
-      ${(m.replacements&&m.replacements.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:14px;color:#FFFFFF;margin-bottom:8px;line-height:1.5">${m.replacements.map(rp=>`⛔ Suspended: ${esc(rp.suspended)}${rp.replacement?`<br>↳ Replacement: ${esc(rp.replacement)}`:'<br>↳ No replacement available'}`).join('<br>')}</div>`:''}
+      ${(m.replacements&&m.replacements.length)?`<div style="font-family:var(--disp);font-weight:800;font-size:14px;color:#FFFFFF;margin-bottom:8px;line-height:1.5">${m.replacements.map(rp=>`⛔ Suspended: ${esc(rp.suspended)}${rp.replacement?`<br>↳ <span style="color:var(--you)">Replacement:</span> ${esc(rp.replacement)}`:'<br>↳ No replacement available'}`).join('<br>')}</div>`:''}
       ${teamLine(m.home,m.homeMgr,m.homePos,0.1,m.homeForm,(ME.club&&m.home===ME.club)?'var(--you)':'#FFFFFF',(ME.club&&m.home===ME.club))}
       <div class="muted" style="font-size:16px;margin:4px 0;opacity:0;animation:cerIn .4s .5s forwards">vs</div>
       ${teamLine(m.away,m.awayMgr,m.awayPos,0.8,m.awayForm,(ME.club&&m.away===ME.club)?'var(--you)':'#FFFFFF',(ME.club&&m.away===ME.club))}
@@ -1314,16 +1314,26 @@ function renderMatch(m, instant){
       window.__standReveal=setTimeout(()=>setStandingsRevealed(true), revealMs);
     }
   }
-  // Play a result sound on EVERY revealed match now. If it's MY match: win→cheer, draw or loss→boo.
-  // If it's not my match: cheer on a home win, boo on an away win or draw (just so every match has a beat).
+  // Result sound on every revealed match.
+  //  - MY match: I win -> cheer, draw/loss -> boo.
+  //  - A friend's / human match: the human winning -> cheer. Human vs human -> always cheer (a human wins).
+  //    A human losing to an AI club -> boo. No human in the match -> neutral cheer on the home win.
   if(!instant){
     let outcomeKey;
+    const homeWon = m.score[0]>m.score[1], awayWon = m.score[1]>m.score[0], draw = m.score[0]===m.score[1];
+    const homeHuman = !!m.homeMgr, awayHuman = !!m.awayMgr;
     if(yours){
       const iAmHome=(m.home===ME.club);
       const myScore=iAmHome?m.score[0]:m.score[1], oppScore=iAmHome?m.score[1]:m.score[0];
-      outcomeKey = myScore>oppScore ? 'cheer' : 'boo'; // draw counts as a loss sound
+      outcomeKey = myScore>oppScore ? 'cheer' : 'boo'; // draw counts as a loss sound for me
+    } else if(homeHuman && awayHuman){
+      outcomeKey = 'cheer'; // human vs human — a human always wins (or draws) -> celebrate
+    } else if(homeHuman || awayHuman){
+      // one human side: cheer if the human won (or drew), boo only if the human lost to the AI
+      const humanWon = (homeHuman && homeWon) || (awayHuman && awayWon) || draw;
+      outcomeKey = humanWon ? 'cheer' : 'boo';
     } else {
-      outcomeKey = m.score[0]>m.score[1] ? 'cheer' : 'boo'; // home win cheers, otherwise boo
+      outcomeKey = homeWon ? 'cheer' : 'boo'; // no humans involved — just a beat
     }
     // wait until the first 2 events (or all, if fewer) have animated in before the result sound.
     const evN=(m.events&&m.events.length)||0;

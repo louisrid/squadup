@@ -109,23 +109,29 @@ function playMatch(tA, tB) {
 
 // ---------- goalscorer attribution ----------
 // weights: ATT 6, MID 3, DEF 1 (GK never scores). effective rating tilts within position.
-function attributeGoals(goals, starters) {
+function attributeGoals(goals, starters, sentOff) {
   let outfield = starters.filter((p) => p.pos !== 'GK');
   if (!outfield.length) outfield = starters; // keeper-only freak lineup: he scores them all
+  // map of player name -> minute they were sent off (can't score at or after that minute)
+  const offAt = {};
+  for (const r of (sentOff || [])) offAt[r.name] = r.minute;
   const w = (p) => {
     const base = p.pos === 'ATT' ? 9 : p.pos === 'MID' ? 2.5 : 1.1; // forwards score the bulk, defenders occasionally
     return base * (1 + ((p.rating + (p.seasonMod || 0)) - 75) / 50);
   };
-  const total = outfield.reduce((s, p) => s + w(p), 0);
   const scorers = [];
   const minutesUsed = new Set();
   for (let g = 0; g < goals; g++) {
-    let r = Math.random() * total;
-    let scorer = outfield[outfield.length - 1];
-    for (const p of outfield) { r -= w(p); if (r <= 0) { scorer = p; break; } }
     let minute = 1 + Math.floor(Math.random() * 90);
     while (minutesUsed.has(minute)) minute = 1 + Math.floor(Math.random() * 90);
     minutesUsed.add(minute);
+    // only players still on the pitch at this minute are eligible
+    const eligible = outfield.filter((p) => offAt[p.name] == null || minute < offAt[p.name]);
+    const pool = eligible.length ? eligible : outfield;
+    const total = pool.reduce((s, p) => s + w(p), 0);
+    let r = Math.random() * total;
+    let scorer = pool[pool.length - 1];
+    for (const p of pool) { r -= w(p); if (r <= 0) { scorer = p; break; } }
     scorers.push({ name: scorer.name, minute });
   }
   return scorers.sort((a, b) => a.minute - b.minute);
@@ -198,8 +204,10 @@ function buildCommentary(result, startersA, startersB, opts) {
   }
   const sentA = reds.filter((x) => x.side === 'A').map((x) => x.name);
   const sentB = reds.filter((x) => x.side === 'B').map((x) => x.name);
-  const sA = attributeAssists(attributeGoals(result.goalsA, startersA), startersA, sentA);
-  const sB = attributeAssists(attributeGoals(result.goalsB, startersB), startersB, sentB);
+  const redsA = reds.filter((x) => x.side === 'A');
+  const redsB = reds.filter((x) => x.side === 'B');
+  const sA = attributeAssists(attributeGoals(result.goalsA, startersA, redsA), startersA, sentA);
+  const sB = attributeAssists(attributeGoals(result.goalsB, startersB, redsB), startersB, sentB);
   for (const r of reds) events.push({ minute: r.minute, side: r.side, text: `🟥 ${r.name} is SENT OFF! (${r.minute}') — suspended next game` });
   // own goals: rare
   const ogify = (list, oppStarters) => {
