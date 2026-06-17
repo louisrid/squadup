@@ -292,7 +292,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v18.7';
+const VERSION = 'v18.8';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('mdscreen')===-1){ if(typeof closeStandings==='function') closeStandings(); if(typeof closeTeamModal==='function') closeTeamModal(); } if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -1597,7 +1597,7 @@ function showFinal(){
     <div class="panel" style="padding:8px 10px">${sorted.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:nowrap;gap:6px">
       <span class="pos ${p.pos}">${p.pos}</span>
       <span class="grow" style="font-size:15px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.hero?' 🔥':''}</span>
-      <span class="muted" style="font-size:12px;margin-right:4px;flex-shrink:0;white-space:nowrap">⚽${p.goals} 🅰️${p.assists}</span>
+      <span style="flex-shrink:0;white-space:nowrap;display:flex;gap:4px"><span class="st" style="background:#000;color:#fff;font-size:12px;padding:2px 5px">G:${p.goals}</span><span class="st" style="background:#000;color:#fff;font-size:12px;padding:2px 5px">A:${p.assists}</span></span>
       <span class="formchip ${fcCls(p.form)}" style="font-size:13px;min-width:38px;padding:3px 5px;flex-shrink:0">${p.form==null?'–':p.form.toFixed(1)}</span>
       <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:18px;flex-shrink:0">${Math.round(p.rating)}</span></div>`).join('')}</div>`; })()}
   <button class="primary" style="width:100%;margin-top:10px;position:relative;z-index:60" onclick="location.reload()">‹ Back to home</button>
