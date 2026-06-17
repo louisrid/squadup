@@ -1248,8 +1248,6 @@ class Game {
       replacements: [...(item.suspReplA || []), ...(item.suspReplB || [])].filter((x) => x.suspended),
       featured: item.humans === 2,
       tableAfter: item.tableAfter || null,
-      homeTeam: this.teamDetail(this.season.teams[item.a], item.md),
-      awayTeam: this.teamDetail(this.season.teams[item.b], item.md),
       hostName: host ? host.name : 'Host',
     };
     R.waiting = true;
@@ -1484,9 +1482,11 @@ class Game {
         this.season.teams[ti].comeback = E.PARAMS.COMEBACK;
       }
     });
-    // winter report first; host then opens the winter market (auction), then everyone picks
+    // Skip the pre-market squad/lineup screen — go straight into the winter market.
+    // Players set their XI AFTER buying, in the normal post-winter lineup pick.
     this.io.emit('winter', this.winterPayload());
     this.broadcastBudgets();
+    this.startWinterAuction();
   }
 
   respin() { return { error: 'Respins have been removed' }; }
@@ -1908,7 +1908,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v18.2',
+      serverV: 'v18.4',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

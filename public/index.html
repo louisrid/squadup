@@ -169,7 +169,7 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 .score .gl{color:var(--pink)}
 .featuredTag{display:inline-block;background:var(--pink);color:#fff;font-family:var(--disp);font-weight:800;
   font-size:12px;letter-spacing:.16em;padding:3px 10px;border-radius:6px;text-transform:uppercase}
-.evt{font-size:13.5px;padding:8px 2px;line-height:1.4;border-bottom:1px solid var(--line);opacity:0;animation:pop .4s forwards}
+.evt{font-size:16px;padding:9px 2px;line-height:1.45;border-bottom:1px solid var(--line);opacity:0;animation:pop .4s forwards}
 @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes mFade{from{opacity:0}to{opacity:1}}
 .tick{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
@@ -246,7 +246,8 @@ tr.me td{background:rgba(255,61,138,.14)}
 .pickCard{position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;width:96px}
 .pickCard .pcard.sm{width:96px;margin:0}
 .pickStats{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;width:100%}
-.pickStats .st{font-family:var(--disp);font-weight:800;font-size:12px;line-height:1.2;border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:2px 5px;white-space:nowrap}
+.st{display:inline-block;font-family:var(--disp);font-weight:800;font-size:14px;line-height:1.2;border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:3px 7px;white-space:nowrap;vertical-align:middle}
+.pickStats .st{font-size:14px}
 .slot{width:100px;min-height:116px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
   border:2px dashed var(--line);color:var(--muted);font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.08em;cursor:pointer}
 .slot.filled{border:2px solid var(--pink);background:var(--surface2);color:var(--text);padding:6px 4px}
@@ -289,11 +290,11 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v18.2';
+const VERSION = 'v18.4';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('mdscreen')===-1){ if(typeof closeStandings==='function') closeStandings(); if(typeof closeTeamModal==='function') closeTeamModal(); } if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
-let A = null, timerInt = null, pickState = null, lastTable = null;
+let A = null, timerInt = null, pickState = null, lastTable = null, AUCTION_WINDOW = 'main';
 
 function backBtn(inGame){
   return `<button class="backbtn" onclick="goBack(${inGame?1:0})">‹</button>`;
@@ -630,6 +631,7 @@ function restoreFromSnapshot(snap){
     return;
   }
   if(snap.auction && snap.auction.player){
+    AUCTION_WINDOW = snap.auction.window || 'main';
     A={ index:snap.auction.index, total:snap.auction.total, player:snap.auction.player,
         highBid:snap.auction.highBid, highBidder:snap.auction.highBidder, highBidderUid:snap.auction.highBidderUid,
         deadline:snap.auction.deadline, start:16000 };
@@ -728,6 +730,7 @@ function renderLobby(l){
 /* ---------------- AUCTION ---------------- */
 s.on('phase',(p)=>{
   if(p.phase==='auction'){
+    AUCTION_WINDOW = p.window || 'main';
     MYSQUAD.length=0;
     if(p.window==='winter' && W){
       const mine=(W.review||[]).find(r=>r.manager===ME.name);
@@ -886,6 +889,7 @@ function renderLot(){
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
+  ${AUCTION_WINDOW==='winter'?`<div class="row" style="justify-content:center;padding:0 18px;margin-top:2px"><button onclick="openStandings(true)" style="font-size:14px;padding:8px 14px;font-weight:800">📊 League standings</button></div>`:''}
   <div class="auctionWrap" data-lock style="justify-content:center;align-items:center;min-height:48vh;padding-top:max(2vh,12px);padding-bottom:50vh;gap:12px">
   <div class="lotRow" style="align-items:center;justify-content:center;gap:min(20px,4vw);max-width:100%">
     <div style="width:min(194px,42vw);flex-shrink:1">${cardHTML(A.player)}</div>
@@ -1114,7 +1118,7 @@ function pickTags(pl){
   if(!hasStats) return grewBit;
   const formCol=pl.form==null?'#9A9AA8':pl.form>=8?'#1FE060':pl.form>=6?'#FFD23D':pl.form>=4?'#FF9838':'#FF5247';
   const formTxt=pl.form==null?'NEW':pl.form.toFixed(1);
-  return `${grewBit} <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#fff;background:var(--red);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:1px 4px">${pl.goals||0}G</span> <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:var(--assist);border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:1px 4px">${pl.assists||0}A</span> <span style="font-family:var(--disp);font-weight:800;font-size:11px;color:#000;background:${formCol};border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:1px 4px">${formTxt}</span>`;
+  return `${grewBit} <span class="st" style="background:#000;color:#fff">G:${pl.goals||0}</span> <span class="st" style="background:#000;color:#fff">A:${pl.assists||0}</span> <span class="st" style="background:${formCol};color:#000">${formTxt}</span>`;
 }
 function statOverlay(pl){
   // rating (+ growth) overlaid top-right on the card; form/goals/assists shown in a READABLE strip below it.
@@ -1129,8 +1133,8 @@ function statOverlay(pl){
     </div>`;
   if(!hasStats) return ratingOverlay;
   const strip=`<div class="pickStats">
-      <span class="st" style="background:var(--red);color:#fff">⚽${pl.goals||0}</span>
-      <span class="st" style="background:var(--assist);color:#000">🅰${pl.assists||0}</span>
+      <span class="st" style="background:#000;color:#fff">G:${pl.goals||0}</span>
+      <span class="st" style="background:#000;color:#fff">A:${pl.assists||0}</span>
       <span class="st" style="background:${formCol};color:#000">${formTxt}</span>
     </div>`;
   return ratingOverlay + strip;
@@ -1293,7 +1297,6 @@ function renderMatch(m, instant){
       ${ME.isHost
         ?`<button class="primary" style="margin-top:18px;max-width:300px;width:100%;font-size:17px;padding:13px;font-weight:800;display:block;margin-left:auto;margin-right:auto" onclick="s.emit('hostNextMatch',(r)=>{if(r&&r.error)toast(r.error)})">Next match ▶</button>`
         :`<div class="muted" style="margin-top:18px">${esc(m.hostName)} controls the remote…</div>`}
-      ${teamBtnsHTML(m)}
       ${standingsBtnHTML()}
       <div style="height:200px;flex-shrink:0"></div>
     </div>
@@ -1402,8 +1405,8 @@ function setStandingsRevealed(v){
   // NOTE: we intentionally do NOT close an open modal here. If the user has the standings or a team
   // sheet open and the host advances, it should linger until they close it themselves.
 }
-function openStandings(){
-  if(!STANDINGS_ON || !STANDINGS_REVEALED) return;
+function openStandings(force){
+  if(!force && (!STANDINGS_ON || !STANDINGS_REVEALED)) return;
   closeStandings();
   const table=STANDINGS||lastTable||[];
   const st=STANDINGS_STATS||{};
@@ -1450,14 +1453,13 @@ function applyWinter(w){
   if(w.table) STANDINGS=w.table;
   if(w.stats) STANDINGS_STATS=w.stats;
   STANDINGS_ON = (typeof ME.standings==='boolean') ? ME.standings : (w.showStandings!==false);
-  STANDINGS_REVEALED=true; // winter break: half is over, the table is safe to view
+  STANDINGS_REVEALED=true;
   clearTimeout(window.__standReveal);
-  const mine = w.review.find(r=> (ME.uid&&r.uid)?r.uid===ME.uid:r.manager===ME.name) || w.review.find(r=>r.manager===ME.name);
-  if(ME.sacked || !mine){ renderWinterSacked(); return; }
-  // Build the SAME interactive pick state as the other two lineup screens, seeded with the prior XI.
-  pickState={ half:'winter', squad:mine.players, slots:null, prevStarters:(mine.starterCards||[]).map(p=>p.name) };
-  initSlots();
-  renderPick();
+  // The pre-market squad/lineup screen has been removed — the winter market opens straight away,
+  // and this squad data is kept only for the post-market lineup pick. Sacked players still see their notice.
+  if(ME.sacked){ renderWinterSacked(); return; }
+  $(`<div class="screen center" style="justify-content:center"><div class="blackbox" style="width:100%"><div class="score" style="color:var(--you)">❄️ Winter market</div>
+    <div class="muted" style="margin-top:8px">Opening the market…</div></div></div>`);
 }
 s.on('winter',applyWinter);
 s.on('winterUpdate',(u)=>{ if(W&&u.review){ W.review=u.review; } });
@@ -1596,8 +1598,9 @@ function showFinal(){
       <span class="muted" style="font-size:12px;margin-right:4px;flex-shrink:0;white-space:nowrap">⚽${p.goals} 🅰️${p.assists}</span>
       <span class="formchip ${fcCls(p.form)}" style="font-size:13px;min-width:38px;padding:3px 5px;flex-shrink:0">${p.form==null?'–':p.form.toFixed(1)}</span>
       <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:18px;flex-shrink:0">${Math.round(p.rating)}</span></div>`).join('')}</div>`; })()}
-  <button class="primary" style="width:100%;margin-top:10px" onclick="location.reload()">‹ Back to home</button>
-  <div class="muted center" style="margin-top:10px;font-size:14px">Take your time — the stats stay here until you leave.</div>`);
+  <button class="primary" style="width:100%;margin-top:10px;position:relative;z-index:60" onclick="location.reload()">‹ Back to home</button>
+  <div class="muted center" style="margin-top:10px;font-size:14px">Take your time — the stats stay here until you leave.</div>
+  <div style="height:160px;flex-shrink:0"></div>`);
 }
 
 /* ---------------- CONNECTION ---------------- */

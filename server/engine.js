@@ -188,7 +188,7 @@ function buildCommentary(result, startersA, startersB, opts) {
   const redOk = { A: !opts || opts.redA !== false, B: !opts || opts.redB !== false };
   for (const [side, st] of [['A', startersA], ['B', startersB]]) {
     if (!redOk[side]) continue;
-    if (Math.random() < 0.051) {
+    if (Math.random() < 0.015) {
       const pool = (opts && opts.redPool && opts.redPool[side]) || null;
       const cands = st.filter((x) => x.pos !== 'GK' && (!pool || pool.includes(x.name)));
       const p = pick(cands); if (!p) continue;
