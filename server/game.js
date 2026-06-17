@@ -969,7 +969,7 @@ class Game {
 
   // ---------- season ----------
   startSeason() {
-    for (const m of this.activeManagers()) for (const p of m.squad) p.seasonMod = E.rollSeasonEvent(p.rating);
+    for (const m of this.activeManagers()) for (const p of m.squad) p.seasonMod = 0; // random good/bad seasons removed — players perform at their true rating
     const n = this.managers.length;
     const humanTeams = this.managers.map((m, i) => ({ type: 'human', mIdx: i, name: m.club }));
     const strengths = this.managers.map((m) => E.teamStrength(m.starters, m.formation));
@@ -1631,11 +1631,9 @@ class Game {
 
 
   startSecondHalf() {
-    // re-roll hidden season form for the second half (winter growth already baked into rating).
+    // random good/bad seasons removed — players perform at their true rating (winter growth already baked in)
     for (const m of this.activeManagers()) for (const p of m.squad) {
-      let mod = E.rollSeasonEvent(p.rating);
-      if (p.freshSigning && mod < 0) mod = 0; // a brand-new signing arrives fresh, never in an instant slump
-      p.seasonMod = mod;
+      p.seasonMod = 0;
       delete p.freshSigning;
     }
     // re-anchor AI clubs to the post-winter human level so scorelines stay sane
@@ -1908,7 +1906,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v18.4',
+      serverV: 'v18.5',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
