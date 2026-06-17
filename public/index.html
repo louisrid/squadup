@@ -81,13 +81,15 @@ input:focus{outline:2px solid var(--pink);border-color:transparent}
 .grow{flex:1}
 .center{text-align:center}
 /* ---------- player card ---------- */
-.pcard{position:relative;width:176px;aspect-ratio:3/4.3;border-radius:14px;overflow:hidden;margin:0 auto;border:2px solid rgba(255,255,255,.3);
-  border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 34px rgba(0,0,0,.55)}
+.pcard{position:relative;width:176px;aspect-ratio:3/4.3;border-radius:14px;overflow:hidden;margin:0 auto;
+  border:2px solid rgba(255,255,255,.18);box-shadow:0 10px 34px rgba(0,0,0,.55)}
 .pcard .bgGrad{position:absolute;inset:0}
 .pcard.GK .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#5a4710 0%,#241d08 58%,#101010 100%)}
 .pcard.DEF .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#16306b 0%,#0d1a3a 58%,#0e0e14 100%)}
 .pcard.MID .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#0e4d2a 0%,#0a2a18 58%,#0e120e 100%)}
 .pcard.ATT .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#62211c 0%,#33120f 58%,#15100f 100%)}
+.pcard.GK{border-color:#FFDD6B} .pcard.DEF{border-color:#82B4FF}
+.pcard.MID{border-color:#5DF0A6} .pcard.ATT{border-color:#FF8E86}
 .pcard svg.sil{position:absolute;left:50%;top:16%;transform:translateX(-50%);width:64%;opacity:.92}
 .pcard .posb{position:absolute;top:8px;left:8px;font-family:var(--disp);font-weight:800;font-size:16px;letter-spacing:.1em;
   padding:3px 9px;border-radius:7px;color:#0b0b10;border:1px solid rgba(255,255,255,.35)}
@@ -202,19 +204,32 @@ tr.me td{background:rgba(255,61,138,.14)}
 .stepbtn:active{background:var(--pink);border-color:var(--pink)}
 /* ---------- legend card ---------- */
 .pcard.legend .bgGrad{background:radial-gradient(120% 90% at 50% 18%,#fffdf4 0%,#f5ecd0 58%,#e8d9a8 100%)}
-.pcard.legend{border:2px solid #C9A227}
+.pcard.legend{border:2px solid #EAD27A}
 .pcard.hero .bgGrad{background:linear-gradient(150deg,#ff3d8a 0%,#a14bff 48%,#3aa0ff 100%)}
 .pcard.hero{border:2px solid #c98bff}
 .pcard.hero .nm,.pcard.hero .posb{color:#fff}
 .segHero{fill:url(#hgrad)}
-.pcard.legend .nm{color:#5b4708;background:linear-gradient(transparent,rgba(255,250,235,.95) 45%)}
+/* icon cards now get the same dark bottom shadow as every other card */
+.pcard.legend .nm{color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.9) 45%)}
 .pcard.legend svg.sil g{fill:#b99c3f}
 .pcard.legend .posb{background:#C9A227!important;color:#fff!important}
 .hintchip{position:absolute;top:8px;right:8px;font-family:var(--disp);font-weight:800;font-size:19px;letter-spacing:.04em;
   background:rgba(0,0,0,.62);border:1px solid var(--line);border-radius:8px;padding:3px 9px;color:#fff}
-.pcard.wonder .bgGrad{background:linear-gradient(165deg,#FF3D8A 0%,#FF9F45 22%,#FFE34D 42%,#1FE060 62%,var(--blue) 80%,#9B5CFF 100%)}
-
-.pcard.wonder .hintchip{background:rgba(0,0,0,.78)}}
+/* WONDERKID: rotating prism, no star/box */
+.pcard.wonder{border:2px solid #F0C8FF}
+.pcard.wonder .bgGrad{background:#0a0a14;overflow:hidden}
+.pcard.wonder .bgGrad::before{content:"";position:absolute;top:50%;left:50%;width:230%;height:230%;transform:translate(-50%,-50%);
+  background:conic-gradient(from 0deg,#FF3CAC,#FFC93C,#3CFFB0,#1FB6FF,#9B5CFF,#FF3CAC);animation:prismSpin 3.4s linear infinite}
+.pcard.wonder .bgGrad::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 40%,rgba(0,0,0,0) 28%,rgba(0,0,0,.5) 100%)}
+.pcard.wonder svg.sil{z-index:1}
+@keyframes prismSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+/* faint SHEEN sweep on icons + heroes (icon sheen is dark-gold tinted) */
+.pcard.legend::after,.pcard.hero::after{content:"";position:absolute;top:-50%;left:-80%;width:55%;height:200%;z-index:2;pointer-events:none;
+  transform:rotate(16deg);animation:sheenSweep 5s ease-in-out infinite}
+.pcard.hero::after{background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,0) 30%,rgba(255,255,255,.22) 50%,rgba(255,255,255,0) 70%,transparent 100%)}
+.pcard.legend::after{background:linear-gradient(100deg,transparent 0%,rgba(201,162,39,0) 30%,rgba(201,162,39,.40) 50%,rgba(201,162,39,0) 70%,transparent 100%)}
+@keyframes sheenSweep{0%{left:-80%}55%{left:150%}100%{left:150%}}
+@media (prefers-reduced-motion: reduce){.pcard.wonder .bgGrad::before,.pcard.legend::after,.pcard.hero::after{animation:none}}
 
 /* ---------- winter hub ---------- */
 .tabrow{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;-webkit-overflow-scrolling:touch}
@@ -292,7 +307,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v19.3';
+const VERSION = 'v19.4';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('mdscreen')===-1){ if(typeof closeStandings==='function') closeStandings(); if(typeof closeTeamModal==='function') closeTeamModal(); } if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -332,7 +347,7 @@ function goBack(inGame){
 }
 const esc = (t) => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = (name) => 1 + ([...name].reduce((a,c)=>a+c.charCodeAt(0),0) % 29);
-const SIL = `<svg class="sil" viewBox="0 0 100 110"><g fill="#9a9aa6"><circle cx="50" cy="34" r="20"/><path d="M14 110 C14 76 30 62 50 62 C70 62 86 76 86 110 Z"/></g><g fill="rgba(255,255,255,.10)"><circle cx="44" cy="28" r="20"/></g></svg>`;
+const SIL = `<svg class="sil" viewBox="0 0 100 110"><g fill="#9a9aa6"><circle cx="50" cy="34" r="20"/><path d="M14 110 C14 76 30 62 50 62 C70 62 86 76 86 110 Z"/></g></svg>`;
 
 function cardHTML(p, sm){
   return `<div class="pcard ${p.pos} ${sm?'sm':''} ${p.legend?'legend':''} ${p.wonderkid?'wonder':''} ${p.hero?'hero':''}">
@@ -914,7 +929,7 @@ function renderLot(){
       <span class="bidder" id="bidderEl" style="font-size:14px">${A.highBidder?`🔨 ${bidderLabel()}`:'No bids yet'}</span>
     </div>
     <div id="budgets" class="budgets"></div>
-    ${MYSQUAD.length?`<div class="minirow">${[...MYSQUAD].reverse().map(p=>`<span class="mini"><span class="pos ${p.pos}" style="margin-right:0">${p.pos}</span>${esc(p.name)}${p.wonderkid?'⭐':''}${p.rtg?` <b>${p.rtg}</b>`:''}</span>`).join('')}</div>`:''}
+    ${MYSQUAD.length?`<div class="minirow">${[...MYSQUAD].reverse().map(p=>`<span class="mini"><span class="pos ${p.pos}" style="margin-right:0">${p.pos}</span>${esc(p.name)}${p.rtg?` <b>${p.rtg}</b>`:''}</span>`).join('')}</div>`:''}
     </div>
     ${A.out
     ?`<div class="center muted" style="padding:10px 0;font-size:17px">You're out of this lot</div>`
@@ -1191,7 +1206,7 @@ function renderPick(){
   <div class="benchrow">
     ${p.squad.map(pl=>`<button class="bp ${used.includes(pl.name)?'used':''} ${pl.injured?'inj':''}"
       onclick="placePlayer(this.dataset.n,this.dataset.p)" data-n="${esc(pl.name)}" data-p="${pl.pos}">
-      <span class="pos ${pl.pos}">${pl.pos}</span>${esc(pl.name)}${pl.wonderkid?' ⭐':''}${pl.legend?' 👑':''}${pl.rtg?` <b style="opacity:.85">${pl.rtg}</b>`:''}${pickTags(pl)}${pl.injured?' 🤕':''}</button>`).join('')}
+      <span class="pos ${pl.pos}">${pl.pos}</span>${esc(pl.name)}${pl.legend?' 👑':''}${pl.rtg?` <b style="opacity:.85">${pl.rtg}</b>`:''}${pickTags(pl)}${pl.injured?' 🤕':''}</button>`).join('')}
   </div>
   <div class="muted" style="margin-top:8px">Anyone not placed starts on the bench.</div>
   ${(p.half==='second'||isWinter)
@@ -1608,7 +1623,7 @@ function showFinal(){
     return `<h2 style="margin:14px 0 4px">Your squad this season</h2>
     <div class="panel" style="padding:8px 10px">${sorted.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:nowrap;gap:6px">
       <span class="pos ${p.pos}">${p.pos}</span>
-      <span class="grow" style="font-size:15px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}${p.wonderkid?' ⭐':''}${p.legend?' 👑':''}${p.hero?' 🔥':''}</span>
+      <span class="grow" style="font-size:15px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}${p.legend?' 👑':''}${p.hero?' 🔥':''}</span>
       <span style="flex-shrink:0;white-space:nowrap;display:flex;gap:4px"><span class="st" style="background:#000;color:#fff;font-size:12px;padding:2px 5px">G:${p.goals}</span><span class="st" style="background:#000;color:#fff;font-size:12px;padding:2px 5px">A:${p.assists}</span></span>
       <span class="formchip ${fcCls(p.form)}" style="font-size:13px;min-width:38px;padding:3px 5px;flex-shrink:0">${p.form==null?'–':p.form.toFixed(1)}</span>
       <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:18px;flex-shrink:0">${Math.round(p.rating)}</span></div>`).join('')}</div>`; })()}
