@@ -3,7 +3,7 @@
 
 const PARAMS = {
   BASE_LAMBDA: 1.46,
-  K: 0.05,
+  K: 0.055,
   EVENT_RATE: 1 / 6,
   EVENT_SIZE: 5,
   FORM_MOD: 7,  // formation nudge — Attacking is high-octane (scores+concedes lots), Defensive is a fortress
@@ -13,7 +13,7 @@ const PARAMS = {
   AI_MEAN_OFF: { 1: -2.2, 2: -3.4, 3: -2.8, 4: -2.2, 5: -1.8, 6: -1.5 },
   AI_SD: 3.4,
   COMEBACK: 0.8,
-  MATCH_NOISE: 1.15,
+  MATCH_NOISE: 0.85,
 };
 
 // ---------- randomness ----------
@@ -58,7 +58,7 @@ function rollSeasonEvent(rating) {
 function teamStrength(starters, formation) {
   const eff = (p) => {
     const r = p.rating + (p.seasonMod || 0);
-    return r <= 90 ? r : 90 + (r - 90) * 0.92; // very gentle cap: a 96 plays like ~95.5
+    return r <= 90 ? r : 90 + (r - 90) * 0.93; // soft cap above 90: a 96 plays like ~95.6 (strong, not OP)
   };
   const att = starters.filter((p) => p.pos === 'ATT');
   const mid = starters.filter((p) => p.pos === 'MID');
@@ -69,10 +69,11 @@ function teamStrength(starters, formation) {
   let attack = att.length ? meanOf(att) : (allOut.length ? meanOf(allOut) - 4 : 78);
   let midfield = mid.length ? meanOf(mid) : (allOut.length ? meanOf(allOut) - 4 : 78);
   let defence = def.length ? meanOf(def) : (allOut.length ? meanOf(allOut) - 4 : 78);
-  // chosen formation applies a SMALL explicit tactical nudge (the player counts already
-  // shape the raw stats; this is the deliberate tactic on top). symmetric, never broken.
-  if (formation === 'ATT') { attack += PARAMS.FORM_MOD; defence -= PARAMS.FORM_MOD; }
-  else if (formation === 'DEF') { defence += PARAMS.FORM_MOD; attack -= PARAMS.FORM_MOD; }
+  // chosen formation applies a SMALL explicit tactical nudge. Slightly asymmetric: Attacking's
+  // defensive leak is trimmed (concedes a bit less) and Defensive's boost trimmed to match, so all
+  // three formations earn ~equal points at even ratings while keeping their scoreline texture.
+  if (formation === 'ATT') { attack += PARAMS.FORM_MOD; defence -= PARAMS.FORM_MOD - 0.5; }
+  else if (formation === 'DEF') { defence += PARAMS.FORM_MOD - 0.5; attack -= PARAMS.FORM_MOD; }
   // BAL: no nudge (midfield-heavy shape already gives the midfield-control edge in playMatch)
   return { attack, midfield, defence };
 }

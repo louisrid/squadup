@@ -1454,21 +1454,7 @@ class Game {
         }
       }
     }
-    this.winterSackings = [];
-    if (this.activeManagers().length >= 4) {
-      const humanRows = table.filter((r) => r.type === 'human' && !r.sacked);
-      const lowestHuman = humanRows[humanRows.length - 1];
-      const posOf = table.findIndex((r) => r.name === lowestHuman.name);
-      const safetyPts = table[table.length - 4].pts;
-      if (posOf >= 9 && lowestHuman.pts <= safetyPts - 6) {
-        const m = this.managers.find((x) => x.name === lowestHuman.manager);
-        m.sacked = true;
-        const ti = this.season.teams.findIndex((t) => t.type === 'human' && this.managers[t.mIdx].name === m.name);
-        const s = E.teamStrength(m.starters, m.formation);
-        this.season.teams[ti] = { type: 'ai', name: this.season.teams[ti].name, attack: s.attack, midfield: s.midfield, defence: s.defence };
-        this.winterSackings.push({ manager: m.name, club: lowestHuman.name });
-      }
-    }
+    this.winterSackings = []; // sacking removed — no manager gets fired
     table.forEach((row, idx) => {
       const pos = idx + 1;
       if (pos >= 6 && pos <= 9) {
@@ -1900,7 +1886,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v19.4',
+      serverV: 'v19.9',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };

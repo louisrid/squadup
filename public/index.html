@@ -263,8 +263,8 @@ tr.me td{background:rgba(255,61,138,.14)}
 .pickCard{position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;width:96px}
 .pickCard .pcard.sm{width:96px;margin:0}
 .pickStats{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;width:100%}
-.st{display:inline-block;font-family:var(--disp);font-weight:800;font-size:14px;line-height:1.2;border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:3px 7px;white-space:nowrap;vertical-align:middle}
-.pickStats .st{font-size:14px}
+.st{display:inline-block;font-family:var(--disp);font-weight:800;font-size:15px;line-height:1.2;border:1px solid rgba(255,255,255,.35);border-radius:5px;padding:3px 8px;white-space:nowrap;vertical-align:middle}
+.pickStats .st{font-size:15px}
 .slot{width:100px;min-height:116px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;
   border:2px dashed var(--line);color:var(--muted);font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.08em;cursor:pointer}
 .slot.filled{border:2px solid var(--pink);background:var(--surface2);color:var(--text);padding:6px 4px}
@@ -307,7 +307,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v19.4';
+const VERSION = 'v19.9';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('mdscreen')===-1){ if(typeof closeStandings==='function') closeStandings(); if(typeof closeTeamModal==='function') closeTeamModal(); } if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -1135,7 +1135,7 @@ function pickTags(pl){
   if(!hasStats) return grewBit;
   const formCol=pl.form==null?'#9A9AA8':pl.form>=8?'#1FE060':pl.form>=6?'#FFD23D':pl.form>=4?'#FF9838':'#FF5247';
   const formTxt=pl.form==null?'NEW':pl.form.toFixed(1);
-  return `${grewBit} <span class="st" style="background:#000;color:#fff">G:${pl.goals||0}</span> <span class="st" style="background:#000;color:#fff">A:${pl.assists||0}</span> <span class="st" style="background:${formCol};color:#000">${formTxt}</span>`;
+  return `${grewBit} <span class="st" style="background:#000;color:#fff">g:${pl.goals||0}</span> <span class="st" style="background:#000;color:#fff">a:${pl.assists||0}</span> <span class="st" style="background:${formCol};color:#000">${formTxt}</span>`;
 }
 function statOverlay(pl){
   // rating (+ growth) overlaid top-right on the card; form/goals/assists shown in a READABLE strip below it.
@@ -1150,8 +1150,8 @@ function statOverlay(pl){
     </div>`;
   if(!hasStats) return ratingOverlay;
   const strip=`<div class="pickStats">
-      <span class="st" style="background:#000;color:#fff">G:${pl.goals||0}</span>
-      <span class="st" style="background:#000;color:#fff">A:${pl.assists||0}</span>
+      <span class="st" style="background:#000;color:#fff">g:${pl.goals||0}</span>
+      <span class="st" style="background:#000;color:#fff">a:${pl.assists||0}</span>
       <span class="st" style="background:${formCol};color:#000">${formTxt}</span>
     </div>`;
   return ratingOverlay + strip;
@@ -1624,13 +1624,13 @@ function showFinal(){
     <div class="panel" style="padding:8px 10px">${sorted.map(p=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:nowrap;gap:6px">
       <span class="pos ${p.pos}">${p.pos}</span>
       <span class="grow" style="font-size:15px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}${p.legend?' 👑':''}${p.hero?' 🔥':''}</span>
-      <span style="flex-shrink:0;white-space:nowrap;display:flex;gap:4px"><span class="st" style="background:#000;color:#fff;font-size:12px;padding:2px 5px">G:${p.goals}</span><span class="st" style="background:#000;color:#fff;font-size:12px;padding:2px 5px">A:${p.assists}</span></span>
+      <span style="flex-shrink:0;white-space:nowrap;display:flex;gap:4px"><span class="st" style="background:#000;color:#fff;font-size:13px;padding:3px 6px">g:${p.goals}</span><span class="st" style="background:#000;color:#fff;font-size:13px;padding:3px 6px">a:${p.assists}</span></span>
       <span class="formchip ${fcCls(p.form)}" style="font-size:13px;min-width:38px;padding:3px 5px;flex-shrink:0">${p.form==null?'–':p.form.toFixed(1)}</span>
       <span class="disp" style="font-family:var(--disp);font-weight:800;font-size:18px;flex-shrink:0">${Math.round(p.rating)}</span></div>`).join('')}</div>`; })()}
-  <button class="primary" style="width:100%;margin-top:10px;position:relative;z-index:60" onclick="location.reload()">‹ Back to home</button>
-  <div class="muted center" style="margin-top:10px;font-size:14px">Take your time — the stats stay here until you leave.</div>
-  <div style="height:160px;flex-shrink:0"></div>`);
+  <div style="height:120px;flex-shrink:0"></div>
+  <button class="primary" style="position:fixed;left:50%;transform:translateX(-50%);bottom:max(20px,env(safe-area-inset-bottom));width:calc(100% - 32px);max-width:468px;z-index:200;box-shadow:0 6px 24px rgba(0,0,0,.7)" onclick="goHomeReload()">‹ Back to home</button>`);
 }
+function goHomeReload(){ try{ if(typeof s!=='undefined' && s && s.disconnect) s.disconnect(); }catch(e){} location.href = location.pathname; }
 
 /* ---------------- CONNECTION ---------------- */
 s.on('paused',(p)=>{ sfx('pause'); isPaused=true; syncPauseBtn(); const b=document.getElementById('pausebar');
