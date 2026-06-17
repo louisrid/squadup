@@ -330,7 +330,7 @@ class Game {
   }
 
   purchaseLegal(m, pos) {
-    return !(pos === 'GK' && m.squad.some((p) => p.pos === 'GK')); // only the keeper cap remains
+    return true; // multiple keepers allowed — no GK cap
   }
 
   activeManagers() {
@@ -380,7 +380,7 @@ class Game {
     // In the MAIN auction, don't let a manager stockpile keepers. In the WINTER market the whole
     // point of a premium GK is to upgrade, so allow it even if they already own one.
     const winter = this.auction && this.auction.window === 'winter';
-    if (p.pos === 'GK' && !winter && m.squad.some((x) => x.pos === 'GK')) return false;
+    // multiple keepers allowed — no GK ownership cap
     return true;
   }
 
@@ -520,7 +520,6 @@ class Game {
     // randomise order every lot so no single bot has a permanent first-mover advantage
     const bots = E.shuffle(this.activeManagers().filter((m) => m.isBot));
     for (const m of bots) {
-      if (a.current.pos === 'GK' && a.window !== 'winter' && m.squad.some((p) => p.pos === 'GK')) continue; // main auction: keeper cap (winter allows an upgrade)
       const need = this.botNeeds(m).needs(a.current.pos);
       const hard = m.diff === 'hard';
       const winterMkt = a.window === 'winter';
@@ -565,7 +564,6 @@ class Game {
     const a = this.auction;
     if (!a || !a.current) return;
     for (const m of this.activeManagers().filter((x) => x.isBot)) {
-      if (a.current.pos === 'GK' && a.window !== 'winter' && m.squad.some((p) => p.pos === 'GK')) continue;
       const hard = m.diff === 'hard';
       const chance = hard ? 0.45 : 0.18; // hard bots snipe often, easy bots occasionally
       if (Math.random() >= chance) continue;
@@ -594,7 +592,6 @@ class Game {
     const lotName = a.current.name;
     for (const m of E.shuffle(this.activeManagers().filter((x) => x.isBot))) {
       if (m.id === a.highBidder) continue; // already winning
-      if (a.current.pos === 'GK' && a.window !== 'winter' && m.squad.some((p) => p.pos === 'GK')) continue;
       const ceiling = this.botMaxBid(m, a.current);
       if (ceiling <= a.highBid) continue; // priced out — walk away cleanly
       // a human-ish reactive counter-bid after a short think (1-5m jumps)
@@ -629,7 +626,6 @@ class Game {
     if (amount < minBid) return { error: `Min bid £${minBid}m` };
     if (amount > m.budget) return { error: 'Not enough budget' };
     if (a.highBidder === m.id) return { error: 'Already highest bidder' };
-    if (a.current.pos === 'GK' && a.window !== 'winter' && m.squad.some((p) => p.pos === 'GK')) return { error: 'You already have a keeper' };
     if (a.outs.has(m.id)) return { error: 'You gave up on this lot' };
     a.highBid = amount;
     a.highBidder = m.id;
@@ -674,7 +670,6 @@ class Game {
     if (this.timers.botBids) { this.timers.botBids.forEach(clearTimeout); this.timers.botBids = []; }
     const interested = this.activeManagers()
       .filter((b) => b.isBot)
-      .filter((b) => !(a.current.pos === 'GK' && a.window !== 'winter' && b.squad.some((p) => p.pos === 'GK')))
       .map((b) => ({ b, max: this.botMaxBid(b, a.current) }))
       .filter((x) => x.max >= Math.max(1, a.highBid + 1))
       .sort((x, y) => y.max - x.max);
@@ -702,7 +697,6 @@ class Game {
       if (a.outs.has(m.id)) return false;
       if (m.id === a.highBidder) return false;
       if (m.budget < a.highBid + 1) return false;
-      if (a.current.pos === 'GK' && a.window !== 'winter' && m.squad.some((p) => p.pos === 'GK')) return false;
       return true;
     });
     if (contenders.length === 0) {
@@ -1906,7 +1900,7 @@ class Game {
           })),
         };
       })() : null,
-      serverV: 'v19.1',
+      serverV: 'v19.3',
       paused: this.paused,
       hostPaused: !!this.hostPaused,
     };
