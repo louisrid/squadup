@@ -45,11 +45,13 @@ body{max-width:500px;margin:0 auto;padding:16px 16px 40px;min-height:100dvh;font
   body{max-width:600px;font-size:17px}
   h1:not(.logoBounce){font-size:64px!important}
   .codetext{font-size:84px!important}
-  .lotRow .pcard{width:230px!important}
-  .lotRow .ringWrap{width:230px!important;height:230px!important}
-  #pauseBtn,#speedBtn{width:230px!important}
-  .lotRow .ringSec{font-size:64px!important}
-  .auctionWrap{padding-top:7vh!important}
+  .lotRow{gap:28px!important}
+  .lotCardWrap{width:200px!important}
+  .lotRow .pcard{width:200px!important}
+  .lotRow .ringWrap{width:200px!important;height:200px!important}
+  #pauseBtn,#speedBtn{width:200px!important}
+  .lotRow .ringSec{font-size:60px!important}
+  .auctionWrap{padding-top:6vh!important}
   .bidbar{bottom:max(40px,env(safe-area-inset-bottom))!important}
   .bidbar-scroll{max-height:26vh!important}
   .score{font-size:58px}
@@ -290,7 +292,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v18.5';
+const VERSION = 'v18.6';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('mdscreen')===-1){ if(typeof closeStandings==='function') closeStandings(); if(typeof closeTeamModal==='function') closeTeamModal(); } if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -891,10 +893,10 @@ function renderLot(){
   </div>
   ${AUCTION_WINDOW==='winter'?`<div class="row" style="justify-content:center;padding:0 18px;margin-top:2px"><button onclick="openStandings(true)" style="font-size:14px;padding:8px 14px;font-weight:800">📊 League standings</button></div>`:''}
   <div class="auctionWrap" data-lock style="justify-content:center;align-items:center;min-height:48vh;padding-top:max(2vh,12px);padding-bottom:50vh;gap:12px">
-  <div class="lotRow" style="align-items:center;justify-content:center;gap:min(20px,4vw);max-width:100%">
-    <div style="width:min(194px,42vw);flex-shrink:1">${cardHTML(A.player)}</div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:14px;flex-shrink:0">
-      <div class="ringWrap" style="width:min(124px,30vw);height:min(124px,30vw)">
+  <div class="lotRow" style="align-items:center;justify-content:center;gap:16px;max-width:100%;flex-wrap:nowrap">
+    <div class="lotCardWrap" style="width:min(170px,38vw);flex-shrink:0">${cardHTML(A.player)}</div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px;flex-shrink:0;min-width:0">
+      <div class="ringWrap" style="width:min(120px,28vw);height:min(120px,28vw)">
         <svg class="ring" viewBox="0 0 156 156"><circle cx="78" cy="78" r="${R}" fill="none" stroke="var(--line)" stroke-width="6"/>
         <circle id="ringFg" cx="78" cy="78" r="${R}" fill="none" stroke="var(--pink)" stroke-width="6" stroke-linecap="round"
           stroke-dasharray="${C}" stroke-dashoffset="0"/></svg>
