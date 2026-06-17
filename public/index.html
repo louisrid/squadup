@@ -292,7 +292,7 @@ tr.me td{background:rgba(255,61,138,.14)}
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const s = io();
-const VERSION = 'v18.9';
+const VERSION = 'v19.1';
 const $ = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); if(typeof clearMatchSfx==='function') clearMatchSfx(); if(h.indexOf('mdscreen')===-1){ if(typeof closeStandings==='function') closeStandings(); if(typeof closeTeamModal==='function') closeTeamModal(); } if(h.indexOf('data-lock')>-1) document.body.classList.add('lock'); else document.body.classList.remove('lock'); document.querySelectorAll('.cf').forEach(n=>n.remove()); document.getElementById('app').innerHTML = h; window.scrollTo(0,0); };
 const $k = (h) => { if(typeof closeManagerInfo==='function') closeManagerInfo(); const y = window.scrollY; document.getElementById('app').innerHTML = h; window.scrollTo(0, y); };
 let ME = { id:null, code:null, name:null, budget:100 };
@@ -891,7 +891,6 @@ function renderLot(){
     <span class="eyebrow grow">Lot ${A.index+1}/${A.total}</span>
     <span class="muted">You: <b style="color:var(--text)">£${ME.budget}m</b></span>
   </div>
-  ${AUCTION_WINDOW==='winter'?`<div class="row" style="justify-content:center;padding:0 18px;margin-top:2px"><button onclick="openStandings(true)" style="font-size:14px;padding:8px 14px;font-weight:800">📊 League standings</button></div>`:''}
   <div class="auctionWrap" data-lock style="justify-content:center;align-items:center;min-height:48vh;padding-top:max(2vh,12px);padding-bottom:50vh;gap:12px">
   <div class="lotRow" style="align-items:center;justify-content:center;gap:16px;max-width:100%;flex-wrap:nowrap">
     <div class="lotCardWrap" style="width:min(170px,38vw);flex-shrink:0">${cardHTML(A.player)}</div>
@@ -1194,7 +1193,9 @@ function renderPick(){
       <span class="pos ${pl.pos}">${pl.pos}</span>${esc(pl.name)}${pl.wonderkid?' ⭐':''}${pl.legend?' 👑':''}${pl.rtg?` <b style="opacity:.85">${pl.rtg}</b>`:''}${pickTags(pl)}${pl.injured?' 🤕':''}</button>`).join('')}
   </div>
   <div class="muted" style="margin-top:8px">Anyone not placed starts on the bench.</div>
-  ${(p.half==='second'||isWinter)?standingsBtnHTML():''}
+  ${(p.half==='second'||isWinter)
+    ? `<button onclick="openStandings(true)" style="width:100%;max-width:300px;margin:10px auto 0;display:block;font-size:15px;padding:11px;font-weight:800">📊 League standings</button>`
+    : standingsBtnHTML()}
   ${submitBtn}
   ${isWinter?statPanels(W.stats,true):''}
   <div style="height:200px;flex-shrink:0"></div>`);
